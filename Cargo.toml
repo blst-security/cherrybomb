@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+	"cli",
+	"digest",
+	"mapper",
+	"decider",
+	#"attacker",
+]
