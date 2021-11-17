@@ -84,6 +84,8 @@ pub enum Method{
     GET,
     POST,
     OPTIONS,
+    PATCH,
+    DELETE,
     Other,
 }
 impl Default for Method{

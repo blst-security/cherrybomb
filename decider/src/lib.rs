@@ -4,8 +4,10 @@ use serde::{Serialize,Deserialize};
 
 mod rule_based;
 use rule_based::*;
+//mod rcf;
+//use rcf::*;
 
-/*fn detect_group(session:&Session,digest:&Digest)->Option<Group>{
+fn _detect_group(session:&Session,digest:&Digest)->Option<Group>{
     let eps_path:Vec<&String> = session.req_res.iter().map(|rr| &rr.path).collect();
     for group in digest.groups.clone(){
         let g_eps_path:Vec<&String> = group.endpoints.iter().map(|e| &e.path).collect();
@@ -20,7 +22,7 @@ use rule_based::*;
         }
     }
     None
-}*/
+}
 #[derive(Debug,Clone,Serialize,Deserialize,PartialEq,Eq)]
 pub enum Type{
     Endpoint,
@@ -33,8 +35,8 @@ impl Default for Type{
 }
 #[derive(Debug,Clone,Serialize,Deserialize,PartialEq,Eq,Default)]
 pub struct Anomaly{
-    session:Session,
-    endpoint:Option<ReqRes>,
+    pub session:Session,
+    pub endpoint:Option<ReqRes>,
     r#type:Type,
 }
 const DEFAULT_ANOMALY_SCORE:u16 = 100;
@@ -43,7 +45,7 @@ pub enum RuleRCF{
     RuleBased,
     RCF
 }
-pub fn decide(/*way:RuleRCF,*/digest:Digest,sessions:Vec<Session>,anomaly_score:Option<u16>)->Vec<Option<Anomaly>>{
+pub fn decide(/*way:RuleRCF,*/digest:Digest,sessions:Vec<Session>,anomaly_score:Option<u16>)->Vec<(Option<Anomaly>,Vec<u16>)>{
     let anomaly_score = if let Some(s)= anomaly_score {s} else {DEFAULT_ANOMALY_SCORE}; 
     let mut anomalies = vec![];
     for session in sessions{
@@ -54,9 +56,9 @@ pub fn decide(/*way:RuleRCF,*/digest:Digest,sessions:Vec<Session>,anomaly_score:
         */
         let dec = decide_rule_based(&digest,&session,anomaly_score);
         if dec.0{
-            anomalies.push(Some(Anomaly{session,endpoint:dec.1,r#type:Type::Endpoint}));
+            anomalies.push((Some(Anomaly{session,endpoint:dec.1,r#type:Type::Endpoint}),dec.2));
         }else{
-            anomalies.push(None);
+            anomalies.push((None,dec.2));
         }
     }
     anomalies

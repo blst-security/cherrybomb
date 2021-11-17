@@ -5,5 +5,5 @@ members = [
 	"digest",
 	"mapper",
 	"decider",
-	#"attacker",
+	"attacker",
 ]

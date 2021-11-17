@@ -1,10 +1,13 @@
 use mapper::*;
 use digest::*;
+use attacker::*;
+use decider::*;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use url::{Url};
+use colored::*;
 
-fn read_file(mut file_name:String) -> Option<String> {
+fn read_file(mut file_name:&str) -> Option<String> {
     let mut file = match File::open(&mut file_name) {
         Ok(f) => f,
         Err(_) => {
@@ -26,8 +29,7 @@ fn read_file(mut file_name:String) -> Option<String> {
 fn get_sessions(logs:&str) -> Vec<Session> {
     match serde_json::from_str::<Vec<Session>>(logs) {
         Ok(r) => r,
-        Err(e) => {
-            println!("{}", e);
+        Err(_) => {
             match serde_json::from_str::<Session>(logs) {
                 Ok(r) => {
                     vec![r]
@@ -42,12 +44,12 @@ fn get_sessions(logs:&str) -> Vec<Session> {
 }
 
 fn write_map_file(file_name:String, map:String) {
-    let mut map_file = OpenOptions::new().write(true).create(true).open(&file_name).unwrap();
+    let mut map_file = OpenOptions::new().write(true).create(true).open(format!("{}.json", &file_name)).unwrap();
     map_file.write_all(map.as_bytes()).unwrap();
 }
 
 pub fn map(logs_file:String, output:String) {
-    let logs = match read_file(logs_file) {
+    let logs = match read_file(&logs_file) {
         Some(r) => r,
         None => {
             return;
@@ -58,49 +60,106 @@ pub fn map(logs_file:String, output:String) {
     write_map_file(format!("{}.json", output), serde_json::to_string(&digest).unwrap());
 }
 
-pub fn attack(domain:String, map_file:String, _decide_file:String) {
-    let map = match read_file(format!("{}.json",map_file)) {
+pub async fn attack_domain(mut domain:String, map_file:String, decide_file:String, pop:usize, _gen:usize, verbosity:Verbosity) { // gen and pop
+    let s_map = match read_file(&format!("{}.json", map_file)) {
         Some(r) => r,
         None => {
             return;
         }
     };
-    let _map:Digest = serde_json::from_str(&map).unwrap();
+    let d_map:Digest = match serde_json::from_str(&s_map) {
+        Ok(r) => r,
+        Err(e) => {
+            println!("{:?}", e);
+            return;
+        }
+    };
     match Url::parse(&domain) {
-        Ok(_) => (),
+        Ok(_) => {
+            if !(domain.contains("https://") || domain.contains("http://")) {
+                domain.push_str("https://");
+            }
+        },
         Err(_) => {
             println!("Invalid domain \"{}\"", domain);
             return;
         },
     }
-    // attack
-    // write_map_file(format!("{}.json", output), serde_json::to_string(&digest).unwrap());
+    let gen = 3;
+    for _ in 0..gen {
+        match attack(pop, verbosity, &decide_file).await {
+            Ok(_) => {
+                let vec_sessions = match read_file(&decide_file) {
+                    Some(r) => r,
+                    None => {
+                        return;
+                    }
+                };
+                let anomalys = decide(d_map.clone(), get_sessions(&vec_sessions), None);
+                let mut a1 =vec![];
+                let mut a2 =vec![];
+                for a in &anomalys {
+                    match a {
+                        (Some(r),v) => {
+                            a1.push(Some(r.clone()));
+                            a2.push(v.clone());
+                            match &r.endpoint {
+                                Some(e) => {
+                                    println!("{:?}", r.session.token);
+                                    for ep in &r.session.req_res {
+                                        if ep == e {
+                                            println!("{:?}", (&serde_json::to_string(&ep).unwrap()).red()); 
+                                        } else {
+                                            println!("{:?}", (&serde_json::to_string(&ep).unwrap()).green());
+                                        }
+                                    }
+                                },
+                                None => {
+                                    println!("{:?}", (&serde_json::to_string(&r.session).unwrap()).yellow());
+                                } 
+                            }
+                        },
+                        (None,v) => {
+                            a1.push(None);
+                            a2.push(v.clone());
+                        },
+                    }
+                }
+                refit(pop, a1, a2);
+                //write_map_file(format!("{}.json", output), serde_json::to_string(&digest).unwrap());
+            },
+            Err(e) => {
+                if e == "Unable to load attacker module, needs to be prepared first" {
+                    //prepare(d_map.clone(), domain);
+                }
+            }
+        }
+    }
 }
 
-pub fn decide(decide_file:String) {
-    let _logs = match read_file(decide_file) {
+pub fn decide_sessions(decide_file:String) {
+    let _logs = match read_file(&decide_file) {
         Some(r) => r,
         None => {
             return;
         }
     };
-    // send refit to the attacker (talk with guy)
 }
 
 pub fn load(logs_file:String, map_file:String) {
-    let logs = match read_file(logs_file) {
+    let logs = match read_file(&logs_file) {
         Some(r) => r,
         None => {
             return;
         }
     };
-    let map = match read_file(map_file.clone()) {
+    let _map = match read_file(&map_file) {
         Some(r) => r,
         None => {
             return;
         }
     };
-    let mut digest:Digest = match serde_json::from_str(&map) {
+    let mut digest:Digest = match serde_json::from_str(&map_file) {
         Ok(r) => r,
         Err(e) => {
             println!("{:?}", e);

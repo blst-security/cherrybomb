@@ -64,9 +64,10 @@ fn test_payload(cur:&String,other:&PayloadDescriptor)->u16{
     }
     anomaly_score
 }
-
-pub fn decide_rule_based(digest:&Digest,session:&Session,top_anomaly_score:u16)->(bool,Option<ReqRes>){
-    let mut total_anomaly_score = 0;
+pub fn _decide_flow_rule_based(_digest:Digest,_session:Session,_top_anomaly_score:u16)->(bool,Option<ReqRes>){
+    (false,None)
+}
+pub fn decide_rule_based(digest:&Digest,session:&Session,top_anomaly_score:u16)->(bool,Option<ReqRes>,Vec<u16>){
     /*
     if let Some(group) = detect_group(&session,&digest){
         let g_eps_path:Vec<String> = group.endpoints.iter().map(|e| e.path).collect();
@@ -78,8 +79,12 @@ pub fn decide_rule_based(digest:&Digest,session:&Session,top_anomaly_score:u16)-
         true
     }*/
     let eps_path:Vec<&String> = digest.eps.iter().map(|e| &e.path).collect();
-    let mut anomaly_score = 0;
+    let mut total_anomaly_score = 0;
+    let mut anomaly_scores = vec![];
+    let mut cond1 = false;
+    let mut ep_true = None;
     for ep in session.req_res.clone(){
+        let mut anomaly_score = 0;
         if let Some(i) = eps_path.iter().position(|p| p== &(&ep.path)){
             let ep_digest = &digest.eps[i];
             if ep.status != 404{
@@ -90,14 +95,17 @@ pub fn decide_rule_based(digest:&Digest,session:&Session,top_anomaly_score:u16)-
             }else{
                 anomaly_score+=1;
             }
-        }else{
-            return (true,Some(ep));
+        }else if !cond1{
+            cond1 = true;
+            ep_true = Some(ep);
+            continue;
         }
-        if anomaly_score>=(top_anomaly_score/2){
-            return (true,Some(ep));
+        if anomaly_score>=(top_anomaly_score/2) && !cond1{
+            cond1 = true;
+            ep_true = Some(ep);
         }
         total_anomaly_score+=anomaly_score;
-        anomaly_score=0;
+        anomaly_scores.push(anomaly_score);
     }
-    (total_anomaly_score>top_anomaly_score,None)
+    (total_anomaly_score>top_anomaly_score || cond1,ep_true,anomaly_scores)
 }

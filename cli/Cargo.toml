@@ -18,5 +18,6 @@ futures-util = { version = "^0.3", default-features = false, features = ["alloc"
 digest = { path = "../digest" }
 mapper = { path = "../mapper" }
 decider = { path = "../decider" }
+attacker = { path = "../attacker" }
 colored = "2.0.0"
 url = { version = "2" }

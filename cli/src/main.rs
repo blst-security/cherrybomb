@@ -1,6 +1,7 @@
 use clap::{Arg, App, Error};
-use blst_cli_app::*;
+use firecracker::*;
 use colored::*;
+use attacker::Verbosity;
 
 const VERSION:&'static str = "1.0.0";
 const MAP_FILE:&'static str = "map";
@@ -13,7 +14,7 @@ async fn main() -> Result<(), Error> {
         .author("Roy B. <roy.barnea@blstsecurity.com>")
         .about("Blst cli app")
         .subcommand(App::new("map")
-            .about("Create a new map file")
+            .about("Create a new map from log file")
             .version("1.0")
             .arg(Arg::new("LOGS_FILE")
                 .short('f')
@@ -26,61 +27,76 @@ async fn main() -> Result<(), Error> {
                 .short('o')
                 .long("output")
                 .value_name("Map File Name")
-                .about("Sets the new map file output")
+                .about("Sets the output map file")
                 .takes_value(true)))
+
         .subcommand(App::new("attack")
-            .about("Attack domain")
+            .about("Attack your domain based on an existing map")
             .version("1.0")
             .arg(Arg::new("DOMAIN")
                 .short('d')
                 .long("domain")
                 .value_name("Domain Name")
-                .about("Sets the attacked domain name")
+                .about("The attacked domain name")
                 .required(true)
                 .takes_value(true))
             .arg(Arg::new("MAP")
                 .short('m')
                 .long("map")
                 .value_name("Map File Name")
-                .about("Sets the map file that the atttack will be based on")
+                .about("The map file that the attack will be based on")
                 .takes_value(true))
             .arg(Arg::new("DECIDE_FILE")
                 .short('o')
                 .long("output")
                 .value_name("Decide File Name")
-                .about("Sets the decide file that the atttack will be based on")
+                .about("Sets the output decide file")
+                .takes_value(true))
+            .arg(Arg::new("POP")
+                .short('p')
+                .long("population")
+                .value_name("Population Number")
+                .about("Sets the population number")
+                .takes_value(true))
+            .arg(Arg::new("GEN")
+                .short('g')
+                .long("generations")
+                .value_name("Generations Number")
+                .about("Sets the generations number")
+                .takes_value(true))
+            .arg(Arg::new("VERBOSITY")
+                .short('v')
+                .long("verbosity")
+                .value_name("Verboseity level")
+                .about("Sets the level of verbosity")
                 .takes_value(true)))
+
         .subcommand(App::new("decide")
             .about("Decide")
             .version("1.0")
             .arg(Arg::new("DECIDE_FILE")
                 .short('f')
                 .long("file")
+                .value_name("Decide File Name")
+                .about("Sets the source decide file")
+                .takes_value(true)))
+
+        .subcommand(App::new("load")
+            .about("Load logs to an existing map")
+            .version("1.0")
+            .arg(Arg::new("LOGS_FILE")
+                .short('f')
+                .long("file")
                 .value_name("Logs File Name")
                 .about("Sets the source logs file")
+                .required(true)
+                .takes_value(true))
+            .arg(Arg::new("MAP")
+                .short('m')
+                .long("map")
+                .value_name("Map File Name")
+                .about("Sets the map file that you want to update")
                 .takes_value(true)))
-            .subcommand(App::new("load")
-                .about("Load logs file to an existing map")
-                .version("1.0")
-                .arg(Arg::new("LOGS_FILE")
-                    .short('f')
-                    .long("file")
-                    .value_name("Logs File Name")
-                    .about("Sets the source logs file")
-                    .required(true)
-                    .takes_value(true))
-                .arg(Arg::new("MAP")
-                    .short('m')
-                    .long("map")
-                    .value_name("Map File Name")
-                    .about("Update The Selected Map File")
-                    .takes_value(true)))
-        /*
-        .arg(Arg::new("v")
-            .short('v')
-            .multiple_occurrences(true)
-            .takes_value(true)
-            .about("Sets the level of verbosity"))*/
         .get_matches();
 
     if let Some(vars) = matches.subcommand_matches("map") {
@@ -94,26 +110,57 @@ async fn main() -> Result<(), Error> {
     }
     else if let Some(vars) = matches.subcommand_matches("attack") {
         if let Some(d) = vars.value_of("DOMAIN") {
-            if let Some(m) = vars.value_of("MAP") {
-                if let Some(o) = vars.value_of("DECIDE_FILE") {
-                    attack(d.to_string(), m.to_string(), o.to_string());
-                } else {
-                    attack(d.to_string(), m.to_string(), DECIDE_FILE.to_string());
-                }
-            } else {
-                if let Some(o) = vars.value_of("DECIDE_FILE") {
-                    attack(d.to_string(), MAP_FILE.to_string(), o.to_string());
-                } else {
-                    attack(d.to_string(), MAP_FILE.to_string(), DECIDE_FILE.to_string());
-                }
-            }
+            let m = match vars.value_of("MAP") {
+                Some(r) => r.to_string(),
+                None => MAP_FILE.to_string(),
+            };
+            let o = match vars.value_of("DECIDE_FILE") {
+                Some(r) => r.to_string(),
+                None => DECIDE_FILE.to_string(),
+            };
+            let p = match vars.value_of("POP") {
+                Some(r) => r.parse::<usize>().unwrap(),
+                None => 0usize,
+            };
+            let g = match vars.value_of("GEN") {
+                Some(r) => r.parse::<usize>().unwrap(),
+                None => 3usize,
+            };
+            let v = match vars.value_of("VERBOSITY") {
+                Some(r) => {
+                    match r {
+                        "0" => {
+                            println!("Verbosity level is max");
+                            Verbosity::Verbose
+                        },
+                        "1" => {
+                            println!("Verbosity level is almost max");
+                            Verbosity::Default
+                        },
+                        "2" => {
+                            println!("Verbosity level is max");
+                            Verbosity::Basic
+                        },
+                        "3" => {
+                            println!("Verbosity level is max");
+                            Verbosity::None
+                        },
+                        _ => {
+                            println!("Verbosity level is max");
+                            Verbosity::Default
+                        },
+                    }
+                },
+                None => Verbosity::Default,
+            };
+            attack_domain(d.to_string(),m, o, p, g, v).await;
         }
     }
     else if let Some(vars) = matches.subcommand_matches("decide") {
         if let Some(d) = vars.value_of("DECIDE_FILE") {
-            decide(d.to_string());
+            decide_sessions(d.to_string());
         } else {
-            decide(DECIDE_FILE.to_string());
+            decide_sessions(DECIDE_FILE.to_string());
         }
     }
     else if let Some(vars) = matches.subcommand_matches("load") {
@@ -123,32 +170,18 @@ async fn main() -> Result<(), Error> {
             } else {
                 load(l.to_string(), MAP_FILE.to_string());
             }
-
         }
     }
     else {
-        /*
-        let a = executor::block_on(get_access("Map"));
-        if a {
-            println!("{}", a);
-        }*/
-        println!("\n\n\n######  #        #####  #######\n#     # #       #     #    #\n#     # #       #          #\n######  #        #####     #\n#     # #             #    #\n#     # #       #     #    #\n######  #######  #####     #\n\n");
+        //println!("\n\n\n######  #        #####  #######\n#     # #       #     #    #\n#     # #       #          #\n######  #        #####     #\n#     # #             #    #\n#     # #       #     #    #\n######  #######  #####     #\n\n");
+        println!("\n\n\n  __ ._______   .____      ._______________________.  __
+ / /\\/      /\\  /   /\\     /   _______             /\\/ /\\
+/_/ /    ----/\\/   /_/__  /_____     /___.    ____/ /_/ /
+\\ \\/    __  / /        /\\/   /_/    / / /     /\\__\\/\\_\\/
+  /________/ /________/ /__________/ / /_____/ /
+  \\.   .___\\/\\.   .___\\/\\.   ._____\\/  \\. .__\\/\n\n");
         println!("\nFIRECRACKER v{}", VERSION.to_string());
         println!("\nFor more information try {}", "--help".green());
     }
-    
-    // You can see how many times a particular flag or argument occurred
-    // Note, only flags can have multiple occurrences
-
-    /*
-    match matches.occurrences_of("v") {
-        0 => println!("Verbose mode is off"),
-        1 => println!("Verbose mode is kind of on"),
-        2 => println!("Verbose mode is on"),
-        _ => println!("Don't be crazy"),
-    }
-    */
-
-    // Continued program logic goes here...
     Ok(())
 }
