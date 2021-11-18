@@ -9,37 +9,49 @@ const DECIDE_FILE:&'static str = "decide";
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let matches = App::new("BLST CLI APP")
+    let matches = App::new("FIRECRACKER")
         .version("1.0")
         .author("Roy B. <roy.barnea@blstsecurity.com>")
         .about("Blst cli app")
         .subcommand(App::new("map")
-            .about("Create a new map from log file")
+            .about("Creates a new map from a given log file, outputs a digest file to the local directory")
             .version("1.0")
             .arg(Arg::new("LOGS_FILE")
                 .short('f')
                 .long("file")
                 .value_name("Logs File Name")
-                .about("Sets the source logs file")
+                .about("Indicate the file to set the map from")
                 .required(true)
                 .takes_value(true))
             .arg(Arg::new("OUTPUT")
                 .short('o')
                 .long("output")
                 .value_name("Map File Name")
-                .about("Sets the output map file")
+                .about("Sets the output map file's name")
+                .takes_value(true)))
+
+        .subcommand(App::new("prepare")
+            .about("Prepare the attacker for the attack")
+            .version("1.0")
+            .arg(Arg::new("URL")
+                .short('u')
+                .long("url")
+                .value_name("URL Address")
+                .about("The attacked domain's URL")
+                .required(true)
+                .takes_value(true))
+            .about("Prepare the attacker for the attack")
+            .version("1.0")
+            .arg(Arg::new("MAP")
+                .short('m')
+                .long("map")
+                .value_name("Map File Name")
+                .about("The map file that the attack will be based on")
                 .takes_value(true)))
 
         .subcommand(App::new("attack")
-            .about("Attack your domain based on an existing map")
+            .about("Attacks your domain based on an existing map")
             .version("1.0")
-            .arg(Arg::new("DOMAIN")
-                .short('d')
-                .long("domain")
-                .value_name("Domain Name")
-                .about("The attacked domain name")
-                .required(true)
-                .takes_value(true))
             .arg(Arg::new("MAP")
                 .short('m')
                 .long("map")
@@ -50,7 +62,7 @@ async fn main() -> Result<(), Error> {
                 .short('o')
                 .long("output")
                 .value_name("Decide File Name")
-                .about("Sets the output decide file")
+                .about("Sets the output decide file's name")
                 .takes_value(true))
             .arg(Arg::new("POP")
                 .short('p')
@@ -62,7 +74,7 @@ async fn main() -> Result<(), Error> {
                 .short('g')
                 .long("generations")
                 .value_name("Generations Number")
-                .about("Sets the generations number")
+                .about("Sets the max generations number")
                 .takes_value(true))
             .arg(Arg::new("VERBOSITY")
                 .short('v')
@@ -74,11 +86,18 @@ async fn main() -> Result<(), Error> {
         .subcommand(App::new("decide")
             .about("Decide")
             .version("1.0")
-            .arg(Arg::new("DECIDE_FILE")
+            .arg(Arg::new("LOG_FILE")
                 .short('f')
                 .long("file")
-                .value_name("Decide File Name")
-                .about("Sets the source decide file")
+                .value_name("Log File Name")
+                .about("Sets the source logs file")
+                .required(true)
+                .takes_value(true))
+            .arg(Arg::new("MAP")
+                .short('m')
+                .long("map")
+                .value_name("Map File Name")
+                .about("Sets the source map file")
                 .takes_value(true)))
 
         .subcommand(App::new("load")
@@ -108,59 +127,68 @@ async fn main() -> Result<(), Error> {
             }
         }
     }
-    else if let Some(vars) = matches.subcommand_matches("attack") {
-        if let Some(d) = vars.value_of("DOMAIN") {
-            let m = match vars.value_of("MAP") {
-                Some(r) => r.to_string(),
-                None => MAP_FILE.to_string(),
-            };
-            let o = match vars.value_of("DECIDE_FILE") {
-                Some(r) => r.to_string(),
-                None => DECIDE_FILE.to_string(),
-            };
-            let p = match vars.value_of("POP") {
-                Some(r) => r.parse::<usize>().unwrap(),
-                None => 0usize,
-            };
-            let g = match vars.value_of("GEN") {
-                Some(r) => r.parse::<usize>().unwrap(),
-                None => 3usize,
-            };
-            let v = match vars.value_of("VERBOSITY") {
-                Some(r) => {
-                    match r {
-                        "0" => {
-                            println!("Verbosity level is max");
-                            Verbosity::Verbose
-                        },
-                        "1" => {
-                            println!("Verbosity level is almost max");
-                            Verbosity::Default
-                        },
-                        "2" => {
-                            println!("Verbosity level is max");
-                            Verbosity::Basic
-                        },
-                        "3" => {
-                            println!("Verbosity level is max");
-                            Verbosity::None
-                        },
-                        _ => {
-                            println!("Verbosity level is max");
-                            Verbosity::Default
-                        },
-                    }
-                },
-                None => Verbosity::Default,
-            };
-            attack_domain(d.to_string(),m, o, p, g, v).await;
+    else if let Some(vars) = matches.subcommand_matches("prepare") {
+        if let Some(u) = vars.value_of("URL") {
+            if let Some(m) = vars.value_of("MAP") {
+                prepare_attacker(u.to_string(), m.to_string());
+            } else {
+                prepare_attacker(u.to_string(), MAP_FILE.to_string());
+            }
         }
     }
+    else if let Some(vars) = matches.subcommand_matches("attack") {
+        let m = match vars.value_of("MAP") {
+            Some(r) => r.to_string(),
+            None => MAP_FILE.to_string(),
+        };
+        let o = match vars.value_of("DECIDE_FILE") {
+            Some(r) => r.to_string(),
+            None => DECIDE_FILE.to_string(),
+        };
+        let p = match vars.value_of("POP") {
+            Some(r) => r.parse::<usize>().unwrap(),
+            None => 0usize,
+        };
+        let g = match vars.value_of("GEN") {
+            Some(r) => r.parse::<usize>().unwrap(),
+            None => 3usize,
+        };
+        let v = match vars.value_of("VERBOSITY") {
+            Some(r) => {
+                match r {
+                    "0" => {
+                        println!("Verbosity level is max");
+                        Verbosity::Verbose
+                    },
+                    "1" => {
+                        println!("Verbosity level is Default");
+                        Verbosity::Default
+                    },
+                    "2" => {
+                        println!("Verbosity level is Basic");
+                        Verbosity::Basic
+                    },
+                    "3" => {
+                        println!("Verbosity level is None");
+                        Verbosity::None
+                    },
+                    _ => {
+                        println!("Verbosity level is Default");
+                        Verbosity::Default
+                    },
+                }
+            },
+            None => Verbosity::Default,
+        };
+        attack_domain(m, o, p, g, v).await;
+    }
     else if let Some(vars) = matches.subcommand_matches("decide") {
-        if let Some(d) = vars.value_of("DECIDE_FILE") {
-            decide_sessions(d.to_string());
-        } else {
-            decide_sessions(DECIDE_FILE.to_string());
+        if let Some(d) = vars.value_of("LOG_FILE") {
+            if let Some(m) = vars.value_of("MAP") {
+                decide_sessions(d.to_string(), m.to_string());
+            } else {
+                decide_sessions(d.to_string(), MAP_FILE.to_string());
+            }
         }
     }
     else if let Some(vars) = matches.subcommand_matches("load") {

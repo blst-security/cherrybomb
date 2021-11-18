@@ -7,8 +7,8 @@ use std::io::{Read, Write};
 use url::{Url};
 use colored::*;
 
-fn read_file(file_name:&str) -> Option<String> {
-    let mut file = match File::open(&format!("{}.json",file_name)) {
+fn read_file(mut file_name:&str) -> Option<String> {
+    let mut file = match File::open(&mut file_name) {
         Ok(f) => f,
         Err(_) => {
             println!("File \"{}\" not found", file_name);
@@ -29,7 +29,8 @@ fn read_file(file_name:&str) -> Option<String> {
 fn get_sessions(logs:&str) -> Vec<Session> {
     match serde_json::from_str::<Vec<Session>>(logs) {
         Ok(r) => r,
-        Err(_) => {
+        Err(e) => {
+            println!("{:?}",e);
             match serde_json::from_str::<Session>(logs) {
                 Ok(r) => {
                     vec![r]
@@ -60,8 +61,8 @@ pub fn map(logs_file:String, output:String) {
     write_map_file(format!("{}", output), serde_json::to_string(&digest).unwrap());
 }
 
-pub async fn attack_domain(mut domain:String, map_file:String, decide_file:String, pop:usize, _gen:usize, verbosity:Verbosity) { // gen and pop
-    let s_map = match read_file(&map_file){
+pub fn prepare_attacker(mut url:String, map_file:String) {
+    let s_map = match read_file(&format!("{}.json", map_file)){
         Some(r) => r,
         None => {
             return;
@@ -74,30 +75,43 @@ pub async fn attack_domain(mut domain:String, map_file:String, decide_file:Strin
             return;
         }
     };
-    match Url::parse(&domain) {
+    match Url::parse(&url) {
         Ok(_) => {
-            if !(domain.contains("https://") || domain.contains("http://")) {
-                domain.push_str("https://");
+            if !(url.contains("https://") || url.contains("http://")) {
+                url.push_str("https://");
             }
         },
         Err(_) => {
-            println!("Invalid domain \"{}\"", domain);
+            println!("Invalid url \"{}\"", url);
             return;
         },
     }
-    let gen = 3;
+    let groups = prepare(d_map.clone(), url);
+    for (i, g) in groups.iter().enumerate() {
+        println!("Population number {:?} , endpoints: {:?}" , i, g);
+    }
+}
+
+pub async fn attack_domain(map_file:String, decide_file:String, pop:usize, gen:usize, verbosity:Verbosity) { // gen and pop
+    let s_map = match read_file(&format!("{}.json", map_file)){
+        Some(r) => r,
+        None => {
+            return;
+        }
+    };
+    let d_map:Digest = match serde_json::from_str(&s_map) {
+        Ok(r) => r,
+        Err(e) => {
+            println!("{:?}", e);
+            return;
+        }
+    };
     for _ in 0..gen {
-        match attack(pop, verbosity, &decide_file).await {
-            Ok(_) => {
-                let vec_sessions = match read_file(&decide_file) {
-                    Some(r) => r,
-                    None => {
-                        return;
-                    }
-                };
-                let anomalys = decide(d_map.clone(), get_sessions(&vec_sessions), None);
-                let mut a1 =vec![];
-                let mut a2 =vec![];
+        match attack(pop, verbosity, &format!("{}.json", decide_file)).await {
+            Ok(vec_sessions) => {
+                let anomalys = decide(d_map.clone(), vec_sessions, None);
+                let mut a1 = vec![];
+                let mut a2 = vec![];
                 for a in &anomalys {
                     match a {
                         (Some(r),v) => {
@@ -126,24 +140,65 @@ pub async fn attack_domain(mut domain:String, map_file:String, decide_file:Strin
                     }
                 }
                 refit(pop, a1, a2);
-                //write_map_file(format!("{}.json", output), serde_json::to_string(&digest).unwrap());
+                println!("Done!");
             },
             Err(e) => {
-                if e == "Unable to load attacker module, needs to be prepared first" {
-                    //prepare(d_map.clone(), domain);
-                }
+                println!("{}", e);
             }
         }
     }
 }
 
-pub fn decide_sessions(decide_file:String) {
-    let _logs = match read_file(&decide_file) {
+pub fn decide_sessions(logs_file:String, map_file:String) {
+    let vec_sessions = match read_file(&format!("{}", logs_file)) {
+        Some(r) => r,
+        None => {
+            return;
+        }
+    }; 
+    let s_map = match read_file(&format!("{}.json", map_file)){
         Some(r) => r,
         None => {
             return;
         }
     };
+    let d_map:Digest = match serde_json::from_str(&s_map) {
+        Ok(r) => r,
+        Err(e) => {
+            println!("{:?}", e);
+            return;
+        }
+    };
+    let anomalys = decide(d_map.clone(), get_sessions(&vec_sessions), None);
+    let mut a1 = vec![];
+    let mut a2 = vec![];
+    for a in &anomalys {
+        match a {
+            (Some(r),v) => {
+                a1.push(Some(r.clone()));
+                a2.push(v.clone());
+                match &r.endpoint {
+                    Some(e) => {
+                        println!("{:?}", r.session.token);
+                        for ep in &r.session.req_res {
+                            if ep == e {
+                                println!("{:?}", (&serde_json::to_string(&ep).unwrap()).red()); 
+                            } else {
+                                println!("{:?}", (&serde_json::to_string(&ep).unwrap()).green());
+                            }
+                        }
+                    },
+                    None => {
+                        println!("{:?}", (&serde_json::to_string(&r.session).unwrap()).yellow());
+                    } 
+                }
+            },
+            (None,v) => {
+                a1.push(None);
+                a2.push(v.clone());
+            },
+        }
+    }
 }
 
 pub fn load(logs_file:String, map_file:String) {
@@ -153,7 +208,7 @@ pub fn load(logs_file:String, map_file:String) {
             return;
         }
     };
-    let _map = match read_file(&map_file) {
+    let _map = match read_file(&format!("{}.json", map_file)) {
         Some(r) => r,
         None => {
             return;
