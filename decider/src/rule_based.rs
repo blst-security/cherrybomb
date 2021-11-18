@@ -97,8 +97,7 @@ pub fn decide_rule_based(digest:&Digest,session:&Session,top_anomaly_score:u16)-
             }
         }else if !cond1{
             cond1 = true;
-            ep_true = Some(ep);
-            continue;
+            ep_true = Some(ep.clone());
         }
         if anomaly_score>=(top_anomaly_score/2) && !cond1{
             cond1 = true;
