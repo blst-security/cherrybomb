@@ -50,13 +50,13 @@ pub fn refit(pop:usize,anomalies:Vec<Option<Anomaly>>,anomaly_scores:Vec<Vec<u16
     attacker.populations[pop].refit(anomalies,anomaly_scores);
     attacker.save().unwrap();
 }
-pub async fn attack(pop:usize,verbosity:Verbosity,decide_file:&str)->Result<(),&'static str>{
+pub async fn attack(pop:usize,verbosity:Verbosity,decide_file:&str)->Result<Vec<Session>,&'static str>{
     if let Ok(mut file) = OpenOptions::new().write(true).create(true).open(decide_file){
         if let Ok(attacker) = Attacker::load(){ 
             let sessions = attacker.populations[pop].run_gen(verbosity,&attacker.base_url).await;
             file.write_all(serde_json::to_string(&sessions).unwrap().as_bytes()).unwrap();
             attacker.save().unwrap();
-            Ok(())
+            Ok(sessions)
         }else{
             Err("Unable to load attacker module, needs to be prepared first")
         }

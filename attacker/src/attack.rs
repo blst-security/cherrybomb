@@ -78,7 +78,7 @@ fn gen_string(method:GenMethod,bits:Vec<u8>,param:StringDescriptor)->String{
                     Uuid::new_v4().to_string()
                 }
                 StringDescriptor::List(lst)=>{
-                    lst[generate_number_in_range(bits,0,lst.len() as i16-1) as usize].clone()
+                    lst[generate_number_in_range(bits,0,(lst.len()-1) as i16) as usize].clone()
                 }
                 StringDescriptor::Random=>{
                     let sum1:u8 = bits.iter().sum();
