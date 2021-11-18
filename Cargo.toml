@@ -7,3 +7,6 @@ members = [
 	"decider",
 	"attacker",
 ]
+
+[profile.release]
+opt-level = 3

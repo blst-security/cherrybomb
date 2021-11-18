@@ -159,12 +159,9 @@ impl EndpointHash{
         self.add_headers(&req_res.req_headers,true);
         self.add_headers(&req_res.res_headers,false);
         let query_pairs:ParamPayloadHash =conv_json_pairs(&req_res.req_query); //Url::parse(&req_res.path).unwrap().query_pairs().into_owned().map(|p| ParamPayload{param:p.0,payload:p.1}).collect();
-        println!("Q:{:?}",&req_res.req_query);
         let res_pairs:ParamPayloadHash = conv_json_pairs(&req_res.res_payload);
-        println!("RES:{:?}",&req_res.res_payload);
         self.add_pp(&query_pairs,req_res.status,&res_pairs,true);
         let req_pairs:ParamPayloadHash = conv_json_pairs(&req_res.req_payload);
-        println!("REQ:{:?}",&req_res.req_payload);
         self.add_pp(&req_pairs,req_res.status,&res_pairs,true);
     }
 }

@@ -10,4 +10,3 @@ edition = "2021"
 digest = {path="../digest"}
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "1.0"
-random-cut-forest ={git="https://github.com/aws/random-cut-forest-by-aws"}

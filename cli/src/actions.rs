@@ -7,8 +7,8 @@ use std::io::{Read, Write};
 use url::{Url};
 use colored::*;
 
-fn read_file(mut file_name:&str) -> Option<String> {
-    let mut file = match File::open(&mut file_name) {
+fn read_file(file_name:&str) -> Option<String> {
+    let mut file = match File::open(&format!("{}.json",file_name)) {
         Ok(f) => f,
         Err(_) => {
             println!("File \"{}\" not found", file_name);
@@ -57,11 +57,11 @@ pub fn map(logs_file:String, output:String) {
     };
     let mut digest = Digest::default();
     digest.load_vec_session(get_sessions(&logs));
-    write_map_file(format!("{}.json", output), serde_json::to_string(&digest).unwrap());
+    write_map_file(format!("{}", output), serde_json::to_string(&digest).unwrap());
 }
 
 pub async fn attack_domain(mut domain:String, map_file:String, decide_file:String, pop:usize, _gen:usize, verbosity:Verbosity) { // gen and pop
-    let s_map = match read_file(&format!("{}.json", map_file)) {
+    let s_map = match read_file(&map_file){
         Some(r) => r,
         None => {
             return;
