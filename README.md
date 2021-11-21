@@ -1,6 +1,7 @@
 <div align="center">
   <img src="https://www.blstsecurity.com/assets/images/cli/logo.png" alt="BLST's Firecracker logo"/>
 </div>
+
 # Who is BLST and what do we do?
 [BLST](https://www.blstsecurity.com/) (Business Logic Security Testing) is a startup company that's developing an automatic penetration tester, replacing the manual penetration tester by using an advanced neural network and helping developers build more secure applications by catching bugs before they hit production.
 # What is BLST's Firecracker?
