@@ -71,6 +71,7 @@ If you have any questions, please send us a message to [support@blstsecurity.com
 You are also welcome to open an Issue here on GitHub.
 # Contributing
 While this is an open source project, it is meant to be as an easy to get-started with example of our SaaS project, and outside contribution is not necessary.
+You can talk to us in our developers' [slack channel](https://join.slack.com/share/enQtMjcyOTUyNjY5MDQzOC0yOTNmZjMwYTc2Y2MxNjY4NTkwN2QwM2YxMmQwMzk3YTg2OWMwMWU5NjI5YzFiYjgyMjBhOTRiMmJlN2Y0ZTYw?cdn_fallback=1).
 <div align="center">
   <img src="https://www.blstsecurity.com/logo193.png" alt="BLST Security's logo"/>
 </div>
