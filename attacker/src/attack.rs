@@ -19,9 +19,18 @@ fn convert(bits: Vec<u8>) -> i16 {
         })
 }
 fn generate_number_in_range(bits:Vec<u8>,min:i16,max:i16)->i16{
-    let conv = convert(bits);
+    let c = convert(bits);
+    //i16 ti u16 for the ranging thing
+    let conv:u16 = if c>0{
+        let d:u16 = c as u16;
+        d+32767
+    }else if c==0{
+        32767u16
+    }else{
+        (c+32767) as u16
+    };
     //conv div full range mult part range + min
-    (((conv as f64)/(32767.0*2.0))*(max-min) as f64 +min as f64) as i16
+    ((((conv) as f64)/(32767.0*2.0))*(max-min) as f64 +min as f64) as i16
 }
 fn gen_number(method:GenMethod,bits:Vec<u8>,param:NumDescriptor)->i16{
     match method{
@@ -240,7 +249,9 @@ async fn send_attack(base_url:&str,eps:Vec<(Method,String,Vec<Parameter>)>)->Vec
                     req_query:String::new(),
                 });
             },
-            _=>{}
+            _=>{
+                rr.push(ReqRes::default());
+            },
         }
 
     }

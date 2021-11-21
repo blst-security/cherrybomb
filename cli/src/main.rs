@@ -15,7 +15,6 @@ async fn main() -> Result<(), Error> {
         .about("Blst cli app")
         .subcommand(App::new("map")
             .about("Creates a new map from a given log file, outputs a digest file to the local directory")
-            .version("1.0")
             .arg(Arg::new("LOGS_FILE")
                 .short('f')
                 .long("file")
@@ -27,12 +26,12 @@ async fn main() -> Result<(), Error> {
                 .short('o')
                 .long("output")
                 .value_name("Map File Name")
+                .default_value("map")
                 .about("Sets the output map file's name")
                 .takes_value(true)))
 
         .subcommand(App::new("prepare")
             .about("Prepare the attacker for the attack")
-            .version("1.0")
             .arg(Arg::new("URL")
                 .short('u')
                 .long("url")
@@ -41,51 +40,54 @@ async fn main() -> Result<(), Error> {
                 .required(true)
                 .takes_value(true))
             .about("Prepare the attacker for the attack")
-            .version("1.0")
             .arg(Arg::new("MAP")
                 .short('m')
                 .long("map")
                 .value_name("Map File Name")
+                .default_value("map")
                 .about("The map file that the attack will be based on")
                 .takes_value(true)))
 
         .subcommand(App::new("attack")
             .about("Attacks your domain based on an existing map")
-            .version("1.0")
             .arg(Arg::new("MAP")
                 .short('m')
                 .long("map")
                 .value_name("Map File Name")
+                .default_value("map")
                 .about("The map file that the attack will be based on")
                 .takes_value(true))
             .arg(Arg::new("DECIDE_FILE")
                 .short('o')
                 .long("output")
                 .value_name("Decide File Name")
+                .default_value("decide")
                 .about("Sets the output decide file's name")
                 .takes_value(true))
             .arg(Arg::new("POP")
                 .short('p')
                 .long("population")
                 .value_name("Population Number")
+                .default_value("0")
                 .about("Sets the population number")
                 .takes_value(true))
             .arg(Arg::new("GEN")
                 .short('g')
                 .long("generations")
                 .value_name("Generations Number")
+                .default_value("1")
                 .about("Sets the max generations number")
                 .takes_value(true))
             .arg(Arg::new("VERBOSITY")
                 .short('v')
                 .long("verbosity")
                 .value_name("Verboseity level")
-                .about("Sets the level of verbosity")
+                .default_value("1")
+                .about("Sets the level of verbosity, 0 - Max, 1 - Default, 2 - Basic, 3 - None")
                 .takes_value(true)))
 
         .subcommand(App::new("decide")
-            .about("Decide")
-            .version("1.0")
+            .about("Decide whether or not a log file contains anomalies")
             .arg(Arg::new("LOG_FILE")
                 .short('f')
                 .long("file")
@@ -97,12 +99,12 @@ async fn main() -> Result<(), Error> {
                 .short('m')
                 .long("map")
                 .value_name("Map File Name")
+                .default_value("map")
                 .about("Sets the source map file")
                 .takes_value(true)))
 
         .subcommand(App::new("load")
             .about("Load logs to an existing map")
-            .version("1.0")
             .arg(Arg::new("LOGS_FILE")
                 .short('f')
                 .long("file")
@@ -114,6 +116,7 @@ async fn main() -> Result<(), Error> {
                 .short('m')
                 .long("map")
                 .value_name("Map File Name")
+                .default_value("map")
                 .about("Sets the map file that you want to update")
                 .takes_value(true)))
         .get_matches();
@@ -151,13 +154,13 @@ async fn main() -> Result<(), Error> {
         };
         let g = match vars.value_of("GEN") {
             Some(r) => r.parse::<usize>().unwrap(),
-            None => 3usize,
+            None => 1usize,
         };
         let v = match vars.value_of("VERBOSITY") {
             Some(r) => {
                 match r {
                     "0" => {
-                        println!("Verbosity level is max");
+                        println!("Verbosity level is Max");
                         Verbosity::Verbose
                     },
                     "1" => {
