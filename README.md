@@ -47,13 +47,14 @@ To run the decider only to **passively** check for anomalies in your logs, run
 firecracker decide --file <LOGS_FILE_PATH> --map <MAPPED_FILE_PATH>
 ```
 ### Active attacking and checking for anomalies (2 steps)
-After mapping, prepare the attacker by running
+After mapping, prepare the attacker by running the command below.
+This will print the populations (API groups) so you can choose which one you want to run the attacker on.
 ```
 firecracker prepare --url <URL_TO_ATTACK> --map <MAPPED_FILE_PATH>
 ```
 Now you can use the attacker to **actively** attack the API by running
 ```
-firecracker attack --map <MAPPED_FILE_PATH> (the one you just prepared) --output <OUTPUT_FILE_NAME> --population <POPULATION_NUMBER> (the one you got from the prepare step) --generations <MAX_GENERATIONS_NUMBER> --verbosity <VERBOSITY_LEVEL>
+firecracker attack --map <MAPPED_FILE_PATH> (the same one you used in the prepare step) --output <OUTPUT_FILE_NAME> --population <POPULATION_NUMBER> (the one you got from the prepare step) --generations <MAX_GENERATIONS_NUMBER> --verbosity <VERBOSITY_LEVEL>
 ```
 In the future, if you want to load new logs to an existing map file, run
 ```
@@ -66,6 +67,7 @@ Here's a small taste of what's coming in the future:
 - **Decider** - A more advanced algorithm that can detect more anomalies.
 - **Mapper** - Path parameters analysis and support for more complex business logic flows.
 - **Attacker** - Better support for more complex business logic flows.
+
 # Support
 
 ### Documentation
