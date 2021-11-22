@@ -67,6 +67,11 @@ Here's a small taste of what's coming in the future:
 - **Mapper** - Path parameters analysis and support for more complex business logic flows.
 - **Attacker** - Better support for more complex business logic flows.
 # Support
+
+### Documentation
+Please read [our documentation](https://www.blstsecurity.com/firecracker/Documentation) to understand the format of sessions our mapper needs to function correctly.
+
+### Get help
 If you have any questions, please send us a message to [support@blstsecurity.com](mailto:support@blstsecurity.com).
 You are also welcome to open an Issue here on GitHub.
 # Contributing
