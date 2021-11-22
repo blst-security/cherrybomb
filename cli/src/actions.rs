@@ -37,6 +37,7 @@ fn get_sessions(logs:&str) -> Vec<Session> {
                 Err(e1) => {
                     println!("{}", e0);
                     println!("{}", e1);
+                    println!("{} {}", "ran into an error while parsing your logs".red(), "you can check out the correct format in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
                     vec![]
                 },
             }
