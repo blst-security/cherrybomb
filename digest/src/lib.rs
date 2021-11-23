@@ -1,6 +1,6 @@
-use std::collections::{HashMap,HashSet};
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-use serde::{Serialize,Deserialize};
 use uuid::Uuid;
 pub mod hash;
 pub use hash::*;
@@ -15,10 +15,10 @@ pub use ep::*;
 pub mod group;
 pub use group::*;
 
-#[derive(Debug,Clone,Serialize,Deserialize,Default)]
-pub struct Digest{
-    pub ep_hash:Vec<EndpointHash>,
-    pub link_hash:LinksHash,
-    pub eps:Vec<Endpoint>,
-    pub groups:Vec<Group>,
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct Digest {
+    pub ep_hash: Vec<EndpointHash>,
+    pub link_hash: LinksHash,
+    pub eps: Vec<Endpoint>,
+    pub groups: Vec<Group>,
 }
