@@ -21,3 +21,4 @@ decider = { path = "../decider" }
 attacker = { path = "../attacker" }
 colored = "2.0.0"
 url = { version = "2" }
+httparse = "1.5.1"
