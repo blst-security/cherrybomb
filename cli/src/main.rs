@@ -3,15 +3,15 @@ use clap::{App, Arg, Error};
 use colored::*;
 use firecracker::*;
 
-const VERSION: &'static str = "1.0.0";
+const VERSION: &'static str = "0.1.0";
 const MAP_FILE: &'static str = "map";
 const DECIDE_FILE: &'static str = "decide";
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let matches = App::new("FIRECRACKER")
-        .version("1.0")
-        .author("Roy B. <roy.barnea@blstsecurity.com>")
+        .version(VERSION)
+        .author("<support@blstsecurity.com>")
         .about("Blst cli app")
         .subcommand(App::new("map")
             .about("Creates a new map from a given log file, outputs a digest file to the local directory")
