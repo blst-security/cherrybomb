@@ -202,6 +202,7 @@ dependencies = [
  "digest",
  "futures",
  "futures-util",
+ "httparse",
  "hyper",
  "hyper-rustls 0.22.1 (git+https://github.com/rustls/hyper-rustls)",
  "mapper",
