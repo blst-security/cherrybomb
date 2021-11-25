@@ -204,6 +204,7 @@ pub fn map(logs_file: String, output: String) {
         );
         println!("{}", "Your map is ready, you can upload and view it at https://www.blstsecurity.com/firecracker/Visualizer".green());
     } else {
+        println!("{} {}", "ran into an error while parsing your logs".red(), "you can check out the correct format in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
         println!("{}", "Something went wrong check the errors above".red());
     }
 }
