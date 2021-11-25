@@ -206,6 +206,9 @@ impl MapLoad for Digest {
     }
     fn load_vec_session(&mut self, sessions: Vec<Session>) {
         for session in sessions.iter() {
+            if session.req_res.is_empty(){
+                continue;
+            }   
             for i in 0..(session.req_res.len() - 1) {
                 let mut found = false;
                 for ep_hash in &mut self.ep_hash {
