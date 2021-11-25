@@ -164,6 +164,9 @@ pub trait MapLoad {
 }
 impl MapLoad for Digest {
     fn load_session(&mut self, session: Session) {
+        if session.req_res.is_empty(){
+            return;
+        }
         for i in 0..(session.req_res.len() - 1) {
             let mut found = false;
             for ep_hash in &mut self.ep_hash {
@@ -172,7 +175,7 @@ impl MapLoad for Digest {
                     found = true;
                 }
             }
-            if !found {
+            if !found  {
                 self.ep_hash
                     .push(EndpointHash::new(session.req_res[i].path.clone()));
             }
