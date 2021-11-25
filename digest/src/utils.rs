@@ -130,18 +130,19 @@ impl Token {
     }
 }
 pub fn conv_json_pairs(s: &String) -> Vec<ParamPayload> {
-    let jj: HashMap<String, String> = match serde_json::from_str(s) {
-        Ok(json) => json,
-        Err(_) => {
-            return vec![];
+    if let Ok(json) = serde_json::from_str::<HashMap<String, String>>(s) {
+        let mut ret = vec![];
+        for (param,payload) in json {
+            ret.push(ParamPayload {
+                param,
+                payload,
+            });
         }
-    };
-    let mut ret = vec![];
-    for key in jj.keys() {
-        ret.push(ParamPayload {
-            param: key.clone(),
-            payload: jj[key].clone(),
-        });
+        ret
+    }else{
+        vec![ParamPayload{
+            param:String::from("param"),
+            payload:s.to_string(),
+        }]
     }
-    ret
 }

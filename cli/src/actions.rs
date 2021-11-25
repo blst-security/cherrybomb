@@ -141,7 +141,7 @@ fn parse_http(file_data: String) -> Vec<Session> {
     ret
 }
 
-fn get_sessions(logs: &str) -> Vec<Session> {
+fn _get_sessions(logs: &str) -> Vec<Session> {
     match serde_json::from_str::<Vec<Session>>(logs) {
         Ok(r) => r,
         Err(e0) => match serde_json::from_str::<Session>(logs) {
@@ -338,7 +338,7 @@ pub fn decide_sessions(logs_file: String, map_file: String) {
             return;
         }
     };
-    let anomalys = decide(d_map.clone(), get_sessions(&vec_sessions), None);
+    let anomalys = decide(d_map.clone(), parse_http(vec_sessions)/*get_sessions(&vec_sessions)*/, None);
     let mut a1 = vec![];
     let mut a2 = vec![];
     println!("{}", "Decider starting\nSearching for anomalys...".bold());
@@ -394,7 +394,7 @@ pub fn load(logs_file: String, map_file: String) {
             return;
         }
     };
-    let sessions = get_sessions(&logs);
+    let sessions = parse_http(logs);//get_sessions(&logs);
     if !sessions.is_empty() {
         println!("{}", "Starts mapping...".green());
         digest.load_vec_session(sessions);

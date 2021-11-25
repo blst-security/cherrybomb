@@ -110,10 +110,7 @@ pub fn decide_rule_based(
             } else {
                 anomaly_score += 1;
             }
-        } else if !cond1 {
-            cond1 = true;
-            ep_true = Some(ep.clone());
-        }
+        } 
         if anomaly_score >= (top_anomaly_score / 2) && !cond1 {
             cond1 = true;
             ep_true = Some(ep);
