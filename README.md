@@ -2,7 +2,7 @@
   <img src="https://www.blstsecurity.com/assets/images/cli/logo.png" alt="BLST's Firecracker logo"/>
 </div>
 
-[![Maintained by blstsecurity](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/) [![docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://www.blstsecurity.com/firecracker/Documentation) [![slack-community](https://img.shields.io/badge/Slack-4A154B?style=plastic&logo=slack&logoColor=white)](blst-aaaae62s6fjuna7g2jn4z5zrqq@blst-workspace.slack.com)
+[![Maintained by blstsecurity](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/) [![docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://www.blstsecurity.com/firecracker/Documentation) [![slack-community](https://img.shields.io/badge/Slack-4A154B?style=plastic&logo=slack&logoColor=white)](https://join.slack.com/t/blst-workspace/shared_invite/zt-zpru76xs-A2qVon3pju20BmY0ILV4Mg)
 
 # Who is BLST and what do we do?
 [BLST](https://www.blstsecurity.com/) (Business Logic Security Testing) is a startup company that's developing an automatic penetration tester, replacing the manual penetration tester by using an advanced neural network and helping developers build more secure applications by catching bugs before they hit production.
