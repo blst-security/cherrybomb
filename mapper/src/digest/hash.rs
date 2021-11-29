@@ -69,43 +69,10 @@ impl Default for QuePay {
         Self::Payload
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub enum PartHash{
-    Number(HashSet<f64>),
-    Uuid,
-    String(HashSet<String>),
-}
-/*
-impl PartHash{
-    pub add_from_str(&mut self,part:&str)->Self{
-        match Uuid::from_str(part){
-             Ok(_)=>Part::Uuid,
-             Err(_)=>{
-                match part.parse::<f64>(){
-                    Ok(_)=> PartHash::Number(
-                    Err(_)=>Part::String(part.to_string())
-                }
-             }
-        }
-    }
-}*/
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct PathHash{
-    string:String,
-    parts:Vec<Part>,
-}
-impl PathHash{
-    pub fn from_str(path:String)->Self{
-        let parts = path.split("/").map(|part|{
-            Part::from_str(part)
-        })
-        PathHash{string:path}
-    }
-}
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct EndpointHash {
-    pub path: String,
+    pub path: String,//Path,
     #[serde_as(as = "Vec<(_, _)>")]
     pub dm: HashMap<QuePay, u32>,
     #[serde_as(as = "Vec<(_, _)>")]
@@ -114,7 +81,7 @@ pub struct EndpointHash {
     pub res_headers: HashMap<String, HashMap<String, u32>>,
     pub status_payloads: ParamPayloadH,
     pub queries: ParamPayloadH, //HashMap<String,HashMap<String,u32>>,
-    pub path_params:HashMap<String,HashSet<
+    //pub path_params:HashMap<String,HashSet<
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct ParamPayload {

@@ -7,7 +7,6 @@ name = "attacker"
 version = "0.1.0"
 dependencies = [
  "decider",
- "digest",
  "rand",
  "reqwest",
  "serde",
@@ -555,7 +554,10 @@ dependencies = [
 name = "mapper"
 version = "0.1.0"
 dependencies = [
- "digest",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "url",
  "uuid",
 ]
 

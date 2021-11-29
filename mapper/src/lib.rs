@@ -1,8 +1,11 @@
+pub mod digest;
 use digest::*;
 use std::collections::{HashMap, HashSet};
 use uuid::{Uuid, Version};
 mod patterns;
 use patterns::*;
+mod path;
+use path::*;
 
 pub fn check_values_req(values: &HashSet<String>) -> ValueDescriptor {
     search_for_patterns(values.into_iter().collect())

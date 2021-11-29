@@ -1,5 +1,5 @@
 use decider::Anomaly;
-use digest::*;
+use mapper::digest::*;
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
 use std::io::Write;
