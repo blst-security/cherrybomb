@@ -100,7 +100,7 @@ impl RRPayload{
 pub struct Endpoint {
     pub common_req_headers: HeaderMap,
     pub common_res_headers: HeaderMap,
-    pub path: String,
+    pub path: Path,
     pub methods: Split<Method>,
     pub payload_delivery_methods: Split<QuePay>,
     pub req_res_payloads: RRPayload,

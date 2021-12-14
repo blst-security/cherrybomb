@@ -1,6 +1,6 @@
 use super::*;
 fn fingerprint_string(strings: Vec<&String>) -> StringDescriptor {
-    let desc = if let Ok(u) = Uuid::parse_str(strings[0]) {
+    if let Ok(u) = Uuid::parse_str(strings[0]) {
         match u.get_version() {
             Some(Version::Nil) => StringDescriptor::Uuid(0),
             Some(Version::Mac) => StringDescriptor::Uuid(1),
@@ -19,8 +19,7 @@ fn fingerprint_string(strings: Vec<&String>) -> StringDescriptor {
             }
         }
         StringDescriptor::List(fp_hash.into_iter().collect())
-    };
-    desc
+    }
 }
 fn fingerprint_number(numbers: Vec<&String>) -> ValueDescriptor {
     let mut fp_hash = HashSet::new();
@@ -51,10 +50,10 @@ fn fingerprint_number(numbers: Vec<&String>) -> ValueDescriptor {
 pub fn search_for_patterns(values: Vec<&String>) -> ValueDescriptor {
     let pointers = values.iter().take(10);
     let mut weights = (0u16, 0u16, 0u16);
-    for pointer in pointers.clone().into_iter() {
-        if let Ok(_) = pointer.parse::<f64>() {
+    for pointer in pointers.clone(){
+        if pointer.parse::<f64>().is_ok() {
             weights.0 += 1;
-        } else if let Ok(_) = pointer.parse::<bool>() {
+        } else if pointer.parse::<bool>().is_ok() {
             weights.1 += 1;
         } else {
             weights.2 += 1;

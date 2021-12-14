@@ -1,4 +1,6 @@
 use super::*;
+use std::fmt;
+
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct Header {
@@ -49,7 +51,7 @@ where
     }
     pub fn from_hashmap(hashmap: &HashMap<T, u32>) -> Self {
         let total: u32 = hashmap.values().sum();
-        let values = hashmap.keys().map(|k| k.clone()).collect::<Vec<T>>();
+        let values = hashmap.keys().cloned().collect::<Vec<T>>();
         let percentages = hashmap
             .values()
             .map(|v| ((v * 100) / total) as u8)
@@ -83,11 +85,7 @@ where
         self.percentages = new_pers;
     }
     pub fn get(&self, val: &T) -> Option<u8> {
-        if let Some(pos) = self.values.iter().position(|v| v == val) {
-            Some(self.percentages[pos])
-        } else {
-            None
-        }
+        self.values.iter().position(|v| v == val).map(|pos| self.percentages[pos])
     }
 }
 //pub type Split= HashMap<String,u8>;
@@ -98,12 +96,39 @@ pub enum Method {
     POST,
     OPTIONS,
     PATCH,
+    PUT,
     DELETE,
     Other,
 }
 impl Default for Method {
     fn default() -> Self {
-        Method::GET
+            Method::GET
+    }
+}
+impl Method {
+    pub fn from_str(s: &str) -> Self {
+        match s{
+            "GET"=>Method::GET,
+            "POST"=>Method::POST,
+            "PUT"=>Method::PUT,
+            "PATCH"=>Method::PATCH,
+            "DELETE"=>Method::DELETE,
+            "OPTIONS"=>Method::OPTIONS,
+            _=>Method::Other,
+        }
+    }
+}
+impl std::fmt::Display for Method {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self{
+            Self::GET=>write!(f, "GET"),
+            Self::POST=>write!(f, "POST"),
+            Self::PUT=>write!(f, "PUT"),
+            Self::OPTIONS=>write!(f, "OPTIONS"),
+            Self::PATCH=>write!(f, "PATCH"),
+            Self::DELETE=>write!(f, "DELETE"),
+            Self::Other=>write!(f, "other"),
+        }
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -129,13 +154,14 @@ impl Token {
         }
     }
 }
-pub fn conv_json_pairs(s: &String) -> Vec<ParamPayload> {
-    if let Ok(json) = serde_json::from_str::<HashMap<String, String>>(s) {
+pub fn conv_json_pairs(s: &str) -> Vec<ParamPayload> {
+    //if let Ok(json) = serde_json::from_str::<HashMap<String, String>>(s) {
+    if let Ok(serde_json::Value::Object(json)) = serde_json::from_str::<serde_json::Value>(s) {
         let mut ret = vec![];
-        for (param,payload) in json {
+        for (param,payload) in json{
             ret.push(ParamPayload {
                 param,
-                payload,
+                payload:payload.to_string(),
             });
         }
         ret

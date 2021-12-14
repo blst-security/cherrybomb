@@ -15,10 +15,13 @@ pub mod ep;
 pub use ep::*;
 pub mod group;
 pub use group::*;
+use serde_with::serde_as;
 
+#[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Digest {
-    pub path_hash:PathHash,
+    #[serde_as(as = "Vec<(_, _)>")]
+    pub path_hash:HashMap<String,u32>,
     pub ep_hash: Vec<EndpointHash>,
     pub link_hash: LinksHash,
     pub eps: Vec<Endpoint>,

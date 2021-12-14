@@ -13,11 +13,7 @@ pub struct LinksHash {
 }
 impl LinksHash {
     pub fn get(&self, val: &Endpoint) -> Option<HashMap<Endpoint, u64>> {
-        if let Some(pos) = self.links.iter().position(|l| &l.from == val) {
-            Some(self.links[pos].to.clone())
-        } else {
-            None
-        }
+        self.links.iter().position(|l| &l.from == val).map(|pos| self.links[pos].to.clone())
     }
     pub fn keys(&self) -> Vec<Endpoint> {
         self.links
@@ -58,8 +54,10 @@ pub struct LinkHashRef{
 pub struct LinksHashRef{
     links:Vec<LinkHashRef>,
 }*/
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum QuePay {
+    Headers,
+    Path,
     Query,
     Payload,
     Response,
@@ -80,8 +78,7 @@ pub struct EndpointHash {
     pub req_headers: HashMap<String, HashMap<String, u32>>,
     pub res_headers: HashMap<String, HashMap<String, u32>>,
     pub status_payloads: ParamPayloadH,
-    pub queries: ParamPayloadH, //HashMap<String,HashMap<String,u32>>,
-    //pub path_params:HashMap<String,HashSet<
+    pub queries: ParamPayloadH, 
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct ParamPayload {

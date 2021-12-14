@@ -1,11 +1,11 @@
-use attacker::Verbosity;
-use clap::{App, Arg, Error};
-use colored::*;
+use clap::{Arg, App, Error};
 use firecracker::*;
+use colored::*;
+use attacker::Verbosity;
 
-const VERSION: &'static str = "0.1.0";
-const MAP_FILE: &'static str = "map";
-const DECIDE_FILE: &'static str = "decide";
+const VERSION:&str = "0.1.0";
+const MAP_FILE:&str = "map";
+const DECIDE_FILE:&str = "decide";
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -13,6 +13,16 @@ async fn main() -> Result<(), Error> {
         .version(VERSION)
         .author("<support@blstsecurity.com>")
         .about("Blst cli app")
+        .subcommand(App::new("add_token")
+            .about("Creates a client token file with the given token")
+            .arg(Arg::new("TOKEN")
+                .short('t')
+                .long("token")
+                .value_name("Client Token Name")
+                .about("The client token you got from firecracker's webpage")
+                .required(true)
+                .takes_value(true)))
+
         .subcommand(App::new("map")
             .about("Creates a new map from a given log file, outputs a digest file to the local directory")
             .arg(Arg::new("LOGS_FILE")
@@ -121,15 +131,23 @@ async fn main() -> Result<(), Error> {
                 .takes_value(true)))
         .get_matches();
 
-    if let Some(vars) = matches.subcommand_matches("map") {
+
+    
+    if let Some(vars) = matches.subcommand_matches("add_token") {
+        if let Some(t) = vars.value_of("TOKEN") {
+            add_token(t.to_string());
+        }
+    }
+    else if let Some(vars) = matches.subcommand_matches("map") {
         if let Some(l) = vars.value_of("LOGS_FILE") {
             if let Some(o) = vars.value_of("OUTPUT") {
                 map(l.to_string(), o.to_string());
             } else {
-                map(l.to_string(), MAP_FILE.to_string());
+                map(l.to_string(), MAP_FILE.to_string()); 
             }
         }
-    } else if let Some(vars) = matches.subcommand_matches("prepare") {
+    }
+    else if let Some(vars) = matches.subcommand_matches("prepare") {
         if let Some(u) = vars.value_of("URL") {
             if let Some(m) = vars.value_of("MAP") {
                 prepare_attacker(u.to_string(), m.to_string());
@@ -137,7 +155,8 @@ async fn main() -> Result<(), Error> {
                 prepare_attacker(u.to_string(), MAP_FILE.to_string());
             }
         }
-    } else if let Some(vars) = matches.subcommand_matches("attack") {
+    }
+    else if let Some(vars) = matches.subcommand_matches("attack") {
         let m = match vars.value_of("MAP") {
             Some(r) => r.to_string(),
             None => MAP_FILE.to_string(),
@@ -155,32 +174,35 @@ async fn main() -> Result<(), Error> {
             None => 1usize,
         };
         let v = match vars.value_of("VERBOSITY") {
-            Some(r) => match r {
-                "0" => {
-                    println!("Verbosity level is Max");
-                    Verbosity::Verbose
-                }
-                "1" => {
-                    println!("Verbosity level is Default");
-                    Verbosity::Default
-                }
-                "2" => {
-                    println!("Verbosity level is Basic");
-                    Verbosity::Basic
-                }
-                "3" => {
-                    println!("Verbosity level is None");
-                    Verbosity::None
-                }
-                _ => {
-                    println!("Verbosity level is Default");
-                    Verbosity::Default
+            Some(r) => {
+                match r {
+                    "0" => {
+                        println!("Verbosity level is Max");
+                        Verbosity::Verbose
+                    },
+                    "1" => {
+                        println!("Verbosity level is Default");
+                        Verbosity::Default
+                    },
+                    "2" => {
+                        println!("Verbosity level is Basic");
+                        Verbosity::Basic
+                    },
+                    "3" => {
+                        println!("Verbosity level is None");
+                        Verbosity::None
+                    },
+                    _ => {
+                        println!("Verbosity level is Default");
+                        Verbosity::Default
+                    },
                 }
             },
             None => Verbosity::Default,
         };
         attack_domain(m, o, p, g, v).await;
-    } else if let Some(vars) = matches.subcommand_matches("decide") {
+    }
+    else if let Some(vars) = matches.subcommand_matches("decide") {
         if let Some(d) = vars.value_of("LOG_FILE") {
             if let Some(m) = vars.value_of("MAP") {
                 decide_sessions(d.to_string(), m.to_string());
@@ -188,7 +210,8 @@ async fn main() -> Result<(), Error> {
                 decide_sessions(d.to_string(), MAP_FILE.to_string());
             }
         }
-    } else if let Some(vars) = matches.subcommand_matches("load") {
+    }
+    else if let Some(vars) = matches.subcommand_matches("load") {
         if let Some(l) = vars.value_of("LOGS_FILE") {
             if let Some(m) = vars.value_of("MAP") {
                 load(l.to_string(), m.to_string());
@@ -196,17 +219,16 @@ async fn main() -> Result<(), Error> {
                 load(l.to_string(), MAP_FILE.to_string());
             }
         }
-    } else {
+    }
+    else {
         //println!("\n\n\n######  #        #####  #######\n#     # #       #     #    #\n#     # #       #          #\n######  #        #####     #\n#     # #             #    #\n#     # #       #     #    #\n######  #######  #####     #\n\n");
-        println!(
-            "\n\n\n  __ ._______   .____      ._______________________.  __
+        println!("\n\n\n  __ ._______   .____      ._______________________.  __
  / /\\/      /\\  /   /\\     /   _______             /\\/ /\\
 /_/ /    ----/\\/   /_/__  /_____     /___.    ____/ /_/ /
 \\ \\/    __  / /        /\\/   /_/    / / /     /\\__\\/\\_\\/
   /________/ /________/ /__________/ / /_____/ /
-  \\.   .___\\/\\.   .___\\/\\.   ._____\\/  \\. .__\\/\n\n"
-        );
-        println!("\nFIRECRACKER v{}", VERSION.to_string());
+  \\.   .___\\/\\.   .___\\/\\.   ._____\\/  \\. .__\\/\n\n");
+        println!("\nFIRECRACKER v{}", VERSION);
         println!("\nFor more information try {}", "--help".green());
     }
     Ok(())
