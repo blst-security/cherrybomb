@@ -2,7 +2,8 @@
   <img src="https://www.blstsecurity.com/assets/images/cli/logo.png" alt="BLST's Firecracker logo"/>
 </div>
 
-[![Maintained by blstsecurity](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/) [![docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://www.blstsecurity.com/firecracker/Documentation) [![slack-community](https://img.shields.io/badge/Slack-4A154B?style=plastic&logo=slack&logoColor=white)](blst-aaaae62s6fjuna7g2jn4z5zrqq@blst-workspace.slack.com)
+[![Maintained by blstsecurity](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/) [![docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://www.blstsecurity.com/firecracker/Documentation)
+<!-- ![Discord Shield](https://discordapp.com/api/guilds/914846937327497307/widget.png?style=shield) -->
 
 # Who is BLST and what do we do?
 [BLST](https://www.blstsecurity.com/) (Business Logic Security Testing) is a startup company that's developing an automatic penetration tester, replacing the manual penetration tester by using an advanced neural network and helping developers build more secure applications by catching bugs before they hit production.
@@ -80,7 +81,7 @@ If you have any questions, please send us a message to [support@blstsecurity.com
 You are also welcome to open an Issue here on GitHub.
 # Contributing
 While this is an open source project, it is meant to be as an easy to get-started with example of our SaaS project, and outside contribution is not necessary.
-You can talk to us in our developers' [slack channel](https://join.slack.com/share/enQtMjcyOTUyNjY5MDQzOC0yOTNmZjMwYTc2Y2MxNjY4NTkwN2QwM2YxMmQwMzk3YTg2OWMwMWU5NjI5YzFiYjgyMjBhOTRiMmJlN2Y0ZTYw?cdn_fallback=1).
+You can talk to us in our developers' [discord channel](https://discord.gg/WdHhv4DqwU).
 <div align="center">
   <img src="https://www.blstsecurity.com/logo193.png" alt="BLST Security's logo"/>
 </div>
