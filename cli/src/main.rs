@@ -3,7 +3,7 @@ use firecracker::*;
 use colored::*;
 use attacker::Verbosity;
 
-const VERSION:&str = "0.1.0";
+const VERSION:&str = "0.2.0";
 const MAP_FILE:&str = "map";
 const DECIDE_FILE:&str = "decide";
 
