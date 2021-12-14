@@ -3,7 +3,7 @@
 </div>
 
 [![Maintained by blstsecurity](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/) [![docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://www.blstsecurity.com/firecracker/Documentation)
-<!-- ![Discord Shield](https://discordapp.com/api/guilds/914846937327497307/widget.png?style=shield) -->
+![Discord Shield](https://discordapp.com/api/guilds/914846937327497307/widget.png?style=shield)
 
 # Who is BLST and what do we do?
 [BLST](https://www.blstsecurity.com/) (Business Logic Security Testing) is a startup company that's developing an automatic penetration tester, replacing the manual penetration tester by using an advanced neural network and helping developers build more secure applications by catching bugs before they hit production.
