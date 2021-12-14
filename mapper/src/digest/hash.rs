@@ -13,7 +13,10 @@ pub struct LinksHash {
 }
 impl LinksHash {
     pub fn get(&self, val: &Endpoint) -> Option<HashMap<Endpoint, u64>> {
-        self.links.iter().position(|l| &l.from == val).map(|pos| self.links[pos].to.clone())
+        self.links
+            .iter()
+            .position(|l| &l.from == val)
+            .map(|pos| self.links[pos].to.clone())
     }
     pub fn keys(&self) -> Vec<Endpoint> {
         self.links
@@ -70,7 +73,7 @@ impl Default for QuePay {
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct EndpointHash {
-    pub path: String,//Path,
+    pub path: String, //Path,
     #[serde_as(as = "Vec<(_, _)>")]
     pub dm: HashMap<QuePay, u32>,
     #[serde_as(as = "Vec<(_, _)>")]
@@ -78,7 +81,7 @@ pub struct EndpointHash {
     pub req_headers: HashMap<String, HashMap<String, u32>>,
     pub res_headers: HashMap<String, HashMap<String, u32>>,
     pub status_payloads: ParamPayloadH,
-    pub queries: ParamPayloadH, 
+    pub queries: ParamPayloadH,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct ParamPayload {
