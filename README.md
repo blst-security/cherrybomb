@@ -71,6 +71,13 @@ Here's a small taste of what's coming in the future:
 - **Mapper** - Path parameters analysis and support for more complex business logic flows.
 - **Attacker** - Better support for more complex business logic flows.
 
+# What's new in the latest version?
+- **More formats** - added another way to load sessions, explained in [the docs](https://www.blstsecurity.com/firecracker/Documentation#structure).
+- **More HTTP methods support** - now supports PUT, DELETE, PATCH and OPTIONS.
+- **Mapper**: enabled path parameter extractions.
+- **Attacker**: some refactoring, fixed a bug that caused random genomes not being random in the first generation.
+- **CLI**: seperated the map.json from the map checkpoint to allow for less loading time in the visualizer.
+
 # Support
 
 ### Documentation
