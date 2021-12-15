@@ -1,7 +1,6 @@
 use super::*;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use std::collections::HashMap;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -203,14 +202,19 @@ async fn send_payload_request(
     let client = reqwest::Client::new();
     let method1 = reqwest::Method::from_bytes(method.to_string().as_bytes()).unwrap();
     let (req_payload, req_query, path) = params_to_payload(ep, params);
-    let res = client
+    let req = client
         .request(method1, &format!("{}{}{}", base_url, path, req_query))
         .body(req_payload.clone())
-        .send()
-        .await
+        .build()
         .unwrap();
+    let req_headers = req
+        .headers()
+        .iter()
+        .map(|(n, v)| (n.to_string(), format!("{:?}", v)))
+        .collect();
+    let res = client.execute(req).await.unwrap();
     ReqRes {
-        req_headers: HashMap::new(),
+        req_headers,
         res_headers: res
             .headers()
             .iter()
