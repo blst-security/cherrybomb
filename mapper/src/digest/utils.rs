@@ -167,6 +167,17 @@ pub fn conv_json_pairs(s: &str) -> Vec<ParamPayload> {
             });
         }
         ret
+    } else if s.trim().starts_with('?') {
+        s[1..]
+            .split('&')
+            .map(|p| {
+                let mut split = p.split('=');
+                ParamPayload {
+                    param: split.next().unwrap().to_string(),
+                    payload: split.next().unwrap().to_string(),
+                }
+            })
+            .collect::<Vec<ParamPayload>>()
     } else {
         vec![ParamPayload {
             param: String::from("param"),
