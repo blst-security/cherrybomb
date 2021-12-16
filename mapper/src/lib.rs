@@ -125,6 +125,8 @@ impl MapEp for Endpoint {
             });
         }
         for (param, payloads) in hash.status_payloads.reqp_map.iter() {
+            println!("{}", hash.path);
+            println!("{}\t\t{:?}", param, payloads);
             let value = check_values_req(payloads);
             req_payload_params.push(ParamDescriptor {
                 from: QuePay::Payload,

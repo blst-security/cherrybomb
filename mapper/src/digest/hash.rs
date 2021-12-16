@@ -191,7 +191,7 @@ impl EndpointHash {
         let res_pairs: ParamPayloadHash = conv_json_pairs(&req_res.res_payload);
         self.add_pp(&query_pairs, req_res.status, &res_pairs, true);
         let req_pairs: ParamPayloadHash = conv_json_pairs(&req_res.req_payload);
-        self.add_pp(&req_pairs, req_res.status, &res_pairs, true);
+        self.add_pp(&req_pairs, req_res.status, &res_pairs, false);
     }
 }
 /*
