@@ -179,9 +179,6 @@ pub fn conv_json_pairs(s: &str) -> Vec<ParamPayload> {
             })
             .collect::<Vec<ParamPayload>>()
     } else {
-        vec![ParamPayload {
-            param: String::from("param"),
-            payload: s.to_string(),
-        }]
+        vec![]
     }
 }
