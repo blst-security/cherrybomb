@@ -22,15 +22,3 @@ hyper = { version = "^0.14", features = ["http2"] }
 hyper-rustls = { git = "https://github.com/rustls/hyper-rustls", features = ["http2"] }
 httparse = "1.5.1"
 
-#[target.x86_64-unknown-linux-gnu.dependencies]
-#hyper = { version = "^0.14", features = ["http2"] }
-#hyper-rustls = { git = "https://github.com/rustls/hyper-rustls", features = ["http2"] }
-
-#[target.x86_64-unknown-linux-musl.dependencies]
-#hyper = { version = "^0.14", features = ["http2"] }
-#hyper-rustls = { git = "https://github.com/rustls/hyper-rustls", features = ["http2"] }
-
-
-#[target.x86_64-apple-darwin.dependencies]
-#hyper = { version = "^0.14", features = ["http2"] }
-
