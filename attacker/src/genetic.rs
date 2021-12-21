@@ -58,7 +58,7 @@ impl Population {
         cross_rate: u8,
     ) -> Population {
         let top_score = if let Some(s) = top_score { s } else { u16::MAX };
-        let genomes = (1..min_members)
+        let genomes = (0..min_members)
             .map(|_i| Genome::new(&group.endpoints))
             .collect::<Vec<Genome>>();
         let mut gene_pool = HashSet::new();

@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 
 mod rule_based;
 use rule_based::*;
+mod anomaly_scores;
+use anomaly_scores::DEFAULT_TOP_ANOMALY_SCORE;
 //mod rcf;
 //use rcf::*;
 
@@ -44,7 +46,6 @@ pub struct Anomaly {
     pub endpoint: Option<ReqRes>,
     r#type: Type,
 }
-const DEFAULT_ANOMALY_SCORE: u16 = 100;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RuleRCF {
     RuleBased,
@@ -58,7 +59,7 @@ pub fn decide(
     let anomaly_score = if let Some(s) = anomaly_score {
         s
     } else {
-        DEFAULT_ANOMALY_SCORE
+        DEFAULT_TOP_ANOMALY_SCORE
     };
     let mut anomalies = vec![];
     for session in sessions {

@@ -176,7 +176,7 @@ fn params_to_payload(ep: &str, params: Vec<Parameter>) -> (String, String, Strin
     let mut path_ext = ep.to_string();
     for param in params {
         match param.dm {
-            QuePay::Payload => payload.push_str(&format!("\"{}\":\"{}\"", param.name, param.value)),
+            QuePay::Payload => payload.push_str(&format!("\"{}\":{},", param.name, param.value)),
             QuePay::Query => query.push_str(&format!("{}={}&", param.name, param.value)),
             QuePay::Path => {
                 path_ext = path_ext.replace(&format!("{}{}{}", '{', param.name, '}'), &param.value)
@@ -184,11 +184,11 @@ fn params_to_payload(ep: &str, params: Vec<Parameter>) -> (String, String, Strin
             _ => (),
         }
     }
-    path_ext.pop();
     query.pop();
     if payload.trim() == "{" {
         payload = String::new();
     } else {
+        payload.pop();
         payload.push('}');
     }
     (payload, query, path_ext)

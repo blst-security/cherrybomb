@@ -19,7 +19,11 @@ pub struct Attacker {
 const FILE: &str = "attacker.json";
 impl Attacker {
     pub fn save(&self) -> Result<(), std::io::Error> {
-        let mut file = OpenOptions::new().write(true).create(true).open(FILE)?;
+        let mut file = OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(FILE)?;
         file.write_all(serde_json::to_string(&self).unwrap().as_bytes())?;
         Ok(())
     }

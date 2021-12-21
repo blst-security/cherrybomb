@@ -23,7 +23,7 @@ impl Chromosome {
             ValueDescriptor::Bool => 1,
             ValueDescriptor::Unknown => 42,
         };
-        let dna = (1..len).map(|_i| rng.gen_range(0..2)).collect::<Vec<u8>>();
+        let dna = (0..len).map(|_i| rng.gen_range(0..2)).collect::<Vec<u8>>();
         Chromosome {
             param_name: param.name.clone(),
             dna,

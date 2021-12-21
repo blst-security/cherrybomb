@@ -1,4 +1,5 @@
 use super::*;
+use anomaly_scores::*;
 use std::collections::HashMap;
 
 fn test_single<T>(cur: &T, other: &Split<T>) -> u16
@@ -7,15 +8,15 @@ where
 {
     if let Some(p) = other.get(cur) {
         match p {
-            0 => 6,
-            1..=2 => 5,
-            3..=7 => 4,
-            8..=15 => 3,
-            16..=100 => 0,
-            _ => 10,
+            0 => BOTTOM_PRECENTILE_SCORE,
+            1..=2 => LOW_PRECENTILE_SCORE,
+            3..=7 => MID_PRECENTILE_SCORE,
+            8..=15 => HIGH_PRECENTILE_SCORE,
+            16..=100 => TOP_PRECENTILE_SCORE,
+            _ => NONE_PRECENTILE_SCORE,
         }
     } else {
-        10
+        NONE_PRECENTILE_SCORE
     }
 }
 fn test_headers(cur: &HashMap<String, String>, other: &HeaderMap) -> u16 {
@@ -23,11 +24,12 @@ fn test_headers(cur: &HashMap<String, String>, other: &HeaderMap) -> u16 {
     //let header_names:Vec<&String> = other.headers.iter().map(|h|&h.name).collect();
     for header in cur.keys() {
         if !other.headers.iter().map(|h| &h.name).any(|x| x == header) {
-            a_s += 1;
+            a_s += MISSING_HEADER_SCORE;
         }
     }
     a_s
 }
+/// compairs the payload parameters to the existing map by parameter type and its description
 fn test_payload(cur: &str, other: &PayloadDescriptor) -> u16 {
     let params = conv_json_pairs(cur);
     let mut anomaly_score = 0;
@@ -39,31 +41,35 @@ fn test_payload(cur: &str, other: &PayloadDescriptor) -> u16 {
         {
             let v_desc = &other.params[index].value;
             match v_desc {
+                // checks if the number type matches the mapped type
+                // if it does, checks if the payload could be from the type descriptor
                 ValueDescriptor::Number((desc, t)) => {
                     if let Ok(n) = param.payload.parse::<f64>() {
                         if n.trunc() != n && t == &NumType::Integer {
-                            anomaly_score += 15;
+                            anomaly_score += NUM_TYPE_MISMATCH_SCORE;
                         } else if !desc.matches(n as i64) {
-                            anomaly_score += 10;
+                            anomaly_score += DESCRIPTOR_MISMATCH_SCORE;
                         }
                     } else {
-                        anomaly_score += 20;
+                        anomaly_score += PARAM_TYPE_MISMATCH_SCORE;
                     }
                 }
+                // checks if the payload could be from the type descriptor
                 ValueDescriptor::String(desc) => {
                     if !desc.matches(&param.payload) {
-                        anomaly_score += 10;
+                        anomaly_score += DESCRIPTOR_MISMATCH_SCORE;
                     }
                 }
+                // checks if its a boolean
                 ValueDescriptor::Bool => {
                     if param.payload.parse::<bool>().is_err() {
-                        anomaly_score += 20;
+                        anomaly_score += PARAM_TYPE_MISMATCH_SCORE;
                     }
                 }
                 _ => (),
             }
         } else {
-            anomaly_score += 25;
+            anomaly_score += MISSING_PARAM_SCORE;
         }
     }
     anomaly_score
@@ -106,10 +112,10 @@ pub fn decide_rule_based(
                 anomaly_score +=
                     test_payload(&ep.res_payload, &ep_digest.req_res_payloads.res_payload);
             } else {
-                anomaly_score += 1;
+                anomaly_score += ERR_404_SCORE;
             }
         }
-        if anomaly_score >= (top_anomaly_score / 2) && !cond1 {
+        if anomaly_score >= (TOP_ENDPOINT_ANOMALY_SCORE) && !cond1 {
             cond1 = true;
             ep_true = Some(ep);
         }
