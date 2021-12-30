@@ -18,7 +18,7 @@ pub use group::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Digest {
-    pub path_hash:HashMap<String,u32>,
+    pub path_hash: HashMap<String, u32>,
     pub ep_hash: Vec<EndpointHash>,
     pub link_hash: LinksHash,
     pub eps: Vec<Endpoint>,

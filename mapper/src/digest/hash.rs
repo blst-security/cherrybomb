@@ -13,7 +13,10 @@ pub struct LinksHash {
 }
 impl LinksHash {
     pub fn get(&self, val: &Endpoint) -> Option<HashMap<Endpoint, u64>> {
-        self.links.iter().position(|l| &l.from == val).map(|pos| self.links[pos].to.clone())
+        self.links
+            .iter()
+            .position(|l| &l.from == val)
+            .map(|pos| self.links[pos].to.clone())
     }
     pub fn keys(&self) -> Vec<Endpoint> {
         self.links
@@ -54,8 +57,8 @@ pub struct LinkHashRef{
 pub struct LinksHashRef{
     links:Vec<LinkHashRef>,
 }*/
-#[derive(Copy,Debug, Clone, Serialize, Deserialize, Eq, PartialEq,Hash)]
-pub enum AuthHash{
+#[derive(Copy, Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
+pub enum AuthHash {
     None,
     Basic,
     Bearer,
@@ -70,37 +73,37 @@ impl Default for AuthHash {
         Self::None
     }
 }
-impl AuthHash{
-    pub fn from(s:String)->Self{
+impl AuthHash {
+    pub fn from(s: String) -> Self {
         let s = s.trim().to_lowercase();
-        if s.starts_with("bearer"){
+        if s.starts_with("bearer") {
             AuthHash::Bearer
-        }else if s.starts_with("basic"){
+        } else if s.starts_with("basic") {
             AuthHash::Basic
-        }else if s.starts_with("digest"){
+        } else if s.starts_with("digest") {
             AuthHash::Digest
-        }else if s.starts_with("hawk"){
+        } else if s.starts_with("hawk") {
             AuthHash::Hawk
-        }else if s.starts_with("aws"){
+        } else if s.starts_with("aws") {
             AuthHash::AWS
-        }else{
+        } else {
             AuthHash::Other
         }
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum HeaderHash{
+pub enum HeaderHash {
     //General
     #[serde(rename = "user-agent")]
-    UserAgent(HashMap<String,u32>),
+    UserAgent(HashMap<String, u32>),
     #[serde(rename = "content_length")]
-    ContentLength(HashMap<u32,u32>),
+    ContentLength(HashMap<u32, u32>),
     #[serde(rename = "content_type")]
-    ContentType(HashMap<String,u32>),
+    ContentType(HashMap<String, u32>),
     #[serde(rename = "host")]
-    Host(HashMap<String,u32>),
+    Host(HashMap<String, u32>),
     #[serde(rename = "csp")]
-    CSP(HashMap<String,u32>),
+    CSP(HashMap<String, u32>),
     //Auth
     #[serde(rename = "authorization")]
     AuthHash(HashSet<AuthHash>),
@@ -109,91 +112,117 @@ pub enum HeaderHash{
     //Other - keeps only the header name
     Other(HashSet<String>),
 }
-fn entry_inc<T>(map:&mut HashMap<T,u32>,val:T)
-where T:Eq+Hash{
+fn entry_inc<T>(map: &mut HashMap<T, u32>, val: T)
+where
+    T: Eq + Hash,
+{
     let c = map.entry(val).or_insert(0);
-    *c+=1;
+    *c += 1;
 }
-impl HeaderHash{
-    pub fn name(&self)->String{
-        match self{
-            Self::UserAgent(_)=>String::from("user-agent"),
-            Self::ContentLength(_)=>String::from("content-length"),
-            Self::ContentType(_)=>String::from("content-type"),
-            Self::Host(_)=>String::from("host"),
-            Self::CSP(_)=>String::from("csp"),
-            Self::JWT=>String::from("jwt"),
-            Self::AuthHash(_)=>String::from("authorization"),
-            _=>String::from("other"),
+impl HeaderHash {
+    pub fn name(&self) -> String {
+        match self {
+            Self::UserAgent(_) => String::from("user-agent"),
+            Self::ContentLength(_) => String::from("content-length"),
+            Self::ContentType(_) => String::from("content-type"),
+            Self::Host(_) => String::from("host"),
+            Self::CSP(_) => String::from("csp"),
+            Self::JWT => String::from("jwt"),
+            Self::AuthHash(_) => String::from("authorization"),
+            _ => String::from("other"),
         }
     }
-    pub fn is_other(name:&str)->bool{
-        let v1 = vec!["user-agent","content-length","content-type","host","csp","jwt","authorization"];
-        !v1.contains(&name.to_lowercase().trim()) 
+    pub fn is_other(name: &str) -> bool {
+        let v1 = vec![
+            "user-agent",
+            "content-length",
+            "content-type",
+            "host",
+            "csp",
+            "jwt",
+            "authorization",
+        ];
+        !v1.contains(&name.to_lowercase().trim())
     }
-    pub fn insert(&mut self,val:String){
-        match self{
-            Self::UserAgent(v)=>entry_inc(v,val),
-            Self::ContentLength(v)=>entry_inc(v,val.parse::<u32>().unwrap()),
-            Self::ContentType(v)=>entry_inc(v,val),
-            Self::Host(v)=>entry_inc(v,val),
-            Self::CSP(v)=>entry_inc(v,val),
-            Self::JWT=>(),
-            Self::AuthHash(v)=>{v.insert(AuthHash::from(val));},
-            Self::Other(v)=>{v.insert(val);},
+    pub fn insert(&mut self, val: String) {
+        match self {
+            Self::UserAgent(v) => entry_inc(v, val),
+            Self::ContentLength(v) => entry_inc(v, val.parse::<u32>().unwrap()),
+            Self::ContentType(v) => entry_inc(v, val),
+            Self::Host(v) => entry_inc(v, val),
+            Self::CSP(v) => entry_inc(v, val),
+            Self::JWT => (),
+            Self::AuthHash(v) => {
+                v.insert(AuthHash::from(val));
+            }
+            Self::Other(v) => {
+                v.insert(val);
+            }
         };
     }
-    pub fn from(header:Header)->Self{
-        match header.name.to_lowercase().trim(){
-            "user-agent"=>Self::UserAgent(HashMap::from([(header.value,1)])),
-            "content-length"=>Self::ContentLength(HashMap::from([(header.value.parse::<u32>().unwrap(),1)])),
-            "content-type"=>Self::ContentType(HashMap::from([(header.value,1)])),
-            "host"=>Self::Host(HashMap::from([(header.value,1)])),
-            "csp"=>Self::CSP(HashMap::from([(header.value,1)])),
-            "jwt"=>Self::JWT,
-            "authorization"=>Self::AuthHash(HashSet::from([AuthHash::from(header.value)])),
-            _=>Self::Other(HashSet::from([header.name])),
+    pub fn from(header: Header) -> Self {
+        match header.name.to_lowercase().trim() {
+            "user-agent" => Self::UserAgent(HashMap::from([(header.value, 1)])),
+            "content-length" => {
+                Self::ContentLength(HashMap::from([(header.value.parse::<u32>().unwrap(), 1)]))
+            }
+            "content-type" => Self::ContentType(HashMap::from([(header.value, 1)])),
+            "host" => Self::Host(HashMap::from([(header.value, 1)])),
+            "csp" => Self::CSP(HashMap::from([(header.value, 1)])),
+            "jwt" => Self::JWT,
+            "authorization" => Self::AuthHash(HashSet::from([AuthHash::from(header.value)])),
+            _ => Self::Other(HashSet::from([header.name])),
         }
     }
-    pub fn get_val(&self)->EpHeaderValue{
-        match self{
-            Self::UserAgent(v)=>EpHeaderValue::Const(StrNum::String(Split::from_hashmap(v).greatest().0)),
-            Self::ContentLength(v)=>EpHeaderValue::Const(StrNum::Number(Split::from_hashmap(v).greatest().0)),
-            Self::ContentType(v)=>EpHeaderValue::Const(StrNum::String(Split::from_hashmap(v).greatest().0)),
-            Self::Host(v)=>EpHeaderValue::Const(StrNum::String(Split::from_hashmap(v).greatest().0)),
-            Self::CSP(v)=>EpHeaderValue::Const(StrNum::String(Split::from_hashmap(v).greatest().0)),
-            Self::JWT=>EpHeaderValue::AuthToken,
-            Self::AuthHash(_)=>EpHeaderValue::AuthToken,
-            Self::Other(_)=>EpHeaderValue::default(),
+    pub fn get_val(&self) -> EpHeaderValue {
+        match self {
+            Self::UserAgent(v) => {
+                EpHeaderValue::Const(StrNum::String(Split::from_hashmap(v).greatest().0))
+            }
+            Self::ContentLength(v) => {
+                EpHeaderValue::Const(StrNum::Number(Split::from_hashmap(v).greatest().0))
+            }
+            Self::ContentType(v) => {
+                EpHeaderValue::Const(StrNum::String(Split::from_hashmap(v).greatest().0))
+            }
+            Self::Host(v) => {
+                EpHeaderValue::Const(StrNum::String(Split::from_hashmap(v).greatest().0))
+            }
+            Self::CSP(v) => {
+                EpHeaderValue::Const(StrNum::String(Split::from_hashmap(v).greatest().0))
+            }
+            Self::JWT => EpHeaderValue::AuthToken,
+            Self::AuthHash(_) => EpHeaderValue::AuthToken,
+            Self::Other(_) => EpHeaderValue::default(),
         }
     }
 }
 pub type HeadersHash = Vec<HeaderHash>;
-pub fn add_to_headers_hash(headers_hash:&mut HeadersHash,header:Header){
-    if let Some(pos) = headers_hash.iter().position(|h| h.name() == header.name){
+pub fn add_to_headers_hash(headers_hash: &mut HeadersHash, header: Header) {
+    if let Some(pos) = headers_hash.iter().position(|h| h.name() == header.name) {
         headers_hash[pos].insert(header.value);
-    }else if HeaderHash::is_other(&header.name){
-        if let Some(pos) = headers_hash.iter().position(|h| h.name() == *"other"){
+    } else if HeaderHash::is_other(&header.name) {
+        if let Some(pos) = headers_hash.iter().position(|h| h.name() == *"other") {
             headers_hash[pos].insert(header.name);
-        }else{
+        } else {
             headers_hash.push(HeaderHash::Other(HashSet::from([header.name])));
         }
-    }else {
+    } else {
         headers_hash.push(HeaderHash::from(header));
     }
 }
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct EndpointHash {
-    pub path: String,//Path,
+    pub path: String, //Path,
     #[serde_as(as = "Vec<(_, _)>")]
     pub dm: HashMap<QuePay, u32>,
     #[serde_as(as = "Vec<(_, _)>")]
     pub methods: HashMap<Method, u32>,
-    pub req_headers: HeadersHash,//HashMap<String, HashMap<String, u32>>,
-    pub res_headers: HeadersHash,//HashMap<String, HashMap<String, u32>>,
+    pub req_headers: HeadersHash, //HashMap<String, HashMap<String, u32>>,
+    pub res_headers: HeadersHash, //HashMap<String, HashMap<String, u32>>,
     pub status_payloads: ParamPayloadH,
-    pub queries: ParamPayloadH, 
+    pub queries: ParamPayloadH,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct ParamPayload {
@@ -275,8 +304,8 @@ impl EndpointHash {
         } else {
             self.res_headers.clone()
         };
-        for (name,value) in headers{
-            add_to_headers_hash(&mut taker,Header::from(name,value));
+        for (name, value) in headers {
+            add_to_headers_hash(&mut taker, Header::from(name, value));
         }
         if t {
             self.req_headers = taker
