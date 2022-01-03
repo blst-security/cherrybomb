@@ -13,7 +13,7 @@ It's an easy to use CLI that scans your APIs for invalid business logic flows.
 # What exactly is "Business Logic"?
 Business logic is the part of an application that contains all of the rules and procedures related to how data is created, stored, and changed. It is used when describing computer applications like databases and websites. If you don't write the business logic correctly, your database or website may not work properly -- thus making it vulnerable.
 One of the most common root causes of business logic vulnerabilities is making flawed assumptions and blindingly trusting user behavior or input.
-## How does this CLI differs from our SaaS product?
+## How does this CLI differ from our SaaS product?
 Main differences are the cut-down [Decider](#features) algorithm, lack of CI/CD integration and no management dashboard.
 We made it so you can easily download, install and run it on your local machine to get a better understanding of what our main product is capable of.
 [Learn more about us and what we can do for your business](https://www.blstsecurity.com/)
