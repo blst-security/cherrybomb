@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 use uuid::{Uuid, Version};
 mod patterns;
 use patterns::*;
-mod path;
+pub mod path;
 use path::*;
 
 pub fn check_values_req(values: &HashSet<String>) -> ValueDescriptor {
@@ -17,18 +17,15 @@ pub fn check_values_res(values: &HashMap<String, u32>) -> ValueDescriptor {
 }
 trait MapDigest {
     fn create_map(&mut self);
-    fn turn_hash(&self, paths: Vec<Path>) -> Vec<Endpoint>;
+    fn turn_hash(&self,paths:Vec<Path>) -> Vec<Endpoint>;
 }
 impl MapDigest for Digest {
-    fn turn_hash(&self, paths: Vec<Path>) -> Vec<Endpoint> {
+    fn turn_hash(&self,paths:Vec<Path>) -> Vec<Endpoint> {
         let ep_hashes = &self.ep_hash;
         let mut eps = vec![];
         for ep_hash in ep_hashes {
-            let pos = paths
-                .iter()
-                .position(|path| path.path_ext == ep_hash.path)
-                .unwrap();
-            eps.push(Endpoint::from_hash(ep_hash, paths[pos].clone()))
+            let pos = paths.iter().position(|path| path.path_ext == ep_hash.path).unwrap(); 
+            eps.push(Endpoint::from_hash(ep_hash,paths[pos].clone()))
         }
         eps
     }
@@ -76,29 +73,22 @@ impl MapDigest for Digest {
             groups.push(group);
             links = links_new;
         }
-        for ep in self.eps.iter() {
-            if !used_eps.contains(ep) {
-                groups.push(Group {
-                    endpoints: vec![ep.clone()],
-                    links: vec![],
-                });
+        for ep in self.eps.iter(){
+            if !used_eps.contains(ep){
+                groups.push(Group{endpoints:vec![ep.clone()],links:vec![]}); 
             }
         }
         self.groups = groups;
     }
 }
 trait MapEp {
-    fn from_hash(ep_hash: &EndpointHash, path: Path) -> Endpoint;
-    fn get_headers(
-        headers: &HeadersHash, /*&HashMap<String, HashMap<String, u32>>*/
-    ) -> Vec<EpHeader>;
+    fn from_hash(ep_hash: &EndpointHash,path:Path) -> Endpoint;
+    fn get_headers(headers: &HeadersHash/*&HashMap<String, HashMap<String, u32>>*/) -> Vec<EpHeader>;
     fn get_req_res_payloads(hash: &EndpointHash) -> RRPayload;
 }
 
 impl MapEp for Endpoint {
-    fn get_headers(
-        headers: &HeadersHash, /* &HashMap<String, HashMap<String, u32>>*/
-    ) -> Vec<EpHeader> {
+    fn get_headers(headers:&HeadersHash/* &HashMap<String, HashMap<String, u32>>*/) -> Vec<EpHeader> {
         //let mut total:u64 = 0;
         let mut headers_new = vec![];
         for header in headers {
@@ -159,7 +149,7 @@ impl MapEp for Endpoint {
             res_payload,
         }
     }
-    fn from_hash(ep_hash: &EndpointHash, path: Path) -> Endpoint {
+    fn from_hash(ep_hash: &EndpointHash,path:Path) -> Endpoint {
         let common_req_headers = HeaderMap::new(Self::get_headers(&ep_hash.req_headers));
         let common_res_headers = HeaderMap::new(Self::get_headers(&ep_hash.res_headers));
         Endpoint {
@@ -172,48 +162,39 @@ impl MapEp for Endpoint {
         }
     }
 }
-impl Digest {
-    fn build_paths(sessions: &[Session]) -> Vec<Path> {
-        let mut paths = vec![];
-        for s in sessions.iter() {
-            let pts: Vec<String> = s
-                .req_res
-                .iter()
-                .map(|rr| {
-                    //if rr.status != 404{
+impl Digest{
+    fn build_paths(sessions:&[Session])->Vec<Path>{
+        let paths = sessions.iter().map(|s|{
+            let pts:Vec<String> = s.req_res.iter().filter_map(|rr| {
+                if rr.status != 404{
                     let end_bytes = rr.path.find('?').unwrap_or_else(|| rr.path.len());
-                    rr.path[..end_bytes].to_string()
-                    //}else{
-                    //  String::new()
-                    //}
-                })
-                .collect();
-            paths.extend(pts)
-        }
+                    Some(rr.path[..end_bytes].to_string())
+                }else{
+                    None
+                }
+            }).collect();
+            pts
+        }).flatten().collect();
         let paths1 = first_cycle(paths);
         second_cycle(paths1)
         //paths
     }
-    fn load_sessions_to_hash(&mut self, sessions: &[Session]) {
+    fn load_sessions_to_hash(&mut self,sessions:&[Session]){
         let mut paths_hash = HashMap::new();
         for session in sessions.iter() {
-            if session.req_res.is_empty() {
+            if session.req_res.is_empty(){
                 continue;
-            }
-            for i in 0..session.req_res.len() {
+            }  
+            for i in 0..session.req_res.len(){
                 let ep_path_ext = to_ext(session.req_res[i].path.clone());
-                if let Some(pos) = self
-                    .ep_hash
-                    .iter_mut()
-                    .position(|ep_h| ep_h.path.clone() == ep_path_ext)
-                {
+                if let Some(pos) = self.ep_hash.iter_mut().position(|ep_h| ep_h.path.clone()==ep_path_ext){
                     let a = paths_hash.entry(ep_path_ext.clone()).or_insert(0);
-                    *a += 1;
+                    *a+=1;
                     self.ep_hash[pos].load(&session.req_res[i]);
-                } else {
+                }else{
                     let mut ep1 = EndpointHash::new(ep_path_ext.clone());
                     let a = paths_hash.entry(ep_path_ext.clone()).or_insert(0);
-                    *a += 1;
+                    *a+=1;
                     ep1.load(&session.req_res[i]);
                     self.ep_hash.push(ep1);
                 }
@@ -221,7 +202,7 @@ impl Digest {
         }
         self.path_hash = paths_hash;
     }
-    fn build_links(eps: &[Endpoint], sessions: &[Session]) -> Vec<Link> {
+    fn build_links(eps:&[Endpoint],sessions:&[Session])->Vec<Link>{
         let mut links = vec![];
         for session in sessions {
             for i in 0..(session.req_res.len() - 1) {
@@ -239,10 +220,10 @@ impl Digest {
                 }*/
                 let path1 = to_ext(session.req_res[i].path.clone());
                 //HAS TO BE ONE!!!!!!
-                let pos1 = eps.iter().position(|ep| ep.path.path_ext == path1).unwrap();
-                let path2 = to_ext(session.req_res[i + 1].path.clone());
+                let pos1 = eps.iter().position(|ep| ep.path.path_ext==path1).unwrap();
+                let path2 = to_ext(session.req_res[i+1].path.clone());
                 //HAS TO BE ONE!!!!!!
-                let pos2 = eps.iter().position(|ep| ep.path.path_ext == path2).unwrap();
+                let pos2 = eps.iter().position(|ep| ep.path.path_ext==path2).unwrap();
                 links.push(Link {
                     from: eps[pos1].clone(),
                     to: eps[pos2].clone(),
@@ -263,7 +244,7 @@ impl MapLoad for Digest {
         let paths = Self::build_paths(&sessions);
         self.load_sessions_to_hash(&sessions);
         self.eps = self.turn_hash(paths);
-        let links = Self::build_links(&self.eps, &sessions);
+        let links = Self::build_links(&self.eps,&sessions);
         self.link_hash.load_data(links);
         self.create_map();
     }
