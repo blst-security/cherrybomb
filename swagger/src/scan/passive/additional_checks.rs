@@ -11,14 +11,12 @@ impl PassiveSwaggerScan {
                     .map(|(k, _v)| k.clone())
                     .collect::<Vec<String>>();
                 for status in statuses {
-                    if status.parse::<u16>().is_err() {
-                        if status != "default" {
-                            alerts.push(Alert::new(
-                                Level::Low,
-                                "Responses have an ivalid or unrecognized status code",
-                                format!("swagger path:{} operation:{} status:{}", path, m, status),
-                            ));
-                        }
+                    if status.parse::<u16>().is_err() && status != "default"{
+                        alerts.push(Alert::new(
+                            Level::Low,
+                            "Responses have an ivalid or unrecognized status code",
+                            format!("swagger path:{} operation:{} status:{}", path, m, status),
+                        ));
                     }
                 }
             }

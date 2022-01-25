@@ -11,7 +11,7 @@ impl PassiveAuthScan for PassiveSwaggerScan{
     fn check_401(&self)->Vec<Alert>{
         let mut alerts = vec![];
         for (path,method,p_sec,resps) in get_path_responses(&self.swagger){
-            if resps.get("401").is_none() && p_sec.len()>0{
+            if resps.get("401").is_none() && !p_sec.is_empty(){
                 alerts.push(Alert::new(Level::Low,"Operation has security defined, but no 401 response defined",format!("swagger root path:{} method:{}",path,method)));
             }
         }
@@ -20,7 +20,7 @@ impl PassiveAuthScan for PassiveSwaggerScan{
     fn check_403(&self)->Vec<Alert>{
         let mut alerts = vec![];
         for (path,method,p_sec,resps) in get_path_responses(&self.swagger){
-            if resps.get("403").is_none() && p_sec.len()>0{
+            if resps.get("403").is_none() && !p_sec.is_empty(){
                 alerts.push(Alert::new(Level::Low,"Operation has security defined, but no 403 response defined",format!("swagger root path:{} method:{}",path,method)));
             }
         }
@@ -54,7 +54,7 @@ impl PassiveAuthScan for PassiveSwaggerScan{
         for (path,item) in &self.swagger.paths{
             for (m,op) in item.get_ops(){
                 let secs = if let Some(s) = &op.security { s.iter().map(|v| v.keys()).flatten().collect() } else { vec![] };
-                if secs.len()==0{
+                if secs.is_empty(){
                     alerts.push(Alert::new(Level::Medium,"Endpoint does not use any security scheme",format!("swagger root path:{} method:{}",path,m)));
                     continue;
                 }

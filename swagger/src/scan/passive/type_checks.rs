@@ -69,7 +69,7 @@ impl PassiveTypeScan for PassiveSwaggerScan{
             }
             if schema.properties.is_none(){
                 alerts.push(Alert::new(Level::Low,"Object schema without properties",location.clone()));
-            }else if schema.properties.unwrap().len()==0{
+            }else if schema.properties.unwrap().is_empty(){
                 alerts.push(Alert::new(Level::Low,"Object schema without properties",location));
             }
         }
@@ -83,7 +83,7 @@ impl PassiveTypeScan for PassiveSwaggerScan{
             }
             if schema.properties.is_none(){
                 alerts.push(Alert::new(Level::Low,"Object schema without properties",location.clone(),));
-            }else if schema.properties.unwrap().len()==0{
+            }else if schema.properties.unwrap().is_empty(){
                 alerts.push(Alert::new(Level::Low,"Object schema without properties",location));
             }
         }

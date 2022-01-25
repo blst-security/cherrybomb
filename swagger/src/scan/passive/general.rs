@@ -41,14 +41,10 @@ impl PassiveGeneralScan for PassiveSwaggerScan{
                      let mut found = false;
                      for status in statuses{
                            if let Ok(s) = status.parse::<u16>(){
-                              if s >= 200 && s < 300{
+                              if (200..300).contains(&s){
                                   found = true;
                                     break;
                             }
-                           // }else{
-                           //    if status != "default"{
-                           //       alerts.push(Alert::new(Level::Low,"Responses have an unrecognized status code",format!("swagger path:{} operation:{} status:{}",path,m,status)));
-                           //    }
                            }
                      }
                      if !found{
@@ -121,7 +117,7 @@ impl PassiveGeneralScan for PassiveSwaggerScan{
         let swagger_str = serde_json::to_string(&self.swagger).unwrap();
         if let Some(comps) = &self.swagger.components{
             if let Some(schemas) = &comps.schemas{
-                for (name,_) in schemas{
+                for name in schemas.keys(){
                     let schema_path = format!("#/components/schemas/{}",name);
                     if !swagger_str.contains(&schema_path){
                         alerts.push(Alert::new(Level::Info,"Schema is defined but never used",format!("swagger root components schema:{}",name)));

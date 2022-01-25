@@ -30,7 +30,7 @@ pub fn get_responses(swagger:&Swagger)->Vec<(Responses,String)>{
         }
     }
     for (path,item) in &swagger.paths{
-        ret.extend(item.get_ops().iter().map(|(m,op)|(op.responses().clone(),format!("swagger path:{} operation:{}",path,m))));
+        ret.extend(item.get_ops().iter().map(|(m,op)|(op.responses(),format!("swagger path:{} operation:{}",path,m))));
     }
     ret
 }
@@ -51,11 +51,7 @@ pub fn get_params(swagger:&Swagger,swagger_value:&Value)->Vec<(Param,String)>{
             for (status,payload) in operation.responses(){
                 if let Some(c) = payload.inner(swagger_value).content{
                     params.extend(c.iter().filter_map(|(name,m_t)|{
-                        if let Some(s) = &m_t.schema{
-                           Some((Param::schema_rec(swagger_value,s.inner(swagger_value),true),format!("swagger path:{} status:{} response body, media type:{}",path,status,name)))
-                        }else{
-                            None
-                        }
+                        m_t.schema.as_ref().map(|s| (Param::schema_rec(swagger_value,s.inner(swagger_value),true),format!("swagger path:{} status:{} response body, media type:{}",path,status,name)))
                     }));
                 }   
             }
@@ -68,7 +64,7 @@ pub fn param_default_rec(param:&Param,loc:String)->Vec<Alert>{
     match &param.value{
         ParamValue::Object|ParamValue::Array =>{
             for p in &param.params{
-                alerts.extend(param_default_rec(&p,loc.clone()));
+                alerts.extend(param_default_rec(p,loc.clone()));
             }
         },
             /*
@@ -110,18 +106,16 @@ pub fn param_enum_rec(param:&Param,loc:String)->Vec<Alert>{
     match &param.value{
         ParamValue::Object|ParamValue::Array =>{
             for p in &param.params{
-                alerts.extend(param_default_rec(&p,loc.clone()));
+                alerts.extend(param_default_rec(p,loc.clone()));
             }
         },
         ParamValue::Integer(i)=>{
             if let Some(en) = &i.p_enum{
-                for e in en{
-                    if let Some(e1) = e{
-                        match e1{
-                            SchemaStrInt::Int(_)=>(),
-                            _=>{
-                                return vec![Alert::new(Level::Low,"Enum type does not match parameter type",format!("{} param name:{}",loc,param.name))]; 
-                            }
+                for e in en.iter().flatten(){
+                    match e{
+                        SchemaStrInt::Int(_)=>(),
+                        _=>{
+                            return vec![Alert::new(Level::Low,"Enum type does not match parameter type",format!("{} param name:{}",loc,param.name))]; 
                         }
                     }
                 }
@@ -129,14 +123,12 @@ pub fn param_enum_rec(param:&Param,loc:String)->Vec<Alert>{
         },
         ParamValue::String(i)=>{
             if let Some(en) = &i.p_enum{
-                for e in en{
-                    if let Some(e1) = e{
-                        match e1{
-                            SchemaStrInt::Str(_)=>(),
-                            _=>{
-                                return vec![Alert::new(Level::Low,"Enum type does not match parameter type",format!("{} param name:{}",loc,param.name))]; 
-                            },
-                        }
+                for e in en.iter().flatten(){
+                    match e{
+                        SchemaStrInt::Str(_)=>(),
+                        _=>{
+                            return vec![Alert::new(Level::Low,"Enum type does not match parameter type",format!("{} param name:{}",loc,param.name))]; 
+                        },
                     }
                 }
             }
@@ -157,12 +149,12 @@ pub fn additional_properties_test(schema:&Schema,location:String)->Vec<Alert>{
         ""=> {
             alerts.push(Alert::new(Level::Low,"Object schema without a type",location.clone()));
             if schema.additional_properties.is_none(){
-                alerts.push(Alert::new(Level::Low,"Object schema allows for additional properties",location.clone()))
+                alerts.push(Alert::new(Level::Low,"Object schema allows for additional properties",location))
             }
         },
         "object"=>{
             if schema.additional_properties.is_none(){
-                alerts.push(Alert::new(Level::Low,"Object schema allows for additional properties",location.clone()))
+                alerts.push(Alert::new(Level::Low,"Object schema allows for additional properties",location))
             }
         },
         _=>{},

@@ -5,19 +5,19 @@ pub type Path = HashMap<String,PathItem>;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq)]
 pub struct Operation{
-    tags:Option<Vec<String>>,
-    summary:Option<String>,
-    description:Option<String>,
+    pub tags:Option<Vec<String>>,
+    pub summary:Option<String>,
+    pub description:Option<String>,
     #[serde(rename = "externalDocs")]
-    external_docs:Option<ExternalDocs>,
+    pub external_docs:Option<ExternalDocs>,
     #[serde(rename = "operationId")]
-    operation_id:Option<String>,
+    pub operation_id:Option<String>,
     pub parameters:Option<Vec<ParamRef>>,
     #[serde(rename = "requestBody")]
     pub request_body:Option<ReqRef>,
-    responses:Responses,
-    callback:Option<Callback>,
-    deprecated:Option<bool>,
+    pub responses:Responses,
+    pub callback:Option<Callback>,
+    pub deprecated:Option<bool>,
     pub security:Option<Vec<Security>>,
     pub servers:Option<Vec<Server>>,
 }
@@ -65,19 +65,19 @@ impl Operation{
 #[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq)]
 pub struct PathItem{
     #[serde(rename = "$ref")]
-    item_ref:Option<String>,
-    summary:Option<String>,
-    descrition:Option<String>,
-    get:Option<Operation>,
-    put:Option<Operation>,
-    post:Option<Operation>,
-    delete:Option<Operation>,
-    options:Option<Operation>,
-    head:Option<Operation>,
-    patch:Option<Operation>,
-    trace:Option<Operation>,
-    servers:Option<Vec<Server>>,
-    parameters:Option<Vec<ParamRef>>,
+    pub item_ref:Option<String>,
+    pub summary:Option<String>,
+    pub descrition:Option<String>,
+    pub get:Option<Operation>,
+    pub put:Option<Operation>,
+    pub post:Option<Operation>,
+    pub delete:Option<Operation>,
+    pub options:Option<Operation>,
+    pub head:Option<Operation>,
+    pub patch:Option<Operation>,
+    pub trace:Option<Operation>,
+    pub servers:Option<Vec<Server>>,
+    pub parameters:Option<Vec<ParamRef>>,
 }
 #[allow(dead_code)]
 impl PathItem{
@@ -155,7 +155,7 @@ impl PathItem{
             vec![]
         }
     }
-    pub fn into_digest_path(&self,path_ext:String,swagger:&Value)->DPath{
+    pub fn into_digest_path(self,path_ext:String,swagger:&Value)->DPath{
         DPath{
             path_ext,
             params:PayloadDescriptor{

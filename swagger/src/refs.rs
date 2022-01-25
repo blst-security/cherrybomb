@@ -11,7 +11,7 @@ impl Reference{
     where T:std::fmt::Debug+Clone+ Serialize+PartialEq+Eq+Default+for<'de>serde::Deserialize<'de>{
         if self.param_ref.starts_with('#'){
             let mut val = swagger;
-                let split = self.param_ref.split("/").collect::<Vec<&str>>()[1..].to_vec();
+                let split = self.param_ref.split('/').collect::<Vec<&str>>()[1..].to_vec();
                 for s in split{
                     val = &val[s];
                 }
@@ -46,18 +46,18 @@ impl Reference{
 #[serde(untagged)]
 pub enum ParamRef{
     Ref(Reference),
-    Param(Parameter),
+    Param(Box<Parameter>),
 }
 impl Default for ParamRef {
     fn default() -> Self {
-        Self::Param(Parameter::default())
+        Self::Ref(Reference::default())
     }
 }
 #[allow(unused)]
 impl ParamRef{
     pub fn inner(&self,swagger:&Value)->Parameter{
         match self{
-            Self::Param(p) =>p.clone(),
+            Self::Param(p) =>*p.clone(),
             Self::Ref(r) =>r.get::<Parameter>(swagger),
         }
     }
@@ -66,18 +66,18 @@ impl ParamRef{
 #[serde(untagged)]
 pub enum ReqRef{
     Ref(Reference),
-    Body(ReqBody),
+    Body(Box<ReqBody>),
 }
 impl Default for ReqRef {
     fn default() -> Self {
-        Self::Body(ReqBody::default())
+        Self::Ref(Reference::default())
     }
 }
 #[allow(unused)]
 impl ReqRef{
     pub fn inner(&self,swagger:&Value)->ReqBody{
         match self{
-            Self::Body(p) =>p.clone(),
+            Self::Body(p)=>*p.clone(),
             Self::Ref(r) =>r.get::<ReqBody>(swagger),
         }
     }
@@ -86,11 +86,11 @@ impl ReqRef{
 #[serde(untagged)]
 pub enum SchemaRef{
     Ref(Reference),
-    Schema(Schema),
+    Schema(Box<Schema>),
 }
 impl Default for SchemaRef {
     fn default() -> Self {
-        Self::Schema(Schema::default())
+        Self::Ref(Reference::default())
     }
 }
 #[allow(unused)]
@@ -99,7 +99,7 @@ impl SchemaRef{
         match self{
             Self::Schema(p) =>{
                 //println!("{:?}",p);
-                p.clone()},
+                *p.clone()},
             Self::Ref(r) =>r.get::<Schema>(swagger),
         }
     }
@@ -108,18 +108,18 @@ impl SchemaRef{
 #[serde(untagged)]
 pub enum HeaderRef{
     Ref(Reference),
-    Header(Header),
+    Header(Box<Header>),
 }
 impl Default for HeaderRef {
     fn default() -> Self {
-        Self::Header(Header::default())
+        Self::Ref(Reference::default())
     }
 }
 #[allow(unused)]
 impl HeaderRef{
     pub fn inner(&self,swagger:&Value)->Header{
         match self{
-            Self::Header(p) =>p.clone(),
+            Self::Header(p) =>*p.clone(),
             Self::Ref(r) =>r.get::<Header>(swagger),
         }
     }
@@ -128,18 +128,18 @@ impl HeaderRef{
 #[serde(untagged)]
 pub enum ResponseRef{
     Ref(Reference),
-    Response(Response),
+    Response(Box<Response>),
 }
 impl Default for ResponseRef {
     fn default() -> Self {
-        Self::Response(Response::default())
+        Self::Ref(Reference::default())
     }
 }
 #[allow(unused)]
 impl ResponseRef{
     pub fn inner(&self,swagger:&Value)->Response{
         match self{
-            Self::Response(p) =>p.clone(),
+            Self::Response(p)=>*p.clone(),
             Self::Ref(r) =>r.get::<Response>(swagger),
         }
     }
@@ -148,18 +148,18 @@ impl ResponseRef{
 #[serde(untagged)]
 pub enum LinkRef{
     Ref(Reference),
-    Link(Link),
+    Link(Box<Link>),
 }
 impl Default for LinkRef {
     fn default() -> Self {
-        Self::Link(Link::default())
+        Self::Ref(Reference::default())
     }
 }
 #[allow(unused)]
 impl LinkRef{
     pub fn inner(&self,swagger:&Value)->Link{
         match self{
-            Self::Link(p) =>p.clone(),
+            Self::Link(p) =>*p.clone(),
             Self::Ref(r) =>r.get::<Link>(swagger),
         }
     }
@@ -168,18 +168,18 @@ impl LinkRef{
 #[serde(untagged)]
 pub enum SecSchemeRef{
     Ref(Reference),
-    SecScheme(SecScheme),
+    SecScheme(Box<SecScheme>),
 }
 impl Default for SecSchemeRef {
     fn default() -> Self {
-        Self::SecScheme(SecScheme::default())
+        Self::Ref(Reference::default())
     }
 }
 #[allow(unused)]
 impl SecSchemeRef{
     pub fn inner(&self,swagger:&Value)->SecScheme{
         match self{
-            Self::SecScheme(p) =>p.clone(),
+            Self::SecScheme(p) =>*p.clone(),
             Self::Ref(r) =>r.get::<SecScheme>(swagger),
         }
     }
@@ -188,18 +188,18 @@ impl SecSchemeRef{
 #[serde(untagged)]
 pub enum CallbackRef{
     Ref(Reference),
-    CallbackComp(CallbackComp),
+    CallbackComp(Box<CallbackComp>),
 }
 impl Default for CallbackRef {
     fn default() -> Self {
-        Self::CallbackComp(CallbackComp::default())
+        Self::Ref(Reference::default())
     }
 }
 #[allow(unused)]
 impl CallbackRef{
     pub fn inner(&self,swagger:&Value)->CallbackComp{
         match self{
-            Self::CallbackComp(p) =>p.clone(),
+            Self::CallbackComp(p) =>*p.clone(),
             Self::Ref(r) =>r.get::<CallbackComp>(swagger),
         }
     }

@@ -67,8 +67,8 @@ impl ParamInt{
             min:schema.minimum,
             max:schema.maximum,
             multiple_of:if let Some(m) = schema.multiple_of { m } else { 0 },
-            p_enum:if let Some(m) = schema.schema_enum.clone() { Some(m) } else {None},
-            default:if let Some(m) = schema.default.clone() { Some(m) } else {None},
+            p_enum:schema.schema_enum.clone(),
+            default:schema.default.clone(),
         }
     }
 }
@@ -85,7 +85,7 @@ impl ParamString{
             min_length:if let Some(m) = schema.min_length { m } else { 0 },
             max_length:if let Some(m) = schema.max_length { m } else { i64::MAX },
             p_enum:schema.schema_enum.clone(),
-            default:if let Some(m) = schema.default.clone() { Some(m) } else {None},
+            default:schema.default.clone(),
         }
     }
 }
@@ -159,7 +159,7 @@ impl Param{
             from,
         }
     }
-    pub fn required(schema:&Schema,_p_type:&String,requireds:Vec<String>)->bool{
+    pub fn required(schema:&Schema,_p_type:&str,requireds:Vec<String>)->bool{
         let name = if let Some(n) = schema.title.clone() { n } else { String::new() };
         requireds.contains(&name)
        /* match &p_type.to_lowercase().as_str(){
@@ -208,8 +208,8 @@ impl Param{
         let format = if let Some(f) = schema.format { println!("{}",f);f } else { String::new() };
         Param{
             name,
-            description:description,
-            p_type:p_type.clone(),
+            description,
+            p_type,
             format,
             params,
             from:String::new(),
@@ -225,7 +225,7 @@ impl Param{
         let format = if let Some(f) = schema.format { f } else { String::new() };
         Param{
             name,
-            description:description,
+            description,
             p_type,
             format,
             params:vec![],

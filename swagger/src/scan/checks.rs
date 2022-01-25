@@ -19,7 +19,7 @@ impl PassiveChecks{
         }
     }
     pub fn result(&self)->&'static str{
-        if self.inner().len()>0{
+        if !self.inner().is_empty(){
             "FAILED"
         }else{
             "PASSED"

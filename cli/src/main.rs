@@ -219,7 +219,7 @@ async fn main() -> Result<(), Error> {
         let h = match vars.value_of("HEADER") {
             Some(h) => {
                 if !h.trim().is_empty() {
-                    let split1 = h.split(":").collect::<Vec<&str>>();
+                    let split1 = h.split(':').collect::<Vec<&str>>();
                     vec![Header::from(split1[0], split1[1])]
                 } else {
                     vec![]
@@ -230,7 +230,7 @@ async fn main() -> Result<(), Error> {
         let a = match vars.subcommand_matches("auth") {
             Some(vars) => match vars.value_of("TYPE") {
                 Some(v) => match vars.value_of("TOKEN") {
-                    Some(v2) => Authorization::from_parts(&v, v2.to_string()),
+                    Some(v2) => Authorization::from_parts(v, v2.to_string()),
                     None => Authorization::None,
                 },
                 None => Authorization::None,
