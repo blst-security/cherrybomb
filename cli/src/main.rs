@@ -7,6 +7,7 @@ use mapper::digest::Header;
 const VERSION: &str = "0.3.0";
 const MAP_FILE: &str = "map";
 const DECIDE_FILE: &str = "decide";
+const SWAGGER_OUTPUT_FILE: &str = "results.txt";
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -23,7 +24,30 @@ async fn main() -> Result<(), Error> {
                 .help("The client token you got from firecracker's webpage")
                 .required(true)
                 .takes_value(true)))
-
+        .subcommand(App::new("swagger")
+            .about("Runs a set of passive checks on a given swagger file")
+            .arg(Arg::with_name("FILE")
+                .short("f")
+                .long("file")
+                .value_name("Swagger file")
+                .help("The swagger file")
+                .required(true)
+                .takes_value(true))
+            .arg(Arg::with_name("VERBOSITIY")
+                .short("v")
+                .long("verbosity")
+                .value_name("Output verbosity")
+                .help("The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)")
+                .takes_value(true)
+                .default_value("1"))
+            .arg(Arg::with_name("OUTPUT")
+                .short("o")
+                .long("output")
+                .value_name("Output file")
+                .help("The output file, for the alerts and checks")
+                .takes_value(true)
+                .default_value(SWAGGER_OUTPUT_FILE))
+            )
         .subcommand(App::new("map")
             .about("Creates a new map from a given log file, outputs a digest file to the local directory")
             .arg(Arg::with_name("LOGS_FILE")
@@ -158,7 +182,13 @@ async fn main() -> Result<(), Error> {
         if let Some(t) = vars.value_of("TOKEN") {
             add_token(t.to_string());
         }
-    } else if let Some(vars) = matches.subcommand_matches("map") {
+    } else if let Some(vars) = matches.subcommand_matches("swagger"){
+        if let Some(file) = vars.value_of("FILE"){
+            let output = if let Some(o) = vars.value_of("OUTPUT"){ o } else { SWAGGER_OUTPUT_FILE };
+            let verbosity = if let Some(v) = vars.value_of("VERBOSITY"){ v.parse::<u8>().unwrap() } else { 1 } ;
+            run_swagger(file,verbosity,output);
+        }
+    }else if let Some(vars) = matches.subcommand_matches("map") {
         if let Some(l) = vars.value_of("LOGS_FILE") {
             if let Some(o) = vars.value_of("OUTPUT") {
                 map(l.to_string(), o.to_string());

@@ -8,6 +8,14 @@ pub fn print_checks_table(checks:&[PassiveChecks]){
         println!("{}",check);
     }
 }
+pub fn print_failed_checks_table(checks:&[PassiveChecks]){
+    println!("{:pad$}|RESULT          | ALERTS  |DESCRIPTION\n{:-<table_len$}","CHECK","",pad=LEFT_PAD,table_len=TBL_LEN);
+    for check in checks{
+        if check.result()=="FAILED"{
+            println!("{}",check);
+        }
+    }
+}
 pub fn print_alerts_table(checks:&[PassiveChecks]){
     println!("{:pad$}| LEVEL   |{:150}|DESCRIPTION\n{:-<table_len$}","CHECK","LOCATION",pad=30,table_len=TBL_LEN);
     for check in checks{

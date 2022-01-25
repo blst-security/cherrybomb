@@ -1,7 +1,7 @@
 use super::*;
 mod checks;
 pub use checks::*;
-mod passive;
+pub mod passive;
 pub use passive::*;
 mod macros;
 mod print;

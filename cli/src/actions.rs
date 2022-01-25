@@ -10,6 +10,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use url::Url;
 use uuid::Uuid;
+use swagger::scan::passive::{PassiveSwaggerScan,ScanType};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 struct ClientReqRes {
@@ -63,7 +64,48 @@ fn read_file(mut file_name: &str) -> Option<String> {
     };
     Some(file_data)
 }
+pub fn run_swagger(file:&str,verbosity:u8,output_file:&str){
+    let swagger_str = match read_file(file){
+        Some(s)=>s,
+        None=>{
+            print_err(&format!("Failed at reading swagger file \"{}\"", file));
+            return;
+        }
+    };
+    let swagger_value:serde_json::Value = match serde_json::from_str(&swagger_str){
+        Ok(s)=>s,
+        Err(_)=>{
+            print_err(&format!("Failed at parsing swagger json file:\"{}\"", file));
+            return;
+        }
+    };
+    let mut scan = match PassiveSwaggerScan::new(swagger_value){
+        Ok(s)=>s,
+        Err(e)=>{
+            print_err(e);
+            return;
+        },
+    };
+    scan.run(ScanType::Full);
+    scan.print(verbosity);
+    let print = scan.print_to_file_string();
+    match OpenOptions::new()
+        .write(true)
+        .create(true)
+        .open(format!("{}", &output_file))
+    {
+        Ok(mut r) => match r.write_all(print.as_bytes()) {
+            Ok(_) => (),
+            Err(_) => {
+                print_err(&format!("Failed writing to file \"{}\"", output_file));
+            }
+        },
+        Err(_) => {
+            print_err(&format!("Failed creating \"{}\" file", output_file));
+        }
+    }
 
+}
 fn parse_http(file_data: &str) -> Result<Vec<Session>, String> {
     let mut ret = vec![];
     let mut errors = String::new();

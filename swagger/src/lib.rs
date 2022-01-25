@@ -12,7 +12,7 @@ mod schema;
 use schema::*;
 mod ep;
 use ep::*;
-mod scan;
+pub mod scan;
 pub use scan::*;
 use mapper::digest::{Method,ParamDescriptor,QuePay,ValueDescriptor,PayloadDescriptor};
 use mapper::path::{Path as DPath};
