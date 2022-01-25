@@ -70,9 +70,9 @@ impl PassiveSwaggerScan{
     pub fn print_to_file_string(&self)->String{
         let mut string = String::new();
         for check in &self.passive_checks{
-            string.push_str(&format!("CHECK: {}\tALERTS:{}\n",check,check.inner().len()));
+            string.push_str(&format!("CHECK: {:?}\tALERTS:{}\n",check.name(),check.inner().len()));
             for alert in check.inner(){
-                string.push_str(&format!("LEVEL:{}\tLOCATION:{}\tDESCRIPTION:{}\n",alert.level,alert.location,alert.description));
+                string.push_str(&format!("LEVEL:{:?}\tLOCATION:{:?}\tDESCRIPTION:{:?}\n",alert.level,alert.location,alert.description));
             }
         }
         string

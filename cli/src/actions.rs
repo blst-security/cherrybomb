@@ -91,6 +91,7 @@ pub fn run_swagger(file:&str,verbosity:u8,output_file:&str){
     let print = scan.print_to_file_string();
     match OpenOptions::new()
         .write(true)
+        .truncate(true)
         .create(true)
         .open(format!("{}", &output_file))
     {
@@ -309,6 +310,7 @@ fn parse_map_file(digest: Digest) -> Result<String, serde_json::Error> {
 fn write_map_file(file_name: String, map: String) {
     match OpenOptions::new()
         .write(true)
+        .truncate(true)
         .create(true)
         .open(format!("{}.json", &file_name))
     {
