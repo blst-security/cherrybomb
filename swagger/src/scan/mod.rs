@@ -15,7 +15,7 @@ pub trait PassiveScanRule{
 pub trait ActiveScanRule{
     fn scan(&self) -> Vec<Alert>;
 }*/
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq,Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq,Eq,PartialOrd,Ord)]
 pub enum Level{
     Info,
     Low,

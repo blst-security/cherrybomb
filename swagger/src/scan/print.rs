@@ -3,13 +3,13 @@ use std::fmt;
 pub const LEFT_PAD:usize = 40;
 pub const TBL_LEN:usize = 250;
 pub fn print_checks_table(checks:&[PassiveChecks]){
-    println!("{:pad$}|RESULT          | ALERTS  |DESCRIPTION\n{:-<table_len$}","CHECK","",pad=LEFT_PAD,table_len=TBL_LEN);
+    println!("{:pad$}| RESULT | TOP SEVERITY | ALERTS  |DESCRIPTION\n{:-<table_len$}","CHECK","",pad=LEFT_PAD,table_len=TBL_LEN);
     for check in checks{
         println!("{}",check);
     }
 }
 pub fn print_failed_checks_table(checks:&[PassiveChecks]){
-    println!("{:pad$}|RESULT          | ALERTS  |DESCRIPTION\n{:-<table_len$}","CHECK","",pad=LEFT_PAD,table_len=TBL_LEN);
+    println!("{:pad$}| RESULT | TOP SEVERITY | ALERTS  |DESCRIPTION\n{:-<table_len$}","CHECK","",pad=LEFT_PAD,table_len=TBL_LEN);
     for check in checks{
         if check.result()=="FAILED"{
             println!("{}",check);
@@ -46,9 +46,9 @@ impl fmt::Display for Alert {
 impl fmt::Display for PassiveChecks {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.result() == "PASSED"{
-            write!(f,"{:pad$}|     {}     |  {:5}  |{}\n{:-<table_len$}", self.name().bold(),self.result().green().bold().underline(),self.alerts_text(),self.description(),"",pad=LEFT_PAD,table_len=TBL_LEN)
+            write!(f,"{:pad$}| {} |    {:8}  |  {:5}  |{}\n{:-<table_len$}", self.name().bold(),self.result().green().bold().underline(),"NONE".blue().bold(),self.alerts_text(),self.description(),"",pad=LEFT_PAD,table_len=TBL_LEN)
         }else if self.result()=="FAILED"{
-            write!(f,"{:pad$}|     {}     |  {:5}  |{}\n{:-<table_len$}", self.name().bold(),self.result().red().bold().underline(),self.alerts_text(),self.description(),"",pad=LEFT_PAD,table_len=TBL_LEN)
+            write!(f,"{:pad$}| {} |    {}  |  {:5}  |{}\n{:-<table_len$}", self.name().bold(),self.result().red().bold().underline(),self.top_severity(),self.alerts_text(),self.description(),"",pad=LEFT_PAD,table_len=TBL_LEN)
         }else{
             write!(f,"")
         }

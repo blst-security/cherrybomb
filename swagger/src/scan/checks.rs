@@ -18,6 +18,15 @@ impl PassiveChecks{
             _=>self.inner().len().to_string().red().bold().blink(),
         }
     }
+    pub fn top_severity(&self)->Level{
+        let mut top = Level::Info;
+        for alert in self.inner(){
+            if alert.level>top{
+                top = alert.level;
+            }
+        }
+        top
+    }
     pub fn result(&self)->&'static str{
         if !self.inner().is_empty(){
             "FAILED"
