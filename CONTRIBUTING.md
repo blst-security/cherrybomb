@@ -8,7 +8,7 @@ The main area in which we are currently looking for contribution is the [swagger
 Please take a note of this few things before contributing:
 1. Make sure that you are familiar with the structure of a [Swagger Specification](https://swagger.io/specification/).
 2. We are looking for contribution of passive checks that are searching for stuff that are not on par with the specification.
-3. We have already implemented a swagger interface that can read and destructure the inputted file (a few swagger files for example are available in the swagger folder).
+3. We have already implemented a swagger interface that can read and destructure the inputted file (a few swagger files for example are available in the [examples folder](https://github.com/blst-security/firecracker/swagger/examples)).
 
 ### Developing
 
