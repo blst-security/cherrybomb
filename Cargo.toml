@@ -5,6 +5,7 @@ members = [
 	"mapper",
 	"decider",
 	"attacker",
+	"swagger",
 ]
 
 [profile.release]

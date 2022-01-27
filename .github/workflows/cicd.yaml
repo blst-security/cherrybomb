@@ -1,0 +1,62 @@
+on: 
+  pull_request:
+    branches:
+      - main
+
+name: Click here to see job results 
+
+jobs:          
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          
+      - uses: Swatinem/rust-cache@v1
+        with:
+          cache-on-failure: true
+          
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: false
+          command: build
+          
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+      - uses: actions-rs/cargo@v1
+        id: clippy
+        with:
+          command: clippy
+          args: --all-targets --all-features -- -D warnings
+      - uses: actions-rs/cargo@v1
+        id: fmt
+        with:
+          command: fmt
+          args: --all -- --check
+      - name: Slack Notification on Failure
+        if: ${{ failure() }}
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_CHANNEL: git
+          SLACK_WEBHOOK: ${{ secrets.ACTION_MONITORING_SLACK }}
+          SLACK_COLOR: '#FF0000'
+          SLACK_ICON: ':robot:'
+          SLACK_TITLE: 'Job failed :x:'
+          SLACK_LINK_NAMES: true
+          SLACK_MESSAGE: 'Pull request submitted :rocket:'
+          
+      - name: Slack Notification on Success
+        if: ${{ success() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: git
+          SLACK_WEBHOOK: ${{ secrets.ACTION_MONITORING_SLACK }}
+          SLACK_COLOR: '#008000'
+          SLACK_ICON: ':robot:'
+          SLACK_TITLE: 'Job finished successfully :v:'
+          SLACK_LINK_NAMES: true
+          SLACK_MESSAGE: 'Pull request submitted :rocket:'

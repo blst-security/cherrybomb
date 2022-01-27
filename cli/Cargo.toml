@@ -16,6 +16,7 @@ futures-util = { version = "^0.3", default-features = false, features = ["alloc"
 mapper = { path = "../mapper" }
 decider = { path = "../decider" }
 attacker = { path = "../attacker" }
+swagger = { path = "../swagger" }
 colored = "2.0.0"
 url = { version = "2" }
 hyper = { version = "^0.14", features = ["http2"] }

@@ -13,7 +13,7 @@ impl Authorization {
     pub fn from_parts(tp: &str, value: String) -> Self {
         match tp {
             "0" => {
-                let vals: Vec<&str> = value.split(":").collect();
+                let vals: Vec<&str> = value.split(':').collect();
                 Self::Authorization(Auth::Basic(vals[0].to_string(), vals[1].to_string()))
             }
             "1" => Self::Authorization(Auth::Bearer(value)),
@@ -44,10 +44,7 @@ impl Authorization {
         }
     }
     pub fn is_api_key(&self) -> bool {
-        match self {
-            Self::APIKey(_) => true,
-            _ => false,
-        }
+        matches!(self,Self::APIKey(_))
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]

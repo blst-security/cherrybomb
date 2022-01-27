@@ -84,7 +84,7 @@ impl Gene {
         }
         for header in &ep.common_req_headers.headers {
             if let EpHeaderValue::Payload(payload) = &header.value {
-                chromosomes.push(Chromosome::new(&payload));
+                chromosomes.push(Chromosome::new(payload));
             }
         }
         Gene {
