@@ -20,11 +20,11 @@ It can also take in your logs and check them for business logic flaws.
 #### Using cURL 
 ##### Linux:
 ```
-curl download-cherrybomb.blstsecurity.com/cherrybomb_linux | /bin/bash
+wget download-cherrybomb.blstsecurity.com/cherrybomb_linux && chmod +x cherrybomb_linux && mv cherrybomb_linux cherrybomb
 ```
 ##### MacOS:
 ```
-curl download-cherrybomb.blstsecurity.com/cherrybomb_mac | /bin/bash
+wget download-cherrybomb.blstsecurity.com/cherrybomb_mac && chmod +x cherrybomb_mac && mv cherrybomb_mac cherrybomb
 ```
 
 #### Direct download
