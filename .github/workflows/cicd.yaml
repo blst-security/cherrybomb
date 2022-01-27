@@ -26,24 +26,23 @@ jobs:
           use-cross: false
           command: build    
       - name: Run cargo test
-        uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1
         with:
           command: test
       - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
           
       - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1
         with:
           command: clippy::all
           args: --all-targets --all-features -- -D warnings
-
           
       - name: Slack Message
-        uses: ravsamhq/notify-slack-action@v1
+      - uses: ravsamhq/notify-slack-action@v1
         if: always()
         with:
            status: ${{job.status}}
