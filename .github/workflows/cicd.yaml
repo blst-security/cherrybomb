@@ -28,7 +28,7 @@ jobs:
           command: test
       - uses: actions-rs/cargo@v1
         with:
-          command: clippy::all
+          command: clippy
           args: --all-targets --all-features -- -D warnings
       - uses: actions-rs/cargo@v1
         with:
