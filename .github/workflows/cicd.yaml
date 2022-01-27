@@ -27,10 +27,12 @@ jobs:
         with:
           command: test
       - uses: actions-rs/cargo@v1
+        id: clippy
         with:
           command: clippy
           args: --all-targets --all-features -- -D warnings
       - uses: actions-rs/cargo@v1
+        id: fmt
         with:
           command: fmt
           args: --all -- --check
@@ -38,6 +40,13 @@ jobs:
       - name: Set Slack Footer
         run: |
             echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
+      - name: Set Slack Message
+        if: job.steps.fmt.status == failure()
+        run: echo "SLACK_MESSAGE=fmt failed" >> $GITHUB_ENV
+      - name: Set Slack Message 2
+        if: job.steps.clippy.status == failure()
+        run: echo "SLACK_MESSAGE=clippy failed" >> $GITHUB_ENV
+              
       
       - name: Slack Notification on Failure
         if: ${{ failure() }}
@@ -61,4 +70,3 @@ jobs:
           SLACK_ICON: ':robot:'
           SLACK_TITLE: 'Job finished successfully :v:'
           SLACK_LINK_NAMES: true
-#asdsad
