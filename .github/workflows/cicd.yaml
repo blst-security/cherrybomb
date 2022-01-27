@@ -3,7 +3,7 @@
 on: 
   pull_request:
     branches:
-      - swagger
+      - main
 
 name: Click here to see job results 
 
