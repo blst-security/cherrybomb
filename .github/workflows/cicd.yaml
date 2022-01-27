@@ -49,7 +49,7 @@ jobs:
         if: ${{ failure() }}
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
-          SLACK_CHANNEL: Daniel hirshson
+          SLACK_CHANNEL: GuyL
           SLACK_WEBHOOK: ${{ secrets.ACTION_MONITORING_SLACK }}
           SLACK_COLOR: '#FF0000'
           SLACK_ICON: ':robot:'
@@ -60,7 +60,7 @@ jobs:
         if: ${{ success() }}
         uses: rtCamp/action-slack-notify@v2
         env:
-          SLACK_CHANNEL: Daniel hirshson
+          SLACK_CHANNEL: GuyL
           SLACK_WEBHOOK: ${{ secrets.ACTION_MONITORING_SLACK }}
           SLACK_COLOR: '#008000'
           SLACK_ICON: ':robot:'
