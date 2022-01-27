@@ -2,329 +2,13 @@ use super::*;
 use attacker::*;
 use colored::*;
 use decider::*;
-use httparse::Status;
 use mapper::digest::*;
 use mapper::*;
-use std::collections::HashMap;
-use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
+use std::fs::OpenOptions;
+use std::io::Write;
 use url::Url;
 use uuid::Uuid;
 use swagger::scan::passive::{PassiveSwaggerScan,ScanType};
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
-struct ClientReqRes {
-    request: String,
-    response: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
-struct Log {
-    session: Vec<ClientReqRes>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct WebMapLink {
-    from: String,
-    to: String,
-    strength: u64,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct WebMapGroup {
-    endpoints: Vec<String>,
-    links: Vec<WebMapLink>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct WebMap {
-    eps: Vec<Endpoint>,
-    groups: Vec<WebMapGroup>,
-}
-
-fn print_err(err: &str) {
-    println!("Error: {}", err.red());
-}
-
-fn read_file(mut file_name: &str) -> Option<String> {
-    let mut file = match File::open(&mut file_name) {
-        Ok(f) => f,
-        Err(_) => {
-            print_err(&format!("File \"{}\" not found", file_name));
-            return None;
-        }
-    };
-    let mut file_data = String::new();
-    match file.read_to_string(&mut file_data) {
-        Ok(_) => (),
-        Err(_) => {
-            print_err(&format!("Could not read data from file \"{}\"", file_name));
-            return None;
-        }
-    };
-    Some(file_data)
-}
-pub fn run_swagger(file:&str,verbosity:u8,output_file:&str){
-    let swagger_str = match read_file(file){
-        Some(s)=>s,
-        None=>{
-            print_err(&format!("Failed at reading swagger file \"{}\"", file));
-            return;
-        }
-    };
-    let swagger_value:serde_json::Value = match serde_json::from_str(&swagger_str){
-        Ok(s)=>s,
-        Err(_)=>{
-            print_err(&format!("Failed at parsing swagger json file:\"{}\"", file));
-            return;
-        }
-    };
-    let mut scan = match PassiveSwaggerScan::new(swagger_value){
-        Ok(s)=>s,
-        Err(e)=>{
-            print_err(e);
-            return;
-        },
-    };
-    scan.run(ScanType::Full);
-    scan.print(verbosity);
-    let print = scan.print_to_file_string();
-    match OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .create(true)
-        .open(format!("{}", &output_file))
-    {
-        Ok(mut r) => match r.write_all(print.as_bytes()) {
-            Ok(_) => (),
-            Err(_) => {
-                print_err(&format!("Failed writing to file \"{}\"", output_file));
-            }
-        },
-        Err(_) => {
-            print_err(&format!("Failed creating \"{}\" file", output_file));
-        }
-    }
-
-}
-fn parse_http(file_data: &str) -> Result<Vec<Session>, String> {
-    let mut ret = vec![];
-    let mut errors = String::new();
-    match serde_json::from_str::<Vec<Log>>(file_data) {
-        Ok(logs) => {
-            for (i, s) in logs.iter().enumerate() {
-                let mut session = vec![];
-                for log in &s.session {
-                    let mut headers1 = [httparse::EMPTY_HEADER; 24];
-                    let mut req1 = httparse::Request::new(&mut headers1);
-                    let req_payload = match req1.parse(log.request.as_bytes()) {
-                        Ok(status) => match status {
-                            Status::Complete(offset) => log.request[offset..].to_string(),
-                            Status::Partial => {
-                                println!("This request is a partial request:\n {:?}", req1);
-                                continue;
-                            }
-                        },
-                        Err(_) => {
-                            errors += "Failed at parsing the request\n";
-                            continue;
-                        }
-                    };
-                    let mut req_headers = HashMap::new();
-                    for h in req1.headers {
-                        req_headers.insert(
-                            h.name.to_string(),
-                            match std::str::from_utf8(h.value) {
-                                Ok(r) => r.to_string(),
-                                Err(_) => {
-                                    errors += "Failed at parsing request headers in the logs files";
-                                    return Err(errors);
-                                }
-                            },
-                        );
-                    }
-                    let path = match req1.path {
-                        Some(r) => r.to_string(),
-                        None => {
-                            errors += "Failed at getting path from request in the logs files";
-                            return Err(errors);
-                        }
-                    };
-                    let method = match req1.method {
-                        Some(r) => Method::from_str(r),
-                        None => {
-                            errors += "Failed at getting method from request in the logs files";
-                            return Err(errors);
-                        }
-                    };
-                    let req_query = match path.chars().position(|lf| lf == '?') {
-                        Some(pos) => path[pos..].to_string(),
-                        None => String::new(),
-                    };
-                    let mut headers2 = [httparse::EMPTY_HEADER; 24];
-                    let mut res1 = httparse::Response::new(&mut headers2);
-                    let res_payload = match res1.parse(log.response.as_bytes()) {
-                        Ok(status) => match status {
-                            Status::Complete(offset) => log.response[offset..].to_string(),
-                            Status::Partial => {
-                                println!("This response is a partial response:\n {:?}", res1);
-                                continue;
-                            }
-                        },
-                        Err(_) => {
-                            errors += "Failed at parsing the response in the logs files\n";
-                            continue;
-                        }
-                    };
-                    let mut res_headers = HashMap::new();
-                    for h in res1.headers {
-                        res_headers.insert(
-                            h.name.to_string(),
-                            match std::str::from_utf8(h.value) {
-                                Ok(r) => r.to_string(),
-                                Err(_) => {
-                                    errors +=
-                                        "Failed at parsing response headers in the logs files";
-                                    return Err(errors);
-                                }
-                            },
-                        );
-                    }
-                    let status = match res1.code {
-                        Some(r) => r,
-                        None => {
-                            errors += "Failed at getting status from response in the logs files";
-                            return Err(errors);
-                        }
-                    };
-                    session.push(ReqRes {
-                        req_headers,
-                        res_headers,
-                        path,
-                        method,
-                        status,
-                        req_payload,
-                        res_payload,
-                        req_query,
-                    });
-                }
-                ret.push(Session {
-                    token: i.to_string(),
-                    req_res: session,
-                });
-            }
-        }
-        Err(_) => {
-            errors += "Failed at prasing logs file into Vec<Logs>";
-            return Err(errors);
-        }
-    }
-    Ok(ret)
-}
-
-fn vec_sessions_parse(logs: &str) -> Result<Vec<Session>, String> {
-    match serde_json::from_str::<Vec<Session>>(logs) {
-        Ok(r) => Ok(r),
-        Err(e0) => match serde_json::from_str::<Session>(logs) {
-            Ok(r) => Ok(vec![r]),
-            Err(e1) => {
-                let mut err: String = format!("{}", e0);
-                err += &format!("\n{}", e1);
-                Err(err)
-            }
-        },
-    }
-}
-
-fn get_sessions(logs: &str) -> Vec<Session> {
-    match (parse_http(logs), vec_sessions_parse(logs)) {
-        (Ok(vec1), Ok(vec2)) => {
-            if !vec1.is_empty() {
-                vec1
-            } else if !vec2.is_empty() {
-                vec2
-            } else {
-                print_err("Failed parsing the logs");
-                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
-                return vec![];
-            }
-        }
-        (Ok(vec1), Err(e)) => {
-            if !vec1.is_empty() {
-                vec1
-            } else {
-                print_err(&format!("{}\n", e));
-                print_err("Failed parsing the logs");
-                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
-                return vec![];
-            }
-        }
-        (Err(e), Ok(vec2)) => {
-            if !vec2.is_empty() {
-                vec2
-            } else {
-                print_err(&format!("{}\n", e));
-                print_err("Failed parsing the logs");
-                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
-                return vec![];
-            }
-        }
-        (Err(e1), Err(e2)) => {
-            print_err(&format!("{}\n", e1));
-            print_err(&format!("{}\n", e2));
-            print_err("Failed parsing the logs");
-            println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
-            return vec![];
-        }
-    }
-}
-
-fn parse_map_file(digest: Digest) -> Result<String, serde_json::Error> {
-    let new_groups = digest
-        .groups
-        .iter()
-        .map(|group| WebMapGroup {
-            endpoints: group
-                .endpoints
-                .iter()
-                .map(|ep| ep.path.path_ext.clone())
-                .collect::<Vec<String>>(),
-            links: group
-                .links
-                .iter()
-                .map(|link| WebMapLink {
-                    from: link.from.path.path_ext.clone(),
-                    to: link.to.path.path_ext.clone(),
-                    strength: link.strength,
-                })
-                .collect::<Vec<WebMapLink>>(),
-        })
-        .collect::<Vec<WebMapGroup>>();
-    let map = WebMap {
-        eps: digest.eps,
-        groups: new_groups,
-    };
-    serde_json::to_string(&map)
-}
-
-fn write_map_file(file_name: String, map: String) {
-    match OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .create(true)
-        .open(format!("{}.json", &file_name))
-    {
-        Ok(mut r) => match r.write_all(map.as_bytes()) {
-            Ok(_) => (),
-            Err(_) => {
-                print_err(&format!("Failed writing to file \"{}\"", &file_name));
-            }
-        },
-        Err(_) => {
-            print_err(&format!("Failed creating \"{}\" file", &file_name));
-        }
-    };
-}
 
 pub fn add_token(token: String) -> bool {
     match Uuid::parse_str(&token) {
@@ -354,6 +38,34 @@ pub fn add_token(token: String) -> bool {
     }
 }
 
+pub fn run_swagger(file:&str,verbosity:u8,output_file:&str){
+    let swagger_str = match read_file(file){
+        Some(s)=>s,
+        None=>{
+            print_err(&format!("Failed at reading swagger file \"{}\"", file));
+            return;
+        }
+    };
+    let swagger_value:serde_json::Value = match serde_json::from_str(&swagger_str){
+        Ok(s)=>s,
+        Err(_)=>{
+            print_err(&format!("Failed at parsing swagger json file:\"{}\"", file));
+            return;
+        }
+    };
+    let mut scan = match PassiveSwaggerScan::new(swagger_value){
+        Ok(s)=>s,
+        Err(e)=>{
+            print_err(e);
+            return;
+        },
+    };
+    scan.run(ScanType::Full);
+    scan.print(verbosity);
+    let print = scan.print_to_file_string();
+    write_to_file(output_file,print);
+}
+
 pub fn map(logs_file: String, output: String) {
     let logs = match read_file(&logs_file) {
         Some(r) => r,
@@ -374,9 +86,9 @@ pub fn map(logs_file: String, output: String) {
                 return;
             }
         };
-        write_map_file(format!("{}_checkpoint", output), map_string);
-        write_map_file(
-            output.clone(),
+        write_to_file(&format!("{}_checkpoint.json", output), map_string);
+        write_to_file(
+            &format!("{}.json",output),
             parse_map_file(digest).unwrap_or_else(|_| {
                 print_err("Failed parsing digest into web map");
                 String::new()
@@ -602,9 +314,9 @@ pub fn load(logs_file: String, map_file: String) {
                 return;
             }
         };
-        write_map_file(format!("{}_checkpoint", map_file), map_string);
-        write_map_file(
-            map_file.clone(),
+        write_to_file(&format!("{}_checkpoint.json", map_file), map_string);
+        write_to_file(
+            &format!("{}.json",map_file),
             parse_map_file(d_map).unwrap_or_else(|_| {
                 print_err("Failed parsing digest into web map");
                 String::new()
