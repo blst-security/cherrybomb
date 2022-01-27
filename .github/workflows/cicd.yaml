@@ -49,7 +49,6 @@ jobs:
           command: fmt
           args: --all -- --check
   slack:
-    needs: [build,fmt,clippy,test]
     runs-on: ubuntu-latest
     steps:
       - name: Slack Notification on Failure
