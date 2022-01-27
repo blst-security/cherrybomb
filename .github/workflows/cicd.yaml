@@ -22,34 +22,41 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           use-cross: false
-          command: build    
+          command: build
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+  clippy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions-rs/cargo@v1
         id: clippy
         with:
           command: clippy
           args: --all-targets --all-features -- -D warnings
+  fmt:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions-rs/cargo@v1
         id: fmt
         with:
           command: fmt
           args: --all -- --check
-      - name: Set footer
-        run: |
-          echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
-      - name: Set Slack Message 2
-        if: ${{ failure() }} && job.steps.clippy.status == failure()
-        run: echo "SLACK_MESSAGE=clippy failed" >> $GITHUB_ENV  
-      - name: Set Slack Message
-        if: ${{ failure() }} && job.steps.fmt.status == failure()
-        run: echo "SLACK_MESSAGE=fmt failed" >> $GITHUB_ENV
+  slack:
+    needs: [build,fmt,clippy,test]
+    runs-on: ubuntu-latest
+    steps:
       - name: Slack Notification on Failure
         if: ${{ failure() }}
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
-          SLACK_CHANNEL: GuyL
+          SLACK_CHANNEL: Daniel hirshson
           SLACK_WEBHOOK: ${{ secrets.ACTION_MONITORING_SLACK }}
           SLACK_COLOR: '#FF0000'
           SLACK_ICON: ':robot:'
@@ -60,7 +67,7 @@ jobs:
         if: ${{ success() }}
         uses: rtCamp/action-slack-notify@v2
         env:
-          SLACK_CHANNEL: GuyL
+          SLACK_CHANNEL: Daniel hirshson
           SLACK_WEBHOOK: ${{ secrets.ACTION_MONITORING_SLACK }}
           SLACK_COLOR: '#008000'
           SLACK_ICON: ':robot:'
