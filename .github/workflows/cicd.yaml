@@ -47,6 +47,7 @@ jobs:
           SLACK_ICON: ':robot:'
           SLACK_TITLE: 'Job failed :x:'
           SLACK_LINK_NAMES: true
+          SLACK_MESSAGE: COMMIT_MESSAGE=$(cat "$GITHUB_EVENT_PATH" | jq -r '.title')
           
       - name: Slack Notification on Success
         if: ${{ success() }}
@@ -58,3 +59,5 @@ jobs:
           SLACK_ICON: ':robot:'
           SLACK_TITLE: 'Job finished successfully :v:'
           SLACK_LINK_NAMES: true
+          SLACK_MESSAGE: COMMIT_MESSAGE=$(cat "$GITHUB_EVENT_PATH" | jq -r '.title')
+
