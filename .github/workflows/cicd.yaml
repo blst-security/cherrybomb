@@ -35,13 +35,26 @@ jobs:
           command: fmt
           args: --all -- --check
       
-      - uses: ravsamhq/notify-slack-action@v1
-        if: always()
-        with:
-           status: ${{job.status}}
-           notification_title: '{workflow} has {status_message}'
-           message_format: '{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>'
-           mention_users: 'D02UXB46116'
-           mention_users_when: 'failure,warnings'
+      - name: Slack Notification on Failure
+        if: ${{ failure() }}
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
-         SLACK_WEBHOOK_URL: ${{secrets.ACTION_MONITORING_SLACK}}
+          SLACK_CHANNEL: GuyL
+          SLACK_WEBHOOK: ${{ secrets.ACTION_MONITORING_SLACK }}
+          SLACK_COLOR: '#FF0000'
+          SLACK_ICON: ':robot:'
+          SLACK_TITLE: 'Job failed :x:'
+          SLACK_LINK_NAMES: true
+
+          
+      - name: Slack Notification on Success
+        if: ${{ success() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: GuyL
+          SLACK_WEBHOOK: ${{ secrets.ACTION_MONITORING_SLACK }}
+          SLACK_COLOR: '#008000'
+          SLACK_ICON: ':robot:'
+          SLACK_TITLE: 'Job finished successfully :v:'
+          SLACK_LINK_NAMES: true
+
