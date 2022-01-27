@@ -47,7 +47,7 @@ jobs:
           SLACK_ICON: ':robot:'
           SLACK_TITLE: 'Job failed :x:'
           SLACK_LINK_NAMES: true
-        
+          
       - name: Slack Notification on Success
         if: ${{ success() }}
         uses: rtCamp/action-slack-notify@v2
