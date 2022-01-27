@@ -17,7 +17,7 @@ It can also take in your logs and check them for business logic flaws.
 
 # 🐾 Get Started
 ## Installation
-#### Using cURL 
+#### Using Wget 
 ##### Linux:
 ```
 wget download-cherrybomb.blstsecurity.com/cherrybomb_linux && chmod +x cherrybomb_linux && mv cherrybomb_linux cherrybomb
