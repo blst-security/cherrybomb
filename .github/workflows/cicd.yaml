@@ -40,16 +40,9 @@ jobs:
       - name: Slack Notification on Failure
         if: ${{ failure() }}
         uses: rtCamp/action-slack-notify@v2.2.0
-      - name: Set Slack Footer
+      - name: Set Slack envs
         run: |
             echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
-      - name: Set Slack Message
-        if: job.steps.fmt.status == failure()
-        run: echo "SLACK_MESSAGE=fmt failed" >> $GITHUB_ENV
-      - name: Set Slack Message 2
-        if: job.steps.clippy.status == failure()
-        run: echo "SLACK_MESSAGE=clippy failed" >> $GITHUB_ENV
-              
         env:
           SLACK_CHANNEL: Daniel hirshson
           SLACK_WEBHOOK: ${{ secrets.ACTION_MONITORING_SLACK }}
@@ -58,7 +51,12 @@ jobs:
           SLACK_TITLE: 'Job failed :x:'
           SLACK_LINK_NAMES: true
 
-          
+      - name: Set Slack Message
+        if: job.steps.fmt.status == failure()
+        run: echo "SLACK_MESSAGE=fmt failed" >> $GITHUB_ENV
+      - name: Set Slack Message 2
+        if: job.steps.clippy.status == failure()
+        run: echo "SLACK_MESSAGE=clippy failed" >> $GITHUB_ENV          
       - name: Slack Notification on Success
         if: ${{ success() }}
         uses: rtCamp/action-slack-notify@v2
