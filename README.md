@@ -18,13 +18,13 @@ It can also take in your logs and check them for business logic flaws.
 # 🐾 Get Started
 ## Installation
 #### Using cURL 
-##### MacOS:
-```
-curl download-cherrybomb.blstsecurity.com/cherrybomb_mac | /bin/bash
-```
 ##### Linux:
 ```
 curl download-cherrybomb.blstsecurity.com/cherrybomb_linux | /bin/bash
+```
+##### MacOS:
+```
+curl download-cherrybomb.blstsecurity.com/cherrybomb_mac | /bin/bash
 ```
 
 #### Direct download
