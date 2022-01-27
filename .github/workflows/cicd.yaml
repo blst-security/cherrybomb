@@ -40,10 +40,10 @@ jobs:
         run: |
           echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
       - name: Set Slack Message
-        if: job.steps.fmt.status == failure()
+        if: ${{ failure() }} && job.steps.fmt.status == failure()
         run: echo "SLACK_MESSAGE=fmt failed" >> $GITHUB_ENV
       - name: Set Slack Message 2
-        if: job.steps.clippy.status == failure()
+        if: ${{ failure() }} && job.steps.clippy.status == failure()
         run: echo "SLACK_MESSAGE=clippy failed" >> $GITHUB_ENV  
       - name: Slack Notification on Failure
         if: ${{ failure() }}
