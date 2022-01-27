@@ -28,14 +28,13 @@ jobs:
           command: test
       - uses: actions-rs/cargo@v1
         with:
-          command: fmt
-          args: --all -- --check
-          
-      - uses: actions-rs/cargo@v1
-        with:
           command: clippy::all
           args: --all-targets --all-features -- -D warnings
-          
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+      
       - uses: ravsamhq/notify-slack-action@v1
         if: always()
         with:
