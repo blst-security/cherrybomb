@@ -40,10 +40,8 @@ jobs:
       - name: Slack Notification on Failure
         if: ${{ failure() }}
         uses: rtCamp/action-slack-notify@v2.2.0
-      - name: Set Slack envs
-        run: |
-            echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
         env:
+          SLACK_FOOTER: <$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>
           SLACK_CHANNEL: Daniel hirshson
           SLACK_WEBHOOK: ${{ secrets.ACTION_MONITORING_SLACK }}
           SLACK_COLOR: '#FF0000'
