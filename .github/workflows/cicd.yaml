@@ -1,1 +1,57 @@
 
+
+on: 
+  pull_request:
+    branches:
+      - swagger
+
+name: Click here to see job results 
+
+jobs:          
+  build:
+    name: Runner Setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          
+      - uses: Swatinem/rust-cache@v1
+        with:
+          cache-on-failure: true
+          
+      - name: Build
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: false
+          command: build    
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+          
+      - name: Run cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy::all
+          args: --all-targets --all-features -- -D warnings
+
+          
+      - name: Slack Message
+        uses: ravsamhq/notify-slack-action@v1
+        if: always()
+        with:
+           status: ${{job.status}}
+           notification_title: '{workflow} has {status_message}'
+           message_format: '{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>'
+           mention_users: 'D02UXB46116'
+           mention_users_when: 'failure,warnings'
+        env:
+         SLACK_WEBHOOK_URL: ${{secrets.ACTION_MONITORING_SLACK}}
