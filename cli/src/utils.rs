@@ -194,7 +194,7 @@ pub fn get_sessions(logs: &str) -> Vec<Session> {
                 vec2
             } else {
                 print_err("Failed parsing the logs");
-                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
+                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/cherrybomb/Documentation".purple());
                 return vec![];
             }
         }
@@ -204,7 +204,7 @@ pub fn get_sessions(logs: &str) -> Vec<Session> {
             } else {
                 print_err(&format!("{}\n", e));
                 print_err("Failed parsing the logs");
-                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
+                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/cherrybomb/Documentation".purple());
                 return vec![];
             }
         }
@@ -214,7 +214,7 @@ pub fn get_sessions(logs: &str) -> Vec<Session> {
             } else {
                 print_err(&format!("{}\n", e));
                 print_err("Failed parsing the logs");
-                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
+                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/cherrybomb/Documentation".purple());
                 return vec![];
             }
         }
@@ -222,7 +222,7 @@ pub fn get_sessions(logs: &str) -> Vec<Session> {
             print_err(&format!("{}\n", e1));
             print_err(&format!("{}\n", e2));
             print_err("Failed parsing the logs");
-            println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
+            println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/cherrybomb/Documentation".purple());
             return vec![];
         }
     }
