@@ -2,6 +2,8 @@
   
 ![cherry_bomb_v4_3_1 (1)](https://user-images.githubusercontent.com/12970637/151692589-fe2cd8ef-9463-44b8-992e-9da0adff815e.png)
 
+  <h1>Stop half-done API specifications</h1>
+  
 [![Maintained by blstsecurity](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/) [![docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://www.blstsecurity.com/cherrybomb/Documentation)
 ![Discord Shield](https://discordapp.com/api/guilds/914846937327497307/widget.png?style=shield)
 </div>
