@@ -245,7 +245,7 @@ fn get_sessions(logs: &str) -> Vec<Session> {
                 vec2
             } else {
                 print_err("Failed parsing the logs");
-                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
+                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/cherrybomb/Documentation".purple());
                 return vec![];
             }
         }
@@ -255,7 +255,7 @@ fn get_sessions(logs: &str) -> Vec<Session> {
             } else {
                 print_err(&format!("{}\n", e));
                 print_err("Failed parsing the logs");
-                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
+                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/cherrybomb/Documentation".purple());
                 return vec![];
             }
         }
@@ -265,7 +265,7 @@ fn get_sessions(logs: &str) -> Vec<Session> {
             } else {
                 print_err(&format!("{}\n", e));
                 print_err("Failed parsing the logs");
-                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
+                println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/cherrybomb/Documentation".purple());
                 return vec![];
             }
         }
@@ -273,7 +273,7 @@ fn get_sessions(logs: &str) -> Vec<Session> {
             print_err(&format!("{}\n", e1));
             print_err(&format!("{}\n", e2));
             print_err("Failed parsing the logs");
-            println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/firecracker/Documentation".purple());
+            println!("{} {}", "Ran into an error while parsing your logs".red(), "you can check out the correct formats in this address: https://www.blstsecurity.com/cherrybomb/Documentation".purple());
             return vec![];
         }
     }
@@ -382,7 +382,7 @@ pub fn map(logs_file: String, output: String) {
                 String::new()
             }),
         );
-        println!("{}", format!("Mapping Done! Saved as \"{}.json\", you can upload and view it at https://www.blstsecurity.com/firecracker/Visualizer", output).green());
+        println!("{}", format!("Mapping Done! Saved as \"{}.json\", you can upload and view it at https://www.blstsecurity.com/cherrybomb/Visualizer", output).green());
     } else {
         print_err("Something went wrong while mapping, check the errors above");
     }
@@ -610,7 +610,7 @@ pub fn load(logs_file: String, map_file: String) {
                 String::new()
             }),
         );
-        println!("{}", format!("Mapping Done! Saved as \"{}.json\", you can upload and view it at https://www.blstsecurity.com/firecracker/Visualizer", map_file).green());
+        println!("{}", format!("Mapping Done! Saved as \"{}.json\", you can upload and view it at https://www.blstsecurity.com/cherrybomb/Visualizer", map_file).green());
     } else {
         print_err("Something went wrong while mapping, check the errors above");
     }
