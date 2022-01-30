@@ -94,7 +94,7 @@ pub fn map(logs_file: String, output: String) {
                 String::new()
             }),
         );
-        println!("{}", format!("Mapping Done! Saved as \"{}.json\", you can upload and view it at https://www.blstsecurity.com/firecracker/Visualizer", output).green());
+        println!("{}", format!("Mapping Done! Saved as \"{}.json\", you can upload and view it at https://www.blstsecurity.com/cherrybomb/Visualizer", output).green());
     } else {
         print_err("Something went wrong while mapping, check the errors above");
     }
@@ -322,7 +322,7 @@ pub fn load(logs_file: String, map_file: String) {
                 String::new()
             }),
         );
-        println!("{}", format!("Mapping Done! Saved as \"{}.json\", you can upload and view it at https://www.blstsecurity.com/firecracker/Visualizer", map_file).green());
+        println!("{}", format!("Mapping Done! Saved as \"{}.json\", you can upload and view it at https://www.blstsecurity.com/cherrybomb/Visualizer", map_file).green());
     } else {
         print_err("Something went wrong while mapping, check the errors above");
     }
