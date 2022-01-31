@@ -19,7 +19,7 @@ It takes in a swagger file, runs a series of checks on it to make sure everythin
 It can also take in your logs and check them for business logic flaws.
 
 # 🐾 Get Started
-## Installationm
+## Installation
 #### Using cURL
 ##### Linux/MacOS:
 ```
