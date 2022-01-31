@@ -20,7 +20,7 @@ It can also take in your logs and check them for business logic flaws.
 
 # 🐾 Get Started
 ## Installationm
-#### Using Wget 
+#### Using cURL
 ##### Linux/MacOS:
 ```
 curl https://cherrybomb.blstsecurity.com/install	| /bin/bash
