@@ -45,17 +45,24 @@ cherrybomb --version
 cherrybomb swagger --file <PATH> --output <PATH> --verbosity <0/1/2>
 ```
 
-#### Logs scan
-First, start by mapping your logs by running
+#### More features
+First, we have a mapping module that relies on HTTP logs and builds a map of the API
+start mapping your logs by running
 ```
 cherrybomb map --file <LOGS_FILE_PATH> --output <OUTPUT_FILE_NAME>
 ```
-##### Passive checking for anomalies (1 step)
-To run the decider only to **passively** check for anomalies in your logs, run
+
+If you don't have an HTTP log file, and you have burp logs, you are in luck, go to the scripts folder, there is a convertor script there.
+If there are any other formats you need conversion scripts to, message us on the [discord server](https://discord.gg/WdHhv4DqwU).
+For futher insights, you can view your map visually in our web based visualizer: [https://www.blstsecurity.com/cherrybomb/Visualizer](https://www.blstsecurity.com/cherrybomb/Visualizer).
+
+Then, you can run passive or active scans of your logs/APIs for anomalies:
+**Passive** (1 step):
+Run the decider only to **passively** check for anomalies in your logs, run
 ```
 cherrybomb decide --file <LOGS_FILE_PATH> --map <MAPPED_FILE_PATH>
 ```
-##### Active attacking and checking for anomalies (2 steps)
+**Active** (2 steps):
 After mapping, prepare the attacker by running the command below.
 This will print the populations (API groups) so you can choose which one you want to run the attacker on.
 ```
@@ -91,4 +98,4 @@ You are also welcome to open an Issue here on GitHub.
 
 # 🤝 Contributing
 You can find info about how to contribute to Cherrybomb [here](https://github.com/blst-security/cherrybomb/blob/main/CONTRIBUTING.md).
-You can also talk to us in our developers' [discord channel](https://discord.gg/WdHhv4DqwU).
+You can also talk to us in our developers' [discord server](https://discord.gg/WdHhv4DqwU).
