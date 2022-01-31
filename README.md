@@ -19,17 +19,12 @@ It takes in a swagger file, runs a series of checks on it to make sure everythin
 It can also take in your logs and check them for business logic flaws.
 
 # 🐾 Get Started
-## Installation
+## Installationm
 #### Using Wget 
-##### Linux:
+##### Linux/MacOS:
 ```
-wget download-cherrybomb.blstsecurity.com/cherrybomb_linux && chmod +x cherrybomb_linux && mv cherrybomb_linux cherrybomb
+curl https://cherrybomb.blstsecurity.com/install	| /bin/bash
 ```
-##### MacOS:
-```
-wget download-cherrybomb.blstsecurity.com/cherrybomb_mac && chmod +x cherrybomb_mac && mv cherrybomb_mac cherrybomb
-```
-
 #### Direct download
 You can also download the binary file directly from [our website](https://www.blstsecurity.com/cherrybomb).
 This is a binary file and you DO NOT have to install Rust.
@@ -82,7 +77,7 @@ cherrybomb load --file <LOGS_FILE_PATH> --map <MAPPED_FILE_PATH>
 
  - [x] OAS 3 support
  - [x] Passive checks
- - [ ] Installation script
+ - [ ] Improve installation script
  - [ ] Homebrew/APT support
  - [ ] Custom scans - optional checks + optional output + ignores(from alerts)
  - [ ] Swagger 2 support (currently only version 3 is supported)
