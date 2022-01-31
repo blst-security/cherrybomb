@@ -11,7 +11,7 @@
 # 🧨 What is Cherrybomb?
 Cherrybomb is a CLI tool that helps you avoid undefined user behavior by validating your API specifications.
 
-Our CLI too is open source, enabling support from both the OpenAPI and Rust communities.
+Our CLI tool is open source, enabling support from both the OpenAPI and Rust communities.
 
 # 🔨 How does it work?
 It takes in a swagger file, runs a series of checks on it to make sure everything is on par with the OAS, and outputs a detailed table with any alerts found, guiding you to the exact problem and location to help you solve it quickly.
