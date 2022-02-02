@@ -80,6 +80,7 @@ cherrybomb load --file <LOGS_FILE_PATH> --map <MAPPED_FILE_PATH>
  - [ ] Improve installation script
  - [ ] Homebrew/APT support
  - [ ] Custom scans - optional checks + optional output + ignores(from alerts)
+ - [ ] GraphQL schema support
  - [ ] Swagger 2 support (currently only version 3 is supported)
  - [ ] Active scans
  - [ ] More passive scans
