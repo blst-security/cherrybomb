@@ -5,7 +5,7 @@
   <h1>Stop half-done API specifications</h1>
   
 [![Maintained by blstsecurity](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/) [![docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://www.blstsecurity.com/cherrybomb/Documentation)
-![Discord Shield](https://discordapp.com/api/guilds/914846937327497307/widget.png?style=shield)
+[![Discord Shield](https://discordapp.com/api/guilds/914846937327497307/widget.png?style=shield)](https://discord.gg/WdHhv4DqwU)
 </div>
 
 # 🧨 What is Cherrybomb?
