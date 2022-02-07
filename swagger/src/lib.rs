@@ -92,7 +92,7 @@ pub struct Response{
 #[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq)]
 pub struct Header{
     pub description:Option<String>,
-    pub required:bool,
+    pub required:Option<bool>,
     pub deprecated:Option<bool>,
     #[serde(rename = "allowEmptyValue")]
     pub allow_empty_value:Option<bool>,
@@ -159,9 +159,9 @@ pub struct OAuth{
     #[serde(rename = "authorizationUrl")]
     pub authorization_url:String,
     #[serde(rename = "tokenUrl")]
-    pub token_uri:String,
+    pub token_url:Option<String>,
     #[serde(rename = "refreshUrl")]
-    pub refresh_uri:Option<String>,
+    pub refresh_url:Option<String>,
     pub scopes:HashMap<String,String>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq)]
@@ -219,6 +219,19 @@ pub struct Swagger{
     pub info:Info,
     pub servers:Option<Vec<Server>>,
     pub paths:Path,
+    pub components:Option<Components>,
+    pub security:Option<Vec<Security>>,
+    pub tags:Option<Vec<Tag>>,
+    #[serde(rename = "externalDocs")]
+    pub external_docs:Option<ExternalDocs>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq)]
+pub struct OAS3_1{
+    pub openapi:String,
+    pub info:Info,
+    pub servers:Option<Vec<Server>>,
+    pub webhooks:Option<Path>,
+    pub paths:Option<Path>,
     pub components:Option<Components>,
     pub security:Option<Vec<Security>>,
     pub tags:Option<Vec<Tag>>,

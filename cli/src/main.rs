@@ -1,7 +1,7 @@
 use attacker::{Authorization, Verbosity};
 use clap::{App, Arg, Error};
 use colored::*;
-use firecracker::*;
+use cherrybomb::*;
 use mapper::digest::Header;
 
 const VERSION: &str = "0.3.0";

@@ -15,7 +15,7 @@ pub struct Operation{
     pub parameters:Option<Vec<ParamRef>>,
     #[serde(rename = "requestBody")]
     pub request_body:Option<ReqRef>,
-    pub responses:Responses,
+    pub responses:Option<Responses>,
     pub callback:Option<Callback>,
     pub deprecated:Option<bool>,
     pub security:Option<Vec<Security>>,
@@ -29,7 +29,7 @@ pub enum ParamType{
 }
 #[allow(dead_code)]
 impl Operation{
-    pub fn responses(&self)->Responses{self.responses.clone()}
+    pub fn responses(&self)->Responses{if let Some(r) = self.responses.clone() { r } else {HashMap::new()}}
     pub fn params(&self)->Vec<ParamRef>{
         if let Some(v)= &self.parameters{
             v.to_vec()

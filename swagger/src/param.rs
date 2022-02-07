@@ -6,7 +6,7 @@ pub struct Parameter{
     #[serde(rename = "in")]
     param_in:String,
     description:Option<String>,
-    required:bool,
+    required:Option<bool>,
     deprecated:Option<bool>,
     #[serde(rename = "allowEmptyValue")]
     allow_empty_value:Option<bool>,
@@ -30,7 +30,7 @@ impl Parameter{
         }
     }
     pub fn name(&self)->String{self.name.clone()}
-    pub fn required(&self)->bool{self.required}
+    pub fn required(&self)->bool{if let Some(r) = self.required { r } else { false } }
     pub fn schema(&self)->SchemaRef{if let Some(s) = self.schema.clone() { s } else{ SchemaRef::default()}}
     pub fn to_desc(&self)->ParamDescriptor{
         ParamDescriptor{

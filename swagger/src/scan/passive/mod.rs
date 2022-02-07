@@ -34,7 +34,10 @@ impl PassiveSwaggerScan{
                     verbosity:0,
                 })
             },
-            Err(_)=>Err("Failed at deserializing swagger value to a swagger struct, please check the swagger definition"),
+            Err(e)=>{
+                println!("{:?}",e);
+               Err("Failed at deserializing swagger value to a swagger struct, please check the swagger definition")
+            },
         }
     }
     pub fn run(&mut self,tp:ScanType){//->Vec<PassiveChecks>{
