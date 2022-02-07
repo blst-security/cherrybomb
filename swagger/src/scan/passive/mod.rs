@@ -23,7 +23,7 @@ pub struct PassiveSwaggerScan<T> where T:Serialize{
     verbosity:u8,
     passive_checks:Vec<PassiveChecks>,
 }
-impl <T:OAS+Serialize+Default+ for<'de> Deserialize<'de>> PassiveSwaggerScan<T>{
+impl <T:OAS+Serialize+ for<'de> Deserialize<'de>> PassiveSwaggerScan<T>{
     pub fn new(swagger_value:Value)->Result<Self,&'static str>{
         match serde_json::from_value::<T>(swagger_value.clone()){
             Ok(swagger)=>{
