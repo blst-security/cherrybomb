@@ -30,7 +30,7 @@ macro_rules! impl_passive_checks{
                 }
             }
         }
-        impl PassiveSwaggerScan{
+        impl <T:OAS+Serialize>PassiveSwaggerScan<T>{
             pub fn run_check(&self,check:PassiveChecks)->PassiveChecks{
                 match check{
                     $(

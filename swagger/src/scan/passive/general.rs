@@ -15,15 +15,15 @@ pub trait PassiveGeneralScan{
 }
 
 ///Rule fucntions implementation
-impl PassiveGeneralScan for PassiveSwaggerScan{
+impl <T:OAS+Serialize> PassiveGeneralScan for PassiveSwaggerScan<T>{
     ///Can raise no https alert and invalid url in server alert
     fn check_server_url(&self)->Vec<Alert>{
         let mut alerts = vec![];
         let mut server_addrs = HashSet::new();
-        if let Some(servers) = &self.swagger.servers{
+        if let Some(servers) = &self.swagger.servers(){
             alerts.extend(check_servers_for_server_url_rule(servers,"swagger root servers",&mut server_addrs));
         }
-        for (path,item) in &self.swagger.paths{
+        for (path,item) in &self.swagger.get_paths(){
             for (m,op) in item.get_ops(){
                 if let Some(servers) = &op.servers{
                     alerts.extend(check_servers_for_server_url_rule(servers,&format!("swagger {} {} servers",path,m),&mut server_addrs));
@@ -35,7 +35,7 @@ impl PassiveGeneralScan for PassiveSwaggerScan{
     }
     fn check_successes(&self)->Vec<Alert>{
         let mut alerts = vec![];
-        for (path,item) in &self.swagger.paths {
+        for (path,item) in &self.swagger.get_paths() {
                for (m,op) in item.get_ops(){
                      let statuses = op.responses().iter().map(|(k,_v)| k.clone()).collect::<Vec<String>>();
                      let mut found = false;
@@ -56,7 +56,7 @@ impl PassiveGeneralScan for PassiveSwaggerScan{
     }
     fn check_additional_properties(&self)->Vec<Alert>{
         let mut alerts = vec![];
-        if let Some(comps) = &self.swagger.components{
+        if let Some(comps) = &self.swagger.components(){
             if let Some(schemas) = &comps.schemas{
                 for (name,schema) in schemas{
                     alerts.extend(additional_properties_test(&schema.inner(&self.swagger_value),format!("swagger root components schema:{}",name)))
@@ -115,7 +115,7 @@ impl PassiveGeneralScan for PassiveSwaggerScan{
     fn check_unused_schema(&self)->Vec<Alert>{
         let mut alerts = vec![];
         let swagger_str = serde_json::to_string(&self.swagger).unwrap();
-        if let Some(comps) = &self.swagger.components{
+        if let Some(comps) = &self.swagger.components(){
             if let Some(schemas) = &comps.schemas{
                 for name in schemas.keys(){
                     let schema_path = format!("#/components/schemas/{}",name);

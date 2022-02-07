@@ -5,7 +5,7 @@ pub trait PassiveTypeScan{
     fn check_arr_attrs(&self)->Vec<Alert>;
     fn check_obj_attrs(&self)->Vec<Alert>;
 }
-impl PassiveTypeScan for PassiveSwaggerScan{
+impl <T:OAS+Serialize>PassiveTypeScan for PassiveSwaggerScan<T>{
     fn check_int_attrs(&self)->Vec<Alert>{
         let mut alerts = vec![];
         let schemas = get_schemas_by_type(&self.swagger,&self.swagger_value,"integer");

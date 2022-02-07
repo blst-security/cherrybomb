@@ -6,7 +6,7 @@ pub trait PassiveAuthScan{
     fn check_auth(&self)->Vec<Alert>;
     fn check_fn_auth(&self)->Vec<Alert>;
 }
-impl PassiveAuthScan for PassiveSwaggerScan{
+impl <T:OAS+Serialize> PassiveAuthScan for PassiveSwaggerScan<T>{
     ///Rule fucntion
     fn check_401(&self)->Vec<Alert>{
         let mut alerts = vec![];
@@ -51,7 +51,7 @@ impl PassiveAuthScan for PassiveSwaggerScan{
         }else{
             return vec![];
         };
-        for (path,item) in &self.swagger.paths{
+        for (path,item) in &self.swagger.get_paths(){
             for (m,op) in item.get_ops(){
                 let secs = if let Some(s) = &op.security { s.iter().map(|v| v.keys()).flatten().collect() } else { vec![] };
                 if secs.is_empty(){

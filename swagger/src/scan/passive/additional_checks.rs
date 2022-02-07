@@ -1,9 +1,9 @@
 use super::*;
 
-impl PassiveSwaggerScan {
+impl <T:OAS+Serialize>PassiveSwaggerScan <T>{
     pub fn check_valid_responses(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
-        for (path, item) in &self.swagger.paths {
+        for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {
                 let statuses = op
                     .responses()

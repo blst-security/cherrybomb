@@ -16,16 +16,16 @@ pub enum ScanType{
     Partial(Vec<PassiveChecks>),
 }
 #[derive(Debug, Clone, Serialize, Default,PartialEq,Eq)]
-pub struct PassiveSwaggerScan{
-    swagger:Swagger,
+pub struct PassiveSwaggerScan<T> where T:Serialize{
+    swagger:T,
     swagger_value:Value,
     //alerts:Vec<iveChecks>>,
     verbosity:u8,
     passive_checks:Vec<PassiveChecks>,
 }
-impl PassiveSwaggerScan{
+impl <T:OAS+Serialize+Default+ for<'de> Deserialize<'de>> PassiveSwaggerScan<T>{
     pub fn new(swagger_value:Value)->Result<Self,&'static str>{
-        match serde_json::from_value(swagger_value.clone()){
+        match serde_json::from_value::<T>(swagger_value.clone()){
             Ok(swagger)=>{
                 Ok(PassiveSwaggerScan{
                     swagger,

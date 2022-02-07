@@ -22,21 +22,23 @@ pub fn check_servers_for_server_url_rule(servers:&[Server],location:&str,prev_ad
     }
     alerts
 }
-pub fn get_responses(swagger:&Swagger)->Vec<(Responses,String)>{
+pub fn get_responses<T>(swagger:&T)->Vec<(Responses,String)>
+where T:OAS{
     let mut ret= vec![];
-    if let Some(components) = &swagger.components{
+    if let Some(components) = &swagger.components(){
         if let Some(responses) = &components.responses{
             ret.push((responses.clone(),"swagger root components reponses".to_string()));
         }
     }
-    for (path,item) in &swagger.paths{
+    for (path,item) in &swagger.get_paths(){
         ret.extend(item.get_ops().iter().map(|(m,op)|(op.responses(),format!("swagger path:{} operation:{}",path,m))));
     }
     ret
 }
-pub fn get_params(swagger:&Swagger,swagger_value:&Value)->Vec<(Param,String)>{
+pub fn get_params<T>(swagger:&T,swagger_value:&Value)->Vec<(Param,String)>
+where T:OAS{
     let mut params = vec![];
-    for (path,item) in &swagger.paths{
+    for (path,item) in &swagger.get_paths(){
         params.extend(item.params().iter().map(|param|{
             let param = param.inner(swagger_value);
             (Param::schema_to_params(swagger_value,param.schema(),param.name(),param.required()),format!("swagger path:{} param:{}",path,param.name()))
@@ -161,15 +163,17 @@ pub fn additional_properties_test(schema:&Schema,location:String)->Vec<Alert>{
     };
     alerts
 }
-pub fn get_auth(swagger:&Swagger)->Option<HashMap<String,SecSchemeRef>>{
-    if let Some(components) = &swagger.components{
+pub fn get_auth<T>(swagger:&T)->Option<HashMap<String,SecSchemeRef>>
+where T:OAS{
+    if let Some(components) = &swagger.components(){
         components.security_schemes.clone()
     }else{
         None
     }
 }
-pub fn get_path_responses(swagger:&Swagger)->Vec<(String,Method,Vec<Security>,Responses)>{
-    swagger.paths.iter().map(|(path,item)|{
+pub fn get_path_responses<T>(swagger:&T)->Vec<(String,Method,Vec<Security>,Responses)>
+where T:OAS{
+    swagger.get_paths().iter().map(|(path,item)|{
         let mut d_vec = vec![];
         for (m,op) in item.get_ops(){
             let sec = if let Some(s) = &op.security { s.to_vec() } else { vec![] };
@@ -178,9 +182,10 @@ pub fn get_path_responses(swagger:&Swagger)->Vec<(String,Method,Vec<Security>,Re
         d_vec
     }).flatten().collect()
 }
-pub fn get_schemas_by_type(swagger:&Swagger,swagger_value:&Value,tp:&str)->Vec<(Schema,String)>{
+pub fn get_schemas_by_type<T>(swagger:&T,swagger_value:&Value,tp:&str)->Vec<(Schema,String)>
+where T:OAS{
     let mut schemas = vec![];
-    for (path,item) in &swagger.paths{
+    for (path,item) in &swagger.get_paths(){
         for (m,op) in item.get_ops(){
             if let Some(r_body) = &op.request_body{
                 let r_body= r_body.inner(swagger_value);

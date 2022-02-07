@@ -1,7 +1,7 @@
 use super::*;
 use crate::param::*;
 
-pub type Path = HashMap<String,PathItem>;
+pub type Paths = HashMap<String,PathItem>;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq)]
 pub struct Operation{
