@@ -11,7 +11,7 @@ mod additional_checks;
 use strum::IntoEnumIterator;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq,Eq)]
-pub enum ScanType{
+pub enum PassiveScanType{
     Full,
     Partial(Vec<PassiveChecks>),
 }
@@ -40,14 +40,14 @@ impl <T:OAS+Serialize+ for<'de> Deserialize<'de>> PassiveSwaggerScan<T>{
             },
         }
     }
-    pub fn run(&mut self,tp:ScanType){//->Vec<PassiveChecks>{
+    pub fn run(&mut self,tp:PassiveScanType){//->Vec<PassiveChecks>{
         match tp{
-            ScanType::Full=>{
+            PassiveScanType::Full=>{
                 for check in PassiveChecks::iter(){
                     self.passive_checks.push(self.run_check(check));
                 }
             },
-            ScanType::Partial(checks)=>{
+            PassiveScanType::Partial(checks)=>{
                 for check in checks{
                     self.passive_checks.push(self.run_check(check));
                 }

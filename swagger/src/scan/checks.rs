@@ -56,3 +56,6 @@ impl_passive_checks![
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definion of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes")
 ];
+impl_active_checks![
+    (CheckDefault,check_default,"CHECK DEFAULT","check default")
+];

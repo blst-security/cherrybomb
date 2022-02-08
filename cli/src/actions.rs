@@ -8,7 +8,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use url::Url;
 use uuid::Uuid;
-use swagger::scan::passive::{PassiveSwaggerScan,ScanType};
+use swagger::scan::passive::{PassiveSwaggerScan,PassiveScanType};
 use swagger::{Swagger,OAS3_1,OAS};
 
 pub fn add_token(token: String) -> bool {
@@ -48,7 +48,7 @@ where T:OAS+Serialize+for<'de> Deserialize<'de>{
             return;
         },
     };
-    scan.run(ScanType::Full);
+    scan.run(PassiveScanType::Full);
     scan.print(verbosity);
     let print = scan.print_to_file_string();
     write_to_file(output_file,print);
