@@ -37,7 +37,7 @@ Now you should be ready to start contributing.
 
 ### Developing a new check
 
-First, you're going to need to navigate to src/scan/checks.rs and scroll down until you see the following macro implementation:
+First, you're going to need to navigate to swagger/src/scan/checks.rs and scroll down until you see the following macro implementation:
 ```
 impl_passive_checks![
   ...
@@ -59,7 +59,7 @@ Please note that each check is a tuple that consists of:
 * The name of the check as it's going to appear in the output table, in CAPS.
 * The description of the check as it's going to appear in the output table, in plain English.
 
-Now, navigate to src/scan/passive/additional_checks.rs and scroll down until you see the following implementation:
+Now, navigate to swagger/src/scan/passive/additional_checks.rs and scroll down until you see the following implementation:
 
 ```
 impl PassiveSwaggerScan {
