@@ -74,10 +74,10 @@ macro_rules! impl_active_checks{
             }
         }
         impl <T:OAS+Serialize>ActiveScan<T>{
-            pub fn run_check(&self,check:ActiveChecks)->ActiveChecks{
+            pub async fn run_check(&self,check:ActiveChecks)->ActiveChecks{
                 match check{
                     $(
-                        ActiveChecks::$check(_)=>ActiveChecks::$check(self.$check_func()),
+                        ActiveChecks::$check(_)=>ActiveChecks::$check(self.$check_func().await),
                     )*
                 }
             }

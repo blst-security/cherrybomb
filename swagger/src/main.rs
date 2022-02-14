@@ -4,7 +4,8 @@ fn main() {
     //let _swagger_str:Swagger = serde_json::from_str(&std::fs::read_to_string(f_name).unwrap()).unwrap();
     //let f_names = ["swagger2.json","swagger3.json","swagger4.json","swagger5.json","swagger6.json","swagger7.json"];
     //for f_name in f_names{
-    let swagger_value:serde_json::Value = serde_json::from_str(&std::fs::read_to_string(f_name).unwrap()).unwrap();
+    let swagger_value: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(f_name).unwrap()).unwrap();
     /*
     let version = swagger_value["openapi"].to_string().trim().replace("\"","");
     let swagger = if version.starts_with("3.1"){
@@ -16,14 +17,15 @@ fn main() {
     }else{
         println!("{} {}",f_name,version);
     };*/
-    let swagger = serde_json::from_str::<OAS3_1>(&std::fs::read_to_string(f_name).unwrap()).unwrap();
-     //   println!("{:?}",swagger.paths.unwrap().get("/users").unwrap().get.as_ref().unwrap().security.as_ref().unwrap());
+    let swagger =
+        serde_json::from_str::<OAS3_1>(&std::fs::read_to_string(f_name).unwrap()).unwrap();
+    //   println!("{:?}",swagger.paths.unwrap().get("/users").unwrap().get.as_ref().unwrap().security.as_ref().unwrap());
     //}
-        let mut a = PassiveSwaggerScan::<OAS3_1>::new(swagger_value).unwrap();
-        a.run(ScanType::Full);
-        a.print(1);
-        //print_checks_table(&a);
-        //print_alerts_table(&a);
+    let mut a = PassiveSwaggerScan::<OAS3_1>::new(swagger_value).unwrap();
+    a.run(PassiveScanType::Full);
+    a.print(1);
+    //print_checks_table(&a);
+    //print_alerts_table(&a);
     //let _sw = swagger_str.convert_to_map(swagger_value);
     //println!("{:?}",swagger_str);
     //println!("{:?}",swagger_value);

@@ -1,14 +1,14 @@
 use super::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq)]
-pub struct Ep{
-    pub path:String,
-    pub method:Method,
-    pub path_params:Vec<Param>,
-    pub req_payload_params:Option<Param>,
-    pub req_payload_type:Option<String>,
-    pub res_payload_params:HashMap<String,Param>,
-    pub servers:Vec<String>,
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct Ep {
+    pub path: String,
+    pub method: Method,
+    pub path_params: Vec<Param>,
+    pub req_payload_params: Option<Param>,
+    pub req_payload_type: Option<String>,
+    pub res_payload_params: HashMap<String, Param>,
+    pub servers: Vec<String>,
 }
 /*
 #[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq,Copy)]
