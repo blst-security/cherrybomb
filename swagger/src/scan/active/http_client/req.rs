@@ -40,7 +40,7 @@ impl AttackRequestBuilder {
     }
 }
 impl AttackRequest {
-    pub fn new()->AttackRequestBuilder{
+    pub fn builder()->AttackRequestBuilder{
         AttackRequestBuilder::default()
     }
     fn params_to_payload(&self) -> (String, String, String, Vec<MHeader>) {

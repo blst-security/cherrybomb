@@ -28,6 +28,7 @@ pub enum Certainty {
     Low,
     Medium,
     High,
+    Certain
 }
 impl Default for Certainty {
     fn default() -> Self {

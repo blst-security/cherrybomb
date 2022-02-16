@@ -14,9 +14,9 @@ pub struct RequestParameter {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct AttackResponse {
-    status: u16,
-    payload: String,
-    headers: HashMap<String, String>,
+    pub status: u16,
+    pub payload: String,
+    pub headers: HashMap<String, String>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct AttackRequest {

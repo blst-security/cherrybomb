@@ -5,14 +5,17 @@ mod additional_checks;
 mod utils;
 use utils::*;
 mod flow;
-use flow::*;
+//use flow::*;
 mod http_client;
 use http_client::*;
+pub use http_client::Authorization;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ActiveScanType {
     Full,
     Partial(Vec<ActiveChecks>),
+    NonInvasive,
+    OnlyTests,
 }
 #[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
 pub struct ActiveScan<T>
@@ -39,17 +42,27 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             }
         }
     }
-    pub async fn run(&mut self, tp: ActiveScanType) {
+    pub async fn run(&mut self, tp: ActiveScanType,auth:&Authorization) {
         //->Vec<PassiveChecks>{
         match tp {
             ActiveScanType::Full => {
                 for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check).await);
+                    self.checks.push(self.run_check(check,auth).await);
                 }
             }
+            ActiveScanType::NonInvasive => {
+                for check in ActiveChecks::iter() {
+                    self.checks.push(self.run_check(check,auth).await);
+                }
+            } 
+            ActiveScanType::OnlyTests => {
+                for check in ActiveChecks::iter() {
+                    self.checks.push(self.run_check(check,auth).await);
+                }
+            } 
             ActiveScanType::Partial(checks) => {
                 for check in checks {
-                    self.checks.push(self.run_check(check).await);
+                    self.checks.push(self.run_check(check,auth).await);
                 }
             }
         };
