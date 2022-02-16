@@ -4,8 +4,8 @@ platform='unknown'
 unamestr=$(uname)
 case $unamestr in
   "SunOs") echo "\033[31;1m SOLARIS is not yet supported, contact us to get support status or open a github issue\033[0m" ; exit 0;;
-  "Darwin")  platform="mac" ;;
-  "Linux")   platform="linux" ;;
+  "Darwin")  platform="mac_x86_64" ;;
+  "Linux")   platform="linux_gnu" ;;
   "FreeBSD")     echo "\033[31;1m BSD is not yet supported, contact us to get support status or open a github issue\033[0m" ; exit 0;; 
   "WindowsNT")    echo "\033[31;1m WINDOWS is not yet supported, contact us to get support status or open a github issue\033[0m" ; exit 0;; 
   *)        echo "\033[31;1m unknown: $OSTYPE is not yet supported, contact us to get support status or open a github issue\033[0m" ; exit 0;;  
