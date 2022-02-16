@@ -27,16 +27,13 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             println!("{}",path);
-          //  println!("{:?}",item);
-            for(m,op) in item.get_ops(){ // op struct 
+             for(m,op) in item.get_ops(){ // op struct 
             println!("{}",m);
              if m == Method::GET{
-              // println!("{:?}",op.security);
-               match &op.security {
+                match &op.security {
                 Some(x) => {
                     let y = x[0].values().cloned().flatten().collect::<Vec<String>>();//.collect::<Vec<Vec<String>>>();
-                 //   println!("{:?}",y);
-                    let mut flag = true;
+                     let mut flag = true;
                     for item in y {
                         let mut strings = item.split(":");
                         let  element = strings.next();
@@ -54,7 +51,6 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
             }
                
         }
-      //      println!("{:?}",op.security);
     
            }
 
