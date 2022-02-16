@@ -27,34 +27,29 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             println!("{}",path);
-             for(m,op) in item.get_ops(){ // op struct 
-            println!("{}",m);
-             if m == Method::GET{
-                match &op.security {
-                Some(x) => {
-                    let y = x[0].values().cloned().flatten().collect::<Vec<String>>();//.collect::<Vec<Vec<String>>>();
-                     let mut flag = true;
-                    for item in y {
-                        let mut strings = item.split(":");
-                        let  element = strings.next();
-                        println!( "security!! {:?}", element);
-                        if  element.unwrap()!= "read"{
-                            flag= false;
-                                 }
-                    }
-                    if !flag{
-                        alerts.push(Alert::new(Level::Low,"INSECURE",format!("swagger path:{} method {} has to be only READ permissions  ",path,m )))
-                    }
-                },
-        
-                  None =>  println!(""),
-            }
-               
-        }
-    
-           }
+            for(m,op) in item.get_ops(){       
+                if m == Method::GET{
+                    match &op.security {
+                        Some(x) => {
+                            for i in x {
+                                let y = i.values().cloned().flatten().collect::<Vec<String>>();
+                                let mut flag = true;
+                                for item in y {
+                                    if  !item.starts_with("read"){
+                                        alerts.push(Alert::new(Level::Low,"INSECURE",format!("swagger path:{} method {} has to be only READ permissions  ",path,m )))
 
-        }
+                                        }
+                                    }
+                                }
+                            },
+                  None => (),
+                        }
+
+                    }
+
+                }
+
+            }
         alerts
     }
 }

@@ -23,7 +23,7 @@ fn main() {
     //}
     let mut a = PassiveSwaggerScan::<Swagger>::new(swagger_value).unwrap();
     a.run(PassiveScanType::Full);
-    a.print(0);
+   // a.print(0);
     //print_checks_table(&a);
     //print_alerts_table(&a);
     //let _sw = swagger_str.convert_to_map(swagger_value);
