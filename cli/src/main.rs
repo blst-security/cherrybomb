@@ -4,14 +4,14 @@ use colored::*;
 use cherrybomb::*;
 use mapper::digest::Header;
 
-const VERSION: &str = "0.3.0";
+const VERSION: &str = "0.4.3";
 const MAP_FILE: &str = "map";
 const DECIDE_FILE: &str = "decide";
 const SWAGGER_OUTPUT_FILE: &str = "results.txt";
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let matches = App::new("FIRECRACKER")
+    let matches = App::new("CHERRYBOMB")
         .version(VERSION)
         .author("<support@blstsecurity.com>")
         .about("Blst cli app")
