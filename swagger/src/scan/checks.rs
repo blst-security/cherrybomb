@@ -54,7 +54,10 @@ impl_passive_checks![
     (CheckStrAttrs,check_str_attrs,"STRING ATTRIBUTES","Checks for the definion of string type attributes - max_length, min_length, pattern"),
     (CheckArrAttrs,check_arr_attrs,"ARRAY ATTRIBUTES","Checks for the definion of array type attributes - max_items, min_items"),
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definion of object type attributes - max_properties, properties"),
-    (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes")
+    (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes"),
+    (CheckGetPermissions, check_get_permissions, "GET PERMISSIONS", "Checks for correct permissions for get requests"),
+    (CheckPutPermissions, check_put_permissions, "PUT_PERMISSIONS","Checks for correct permissions for put requests"),
+    (CheckPostPermissions, check_post_permissions, "POST_PERMISSIONS","Checks for correct permissions for post requests")
 ];
 impl_active_checks![(
     CheckDefault,
