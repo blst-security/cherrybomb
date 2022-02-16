@@ -1,36 +1,36 @@
 use super::*;
-use strum_macros::EnumIter;
 use crate::scan::passive::*;
+use strum_macros::EnumIter;
 
 ///Add the rule name to this enum
-impl Default for PassiveChecks{
-    fn default()->Self{
+impl Default for PassiveChecks {
+    fn default() -> Self {
         //Self::No404
         Self::CheckServerUrl(vec![])
     }
 }
-impl PassiveChecks{
-    pub fn alerts_text(&self)->ColoredString{
-        match self.inner().len(){
-            0=>"0".green().bold(),
-            1..=10=>self.inner().len().to_string().yellow().bold(),
-            11..=99=>self.inner().len().to_string().red().bold(),
-            _=>self.inner().len().to_string().red().bold().blink(),
+impl PassiveChecks {
+    pub fn alerts_text(&self) -> ColoredString {
+        match self.inner().len() {
+            0 => "0".green().bold(),
+            1..=10 => self.inner().len().to_string().yellow().bold(),
+            11..=99 => self.inner().len().to_string().red().bold(),
+            _ => self.inner().len().to_string().red().bold().blink(),
         }
     }
-    pub fn top_severity(&self)->Level{
+    pub fn top_severity(&self) -> Level {
         let mut top = Level::Info;
-        for alert in self.inner(){
-            if alert.level>top{
+        for alert in self.inner() {
+            if alert.level > top {
                 top = alert.level;
             }
         }
         top
     }
-    pub fn result(&self)->&'static str{
-        if !self.inner().is_empty(){
+    pub fn result(&self) -> &'static str {
+        if !self.inner().is_empty() {
             "FAILED"
-        }else{
+        } else {
             "PASSED"
         }
     }
@@ -56,3 +56,9 @@ impl_passive_checks![
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definion of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes")
 ];
+impl_active_checks![(
+    CheckDefault,
+    check_default,
+    "CHECK DEFAULT",
+    "check default"
+)];

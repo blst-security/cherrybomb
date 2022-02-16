@@ -3,41 +3,53 @@ mod checks;
 pub use checks::*;
 pub mod passive;
 pub use passive::*;
+pub mod active;
+pub use active::*;
 mod macros;
 mod print;
-pub use print::*;
 use colored::*;
+pub use print::*;
 
-pub trait PassiveScanRule{
-    fn scan(&self) -> Vec<Alert>;
-}
-/*
-pub trait ActiveScanRule{
-    fn scan(&self) -> Vec<Alert>;
-}*/
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq,Eq,PartialOrd,Ord)]
-pub enum Level{
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Level {
     Info,
     Low,
     Medium,
     High,
-    Critical
+    Critical,
 }
 impl Default for Level {
     fn default() -> Self {
         Self::Info
     }
 }
-pub trait ScanRule{}
-#[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq)]
-pub struct Alert{//<T>{
-    pub level:Level,
-    pub description:String, 
-    pub location:String,
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Certainty {
+    Low,
+    Medium,
+    High,
+    Certain
+}
+impl Default for Certainty {
+    fn default() -> Self {
+        Self::Low
+    }
+}
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct Alert {
+    pub level: Level,
+    pub description: String,
+    pub location: String,
+    pub certainty: Certainty,
 }
 
-impl Alert{
-    pub fn new(level:Level,description:&'static str,location:String)->Alert{
-        Alert{level,description:description.to_string(),location}
+impl Alert {
+    pub fn new(level: Level, description: &'static str, location: String) -> Alert {
+        Alert {
+            level,
+            description: description.to_string(),
+            location,
+            certainty: Certainty::High,
+        }
     }
 }

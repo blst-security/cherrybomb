@@ -1,9 +1,9 @@
 use super::*;
 
-impl PassiveSwaggerScan {
+impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
     pub fn check_valid_responses(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
-        for (path, item) in &self.swagger.paths {
+        for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {
                 let statuses = op
                     .responses()
@@ -11,7 +11,7 @@ impl PassiveSwaggerScan {
                     .map(|(k, _v)| k.clone())
                     .collect::<Vec<String>>();
                 for status in statuses {
-                    if status.parse::<u16>().is_err() && status != "default"{
+                    if status.parse::<u16>().is_err() && status != "default" {
                         alerts.push(Alert::new(
                             Level::Low,
                             "Responses have an ivalid or unrecognized status code",
