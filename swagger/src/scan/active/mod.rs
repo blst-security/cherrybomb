@@ -9,6 +9,8 @@ mod flow;
 mod http_client;
 use http_client::*;
 pub use http_client::Authorization;
+mod logs;
+use logs::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ActiveScanType {

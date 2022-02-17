@@ -14,7 +14,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     .parameters(vec![])
                     .auth(auth.clone())
                     .build()
-                    .send_request()
+                    .send_request(true)
                     .await;
             }
         }
