@@ -92,6 +92,10 @@ cherrybomb load --file <LOGS_FILE_PATH> --map <MAPPED_FILE_PATH>
  - [ ] More passive scans
  - [ ] Swagger and logs validator (compares your logs with the swagger to verify correctness)
 
+# 🍻 Integration
+
+For all methods of integrating with BLST, please go to the [integrations folder](https://github.com/blst-security/cherrybomb/tree/main/integrations).
+
 # 💪 Support
 ### Documentation
 Please read [our documentation](https://www.blstsecurity.com/cherrybomb/Documentation) to understand the format of sessions our mapper needs to function correctly.
