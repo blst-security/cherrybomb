@@ -7,7 +7,7 @@ There are multiple ways in which you can start working with us:
 
 ### Node.js
 
- - [x] Directly send HTTP logs using [Winston](link)
+ - [x] Directly send HTTP logs using [Winston](https://github.com/blst-security/cherrybomb/blob/main/integrations/WINSTON.md)
  - [ ] Directly send HTTP logs using Bunyan (WIP)
  - [ ] Directly send HTTP logs using Pino (WIP)
  - [ ] Directly send HTTP logs using Morgan (WIP)
