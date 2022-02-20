@@ -11,17 +11,17 @@ There are multiple ways in which you can start working with us.
  - [ ] Directly send HTTP logs using Morgan (WIP)
 
 ### Log accumulators
-- [ ] Datadog
-- [ ] Logtail
-- [ ] Logflare
-- [ ] Logz.io
-- [ ] Sumo Logic
-- [ ] SolarWinds
+- [ ] Datadog (WIP)
+- [ ] Logtail (WIP)
+- [ ] Logflare (WIP)
+- [ ] Logz.io (WIP)
+- [ ] Sumo Logic (WIP)
+- [ ] SolarWinds (WIP)
 
 ### Web services
-- [ ] AWS API gateway
-- [ ] GCP APIgee
-- [ ] Azure API management
-- [ ] Nginx load balancer access logs
-- [ ] Apache load balancer access logs
-- [ ] Kubernetes agent
+- [ ] AWS API gateway (WIP)
+- [ ] GCP APIgee (WIP)
+- [ ] Azure API management (WIP)
+- [ ] Nginx load balancer access logs (WIP)
+- [ ] Apache load balancer access logs (WIP)
+- [ ] Kubernetes agent (WIP)
