@@ -2,6 +2,7 @@
 # Integrating with BLST
 
 In order to work with us, we need your HTTP logs to run our product on.
+<br />
 There are multiple ways in which you can start working with us:
 
 ### Node.js
