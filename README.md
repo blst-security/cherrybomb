@@ -8,7 +8,7 @@
 [![Discord Shield](https://discordapp.com/api/guilds/914846937327497307/widget.png?style=shield)](https://discord.gg/WdHhv4DqwU)
 </div>
 
-# 🧨 What is Cherrybomb?
+# 💣 What is Cherrybomb?
 Cherrybomb is a CLI tool that helps you avoid undefined user behavior by validating your API specifications.
 
 Our CLI tool is open source, enabling support from both the OpenAPI and Rust communities.
