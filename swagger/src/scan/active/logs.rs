@@ -7,10 +7,10 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct AttackLog{
-    requests:Vec<AttackRequest>,
-    responses:Vec<AttackResponse>,
-    description:String,
-    response_regexes:Vec<String>,//Regex .to_string()
+    pub requests:Vec<AttackRequest>,
+    pub responses:Vec<AttackResponse>,
+    pub description:String,
+    pub response_regexes:Vec<String>,//Regex .to_string()
     //param_links:Vec<ParamLink> from: to:
 }
 impl AttackLog{

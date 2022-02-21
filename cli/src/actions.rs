@@ -9,7 +9,8 @@ use std::io::Write;
 use url::Url;
 use uuid::Uuid;
 use swagger::scan::passive::{PassiveSwaggerScan,PassiveScanType};
-use swagger::{Swagger,OAS3_1,OAS};
+use swagger::scan::active::{ActiveScan,ActiveScanType};
+use swagger::{Swagger,OAS3_1,OAS,Authorization as SAuth};
 
 pub fn add_token(token: String) -> bool {
     match Uuid::parse_str(&token) {
@@ -39,7 +40,7 @@ pub fn add_token(token: String) -> bool {
     }
 }
 
-pub fn run_swagger_scan<T>(scan_try:Result<PassiveSwaggerScan<T>,&'static str>,verbosity:u8,output_file:&str)
+pub fn run_passive_swagger_scan<T>(scan_try:Result<PassiveSwaggerScan<T>,&'static str>,verbosity:u8,output_file:&str)
 where T:OAS+Serialize+for<'de> Deserialize<'de>{
     let mut scan = match scan_try{
         Ok(s)=>s,
@@ -53,7 +54,10 @@ where T:OAS+Serialize+for<'de> Deserialize<'de>{
     let print = scan.print_to_file_string();
     write_to_file(output_file,print);
 }
-pub fn run_swagger(file:&str,verbosity:u8,output_file:&str){
+pub fn run_active_swagger_scan<T>(scan_try:Result<ActiveScan<T>,&'static str>,verbosity:u8,output_file:&str,auth:&SAuth)
+where T:OAS+Serialize+for<'de> Deserialize<'de>{
+}
+pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,auth:&SAuth,active:bool,_active_scan_type:ActiveScanType){
     let swagger_str = match read_file(file){
         Some(s)=>s,
         None=>{
@@ -70,9 +74,15 @@ pub fn run_swagger(file:&str,verbosity:u8,output_file:&str){
     };
     let version = swagger_value["openapi"].to_string().trim().replace("\"","");
     if version.starts_with("3.0"){
-        run_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(swagger_value),verbosity,output_file);
+        run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(swagger_value.clone()),verbosity,output_file);
+        if active{
+            run_active_swagger_scan::<Swagger>(ActiveScan::<Swagger>::new(swagger_value),verbosity,output_file,auth);
+        }
     }else if version.starts_with("3.1"){
-        run_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(swagger_value),verbosity,output_file);
+        run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(swagger_value.clone()),verbosity,output_file);
+        if active{
+            run_active_swagger_scan::<OAS3_1>(ActiveScan::<OAS3_1>::new(swagger_value),verbosity,output_file,auth);
+        }
     }else{
         print_err("Unsupported OpenAPI specification version");
         return;
