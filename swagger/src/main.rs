@@ -27,7 +27,7 @@ async fn main() {
     use futures::executor;
     executor::block_on(a.run(ActiveScanType::Full,&Authorization::None));
 
-    //a.print(0);
+    a.print(0);
     //print_checks_table(&a);
     //print_alerts_table(&a);
     //let _sw = swagger_str.convert_to_map(swagger_value);

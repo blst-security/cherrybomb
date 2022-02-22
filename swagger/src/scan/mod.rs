@@ -25,6 +25,7 @@ impl Default for Level {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Certainty {
+    Passive,
     Low,
     Medium,
     High,
@@ -32,7 +33,7 @@ pub enum Certainty {
 }
 impl Default for Certainty {
     fn default() -> Self {
-        Self::Low
+        Self::Passive
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
@@ -49,7 +50,15 @@ impl Alert {
             level,
             description: description.to_string(),
             location,
-            certainty: Certainty::High,
+            certainty: Certainty::Passive,
+        }
+    }
+    pub fn with_certainty(level: Level, description: &'static str, location: String,certainty:Certainty) -> Alert {
+        Alert {
+            level,
+            description: description.to_string(),
+            location,
+            certainty,
         }
     }
 }

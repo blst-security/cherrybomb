@@ -8,6 +8,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         for (path, item) in self.oas.get_paths() {
             let urls = get_path_urls(&item, self.oas.servers());
             for url in urls {
+                /*
                 let req = AttackRequest::builder()
                     .uri(&url.1,&path)
                     .method(url.0)
@@ -20,10 +21,10 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     logs.responses.push(res);
                 }else{
                     println!("FUCK");
-                }
+                }*/
             }
         }
         println!("{:?}",logs);
-        vec![]
+        vec![Alert::with_certainty(Level::Low,"description","https://thingy".to_string(),Certainty::Certain)]
     }
 }

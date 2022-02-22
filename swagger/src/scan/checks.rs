@@ -9,8 +9,13 @@ impl Default for PassiveChecks {
         Self::CheckServerUrl(vec![])
     }
 }
-impl PassiveChecks {
-    pub fn alerts_text(&self) -> ColoredString {
+pub trait Check{
+    fn alerts_text(&self) -> ColoredString;
+    fn top_severity(&self) -> Level;
+    fn result(&self) -> &'static str;
+}
+impl Check for PassiveChecks {
+    fn alerts_text(&self) -> ColoredString {
         match self.inner().len() {
             0 => "0".green().bold(),
             1..=10 => self.inner().len().to_string().yellow().bold(),
@@ -18,7 +23,7 @@ impl PassiveChecks {
             _ => self.inner().len().to_string().red().bold().blink(),
         }
     }
-    pub fn top_severity(&self) -> Level {
+    fn top_severity(&self) -> Level {
         let mut top = Level::Info;
         for alert in self.inner() {
             if alert.level > top {
@@ -27,7 +32,33 @@ impl PassiveChecks {
         }
         top
     }
-    pub fn result(&self) -> &'static str {
+    fn result(&self) -> &'static str {
+        if !self.inner().is_empty() {
+            "FAILED"
+        } else {
+            "PASSED"
+        }
+    }
+}
+impl Check for ActiveChecks {
+    fn alerts_text(&self) -> ColoredString {
+        match self.inner().len() {
+            0 => "0".green().bold(),
+            1..=10 => self.inner().len().to_string().yellow().bold(),
+            11..=99 => self.inner().len().to_string().red().bold(),
+            _ => self.inner().len().to_string().red().bold().blink(),
+        }
+    }
+    fn top_severity(&self) -> Level {
+        let mut top = Level::Info;
+        for alert in self.inner() {
+            if alert.level > top {
+                top = alert.level;
+            }
+        }
+        top
+    }
+    fn result(&self) -> &'static str {
         if !self.inner().is_empty() {
             "FAILED"
         } else {

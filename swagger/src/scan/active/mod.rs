@@ -27,7 +27,7 @@ where
     oas: T,
     oas_value: Value,
     verbosity: u8,
-    checks: Vec<ActiveChecks>,
+    pub checks: Vec<ActiveChecks>,
 }
 impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
     pub fn new(oas_value: Value) -> Result<Self, &'static str> {
@@ -68,6 +68,19 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                 }
             }
         };
+    }
+    pub fn print(&self, verbosity: u8) {
+        match verbosity {
+            0 => {
+                print_checks_table(&self.checks);
+                print_attack_alerts_table(&self.checks);
+            },
+            1 => {
+                print_checks_table(&self.checks);
+            },
+            2 => print_failed_checks_table(&self.checks),
+            _ => (),
+        }
     }
     pub fn print_to_file_string(&self) -> String {
         //let mut string = String::new();
