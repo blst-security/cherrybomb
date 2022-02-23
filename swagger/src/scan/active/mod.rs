@@ -27,7 +27,7 @@ where
     oas: T,
     oas_value: Value,
     verbosity: u8,
-    pub checks: Vec<ActiveChecks>,
+    checks: Vec<ActiveChecks>,
 }
 impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
     pub fn new(oas_value: Value) -> Result<Self, &'static str> {

@@ -2,8 +2,7 @@ use super::*;
 
 impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_default(&self,auth:&Authorization) -> Vec<Alert> {
-        //let mut alerts = vec![];
-        //alerts
+        let mut alerts = vec![];
         let mut logs = AttackLog::default();
         for (path, item) in self.oas.get_paths() {
             let urls = get_path_urls(&item, self.oas.servers());
@@ -22,9 +21,10 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 }else{
                     println!("FUCK");
                 }*/
+        alerts.push(Alert::with_certainty(Level::Low,"description","https://thingy".to_string(),Certainty::Certain));
             }
         }
-        println!("{:?}",logs);
-        vec![Alert::with_certainty(Level::Low,"description","https://thingy".to_string(),Certainty::Certain)]
+        //println!("{:?}",logs);
+        alerts
     }
 }
