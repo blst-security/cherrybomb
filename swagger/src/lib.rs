@@ -14,6 +14,7 @@ mod ep;
 use ep::*;
 pub mod scan;
 pub mod tables;
+pub use tables::*;
 use mapper::digest::{Method, ParamDescriptor, PayloadDescriptor, QuePay, ValueDescriptor};
 use mapper::path::Path as DPath;
 pub use scan::*;
