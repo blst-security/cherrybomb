@@ -2,22 +2,22 @@ use super::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct Parameter {
-    name: String,
+    pub name: String,
     #[serde(rename = "in")]
-    param_in: String,
-    description: Option<String>,
-    required: Option<bool>,
-    deprecated: Option<bool>,
+    pub param_in: String,
+    pub description: Option<String>,
+    pub required: Option<bool>,
+    pub deprecated: Option<bool>,
     #[serde(rename = "allowEmptyValue")]
-    allow_empty_value: Option<bool>,
+    pub allow_empty_value: Option<bool>,
     //Any
-    example: Option<Value>,
-    examples: Option<Examples>,
-    style: Option<String>,
-    explode: Option<bool>,
+    pub example: Option<Value>,
+    pub examples: Option<Examples>,
+    pub style: Option<String>,
+    pub explode: Option<bool>,
     #[serde(rename = "allowReserved")]
-    allow_reserved: Option<bool>,
-    schema: Option<SchemaRef>,
+    pub allow_reserved: Option<bool>,
+    pub schema: Option<SchemaRef>,
 }
 impl Parameter {
     pub fn from(&self) -> QuePay {
