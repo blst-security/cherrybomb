@@ -111,9 +111,35 @@ impl ParamTable{
         }
     }
     fn get_min_max(schema:&Schema,tp:&str)->(Option<i64>,Option<i64>){
-        match tp{
-            _=>(None,None),
+         match tp.to_lowercase().as_str(){
+            "string"=>{
+                let min = if schema.min_length.is_none(){
+                    Some(0)
+                }else{
+                    schema.min_length
+                };
+                (min,schema.max_length)
+            },
+            "number"|"integer"=>(schema.minimum,schema.maximum),
+            "array"=>{
+                let min = if schema.min_items.is_none(){
+                    Some(0)
+                }else{
+                    schema.min_items
+                };
+                (min,schema.max_items)
+            },
+            "object"=>{
+                let min = if schema.min_properties.is_none(){
+                    Some(0)
+                }else{
+                    schema.min_properties
+                };
+                (min,schema.max_properties)
+            },
+            _=>(Some(0),Some(0)),
         }
+
     }
     fn get_params_rec(params:&mut HashMap<ParamForTableKey,ParamForTableValue>,schema_ref:SchemaRef,path:String,parent:Option<String>,dm:QuePay,status:Option<String>,name:Option<String>,value:&Value){
         let mut children = vec![];
