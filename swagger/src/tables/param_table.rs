@@ -1,6 +1,7 @@
 use super::*;
 use std::collections::HashSet;
 use std::fmt;
+use colored::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct ParamForTableKey{
@@ -36,11 +37,51 @@ pub struct ParamForTable{
     min:Option<i64>,
     //default:Option<SchemaStrInt>,
 }
+//value_from_vec
+fn vv<T>(vec:&[T],loc:usize)->String
+where T:Clone+std::fmt::Display{
+    if vec.len()>=loc+1 {
+        vec[loc].to_string()
+    }else{
+        String::new()
+    }
+}
+fn color_status(string:&str)->ColoredString{
+    match string.to_lowercase().chars().next().unwrap_or(' '){
+        'd'=>string.bold().truecolor(107,114,128),
+        '2'=>string.bold().truecolor(134,239,172),
+        '3'=>string.bold().truecolor(147,197,253),
+        '4'=>string.bold().truecolor(253,224,71),
+        '5'=>string.bold().truecolor(239,68,68),
+        _=>string.bold(),
+
+    }
+}
+fn color_type(string:&str)->ColoredString{
+    match string.to_lowercase().as_str(){
+        "object"=>string.bold().truecolor(248,113,113),
+        "array"=>string.bold().truecolor(251,146,060),
+        "string"=>string.bold().truecolor(190,242,100),
+        "number"=>string.bold().truecolor(125,211,252),
+        "integer"=>string.bold().truecolor(167,139,250),
+        "boolean"=>string.bold().truecolor(253,224,071),
+        _=>string.bold(),
+
+    }
+}
 impl fmt::Display for ParamForTable {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let max = if let Some(m) = self.max { m } else { i64::MAX };
         let min = if let Some(m) = self.min { m } else { i64::MIN };
-        write!(f, "{}\t|{}\t|{:?}\t|{:?}\t|{:?}\t|{:?}\t|{:?}\t|{}\t|{}",self.name,self.param_type,self.statuses,self.dms,self.eps,self.parents,self.children,max,min)
+        let min_max = format!("{} - {}",min,max);
+        let lines = *([self.statuses.len(),self.dms.len(),self.parents.len(),self.children.len(),self.eps.len()].iter().max().unwrap_or(&0));
+        let mut string = String::new();
+        string.push_str(&format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}\n",self.name.bold(),color_type(&self.param_type),color_status(&vv(&self.statuses,0)),vv(&self.dms,0).bold(),vv(&self.eps,0).bold().bright_cyan(),vv(&self.parents,0).bold(),vv(&self.children,0).bold(),min_max.bold()));
+        for i in 1..lines{
+            string.push_str(&format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}\n","","",color_status(&vv(&self.statuses,i)),vv(&self.dms,i),vv(&self.eps,i).bold().bright_cyan(),vv(&self.parents,i).bold(),vv(&self.children,i).bold(),""));
+        }
+        string.push_str(&format!("{:-<240}",""));
+        write!(f, "{}",string)
     }
 }
 impl ParamForTable{
@@ -74,6 +115,8 @@ impl ParamTable{
         //println!("info:{:?}",self.info);
         //println!("urls:{:?}",self.servers);
         //println!("eps:{:?}",self.eps);
+        let head = format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}","NAME".bold(),"TYPE".bold(),"STATUSES".bold(),"DELIVERY METHODS".bold(),"ENDPOINTS".bold(),"PARENTS".bold(),"CHILDREN".bold(),"MIN-MAX".bold());
+        println!("{}\n{:-<240}",head,"");
         for param in &self.params{
             println!("{}",param);
         }
@@ -82,7 +125,7 @@ impl ParamTable{
     where T:OAS+Clone+Serialize{
         ParamTable{
             info:oas.info(), 
-            servers:oas.servers().unwrap_or(vec![]).iter().map(|s| s.url.clone()).collect(),
+            servers:oas.servers().unwrap_or_default().iter().map(|s| s.url.clone()).collect(),
             params:Self::get_params(&oas,&serde_json::to_value(oas.clone()).unwrap()),
             eps:oas.get_paths().iter().map(|(p,i)| p).cloned().collect(),
         }
@@ -147,7 +190,7 @@ impl ParamTable{
         let name = if let Some(ref t) = schema.title{ 
             t.to_string()
         } else if let SchemaRef::Ref(r) = schema_ref{
-            r.param_ref.split("/").last().unwrap().to_string()
+            r.param_ref.split('/').last().unwrap().to_string()
         }else if let Some(n) = name{
             n
         }else{
@@ -168,7 +211,7 @@ impl ParamTable{
             String::new()
         };
         let key = ParamForTableKey{name,param_type:tp.clone()};
-        let val = params.entry(key).or_insert(ParamForTableValue::default());
+        let val = params.entry(key).or_insert_with(ParamForTableValue::default);
         val.eps.insert(path);
         val.dms.insert(dm);
         if let Some(st) = status{

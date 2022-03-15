@@ -16,6 +16,19 @@ impl Default for QuePay {
         Self::Payload
     }
 }
+impl fmt::Display for QuePay {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use colored::*;
+        match self{
+            Self::Headers=>write!(f,"{:16}","Headers".bold().truecolor(253,186,116)),
+            Self::Path=>write!(f,"{:16}","Path".bold().truecolor(147,197,253)),
+            Self::Query=>write!(f,"{:16}","Query".bold().truecolor(134,239,172)),
+            Self::Payload=>write!(f,"{:16}","Payload".bold().truecolor(253, 224, 71)),
+            Self::Response=>write!(f,"{:16}","Response".bold().truecolor(165, 180, 252)),
+            Self::None=>write!(f,""),
+        }
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct Header {
     pub name: String,

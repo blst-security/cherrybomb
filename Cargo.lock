@@ -589,6 +589,7 @@ dependencies = [
 name = "mapper"
 version = "0.3.0"
 dependencies = [
+ "colored",
  "serde",
  "serde_json",
  "serde_with",
