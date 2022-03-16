@@ -47,6 +47,12 @@ async fn main() -> Result<(), Error> {
                 .value_name("Active flag")
                 .help("A flag to dictate whether or not an active scan will be preformed")
                 .takes_value(false))
+            .arg(Arg::with_name("PTABLE")
+                .short("pt")
+                .long("param-table")
+                .value_name("Parameter table flag")
+                .help("A flag to dictate whether or not it should print the parameter table")
+                .takes_value(false))
             .arg(Arg::with_name("OUTPUT")
                 .short("o")
                 .long("output")
@@ -217,6 +223,7 @@ async fn main() -> Result<(), Error> {
             let output = if let Some(o) = vars.value_of("OUTPUT"){ o } else { SWAGGER_OUTPUT_FILE };
             let verbosity = if let Some(v) = vars.value_of("VERBOSITY"){ v.parse::<u8>().unwrap() } else { 1 } ;
             let active = vars.is_present("ACTIVE");
+            let param_table = vars.is_present("PTABLE");
             let scan_type = match vars.value_of("SCAN") {
                 Some(r) => {
                     match r {
@@ -239,7 +246,7 @@ async fn main() -> Result<(), Error> {
                 },
                 None => SAuthorization::None,
             };
-            run_swagger(file,verbosity,output,&a,active,scan_type);
+            run_swagger(file,verbosity,output,&a,active,param_table,scan_type);
         }
     }else if let Some(vars) = matches.subcommand_matches("map") {
         if let Some(l) = vars.value_of("LOGS_FILE") {

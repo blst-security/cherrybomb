@@ -10,7 +10,7 @@ use url::Url;
 use uuid::Uuid;
 use swagger::scan::passive::{PassiveSwaggerScan,PassiveScanType};
 use swagger::scan::active::{ActiveScan,ActiveScanType};
-use swagger::{Swagger,OAS3_1,OAS,Authorization as SAuth};
+use swagger::{Swagger,OAS3_1,OAS,Authorization as SAuth,ParamTable};
 use futures::executor;
 
 pub fn add_token(token: String) -> bool {
@@ -55,7 +55,7 @@ where T:OAS+Serialize+for<'de> Deserialize<'de>{
     let print = scan.print_to_file_string();
     write_to_file(output_file,print);
 }
-pub fn run_active_swagger_scan<T>(scan_try:Result<ActiveScan<T>,&'static str>,_verbosity:u8,_output_file:&str,auth:&SAuth,tp:ActiveScanType)
+pub fn _run_active_swagger_scan<T>(scan_try:Result<ActiveScan<T>,&'static str>,_verbosity:u8,_output_file:&str,auth:&SAuth,tp:ActiveScanType)
 where T:OAS+Serialize+for<'de> Deserialize<'de>{
     let mut scan = match scan_try{
         Ok(s)=>s,
@@ -69,7 +69,7 @@ where T:OAS+Serialize+for<'de> Deserialize<'de>{
     //let print = scan.print_to_file_string();
     //write_to_file(output_file,print);
 }
-pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,auth:&SAuth,active:bool,active_scan_type:ActiveScanType){
+pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,_auth:&SAuth,_active:bool,param_table:bool,_active_scan_type:ActiveScanType){
     let swagger_str = match read_file(file){
         Some(s)=>s,
         None=>{
@@ -87,14 +87,20 @@ pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,auth:&SAuth,active:bo
     let version = swagger_value["openapi"].to_string().trim().replace("\"","");
     if version.starts_with("3.0"){
         run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(swagger_value.clone()),verbosity,output_file);
-        if active{
-            run_active_swagger_scan::<Swagger>(ActiveScan::<Swagger>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
+        if param_table{
+            ParamTable::new(serde_json::from_value::<Swagger>(swagger_value.clone()).unwrap()).print();
         }
+        //if active{
+            //run_active_swagger_scan::<Swagger>(ActiveScan::<Swagger>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
+        //}
     }else if version.starts_with("3.1"){
         run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(swagger_value.clone()),verbosity,output_file);
-        if active{
-            run_active_swagger_scan::<OAS3_1>(ActiveScan::<OAS3_1>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
+        if param_table{
+            ParamTable::new(serde_json::from_value::<OAS3_1>(swagger_value.clone()).unwrap()).print();
         }
+        //if active{
+            //run_active_swagger_scan::<OAS3_1>(ActiveScan::<OAS3_1>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
+        //}
     }else{
         print_err("Unsupported OpenAPI specification version");
         return;

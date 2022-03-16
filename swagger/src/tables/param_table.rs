@@ -76,11 +76,11 @@ impl fmt::Display for ParamForTable {
         let min_max = format!("{} - {}",min,max);
         let lines = *([self.statuses.len(),self.dms.len(),self.parents.len(),self.children.len(),self.eps.len()].iter().max().unwrap_or(&0));
         let mut string = String::new();
-        string.push_str(&format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}\n",self.name.bold(),color_type(&self.param_type),color_status(&vv(&self.statuses,0)),vv(&self.dms,0).bold(),vv(&self.eps,0).bold().bright_cyan(),vv(&self.parents,0).bold(),vv(&self.children,0).bold(),min_max.bold()));
+        string.push_str(&format!("{:40}|{:12}|{:10}|{:16}|{:75}|{:40}|{:25}|{:42}\n",self.name.bold(),color_type(&self.param_type),color_status(&vv(&self.statuses,0)),vv(&self.dms,0).bold(),vv(&self.eps,0).bold().bright_cyan(),vv(&self.parents,0).bold(),vv(&self.children,0).bold(),min_max.bold()));
         for i in 1..lines{
-            string.push_str(&format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}\n","","",color_status(&vv(&self.statuses,i)),vv(&self.dms,i),vv(&self.eps,i).bold().bright_cyan(),vv(&self.parents,i).bold(),vv(&self.children,i).bold(),""));
+            string.push_str(&format!("{:40}|{:12}|{:10}|{:16}|{:75}|{:40}|{:25}|{:42}\n","","",color_status(&vv(&self.statuses,i)),vv(&self.dms,i),vv(&self.eps,i).bold().bright_cyan(),vv(&self.parents,i).bold(),vv(&self.children,i).bold(),""));
         }
-        string.push_str(&format!("{:-<240}",""));
+        string.push_str(&format!("{:-<270}",""));
         write!(f, "{}",string)
     }
 }
@@ -115,11 +115,15 @@ impl ParamTable{
         //println!("info:{:?}",self.info);
         //println!("urls:{:?}",self.servers);
         //println!("eps:{:?}",self.eps);
-        let head = format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}","NAME".bold(),"TYPE".bold(),"STATUSES".bold(),"DELIVERY METHODS".bold(),"ENDPOINTS".bold(),"PARENTS".bold(),"CHILDREN".bold(),"MIN-MAX".bold());
-        println!("{}\n{:-<240}",head,"");
-        for param in &self.params{
+        let head = format!("{:40}|{:12}|{:10}|{:16}|{:75}|{:40}|{:25}|{:42}","NAME".bold(),"TYPE".bold(),"STATUSES".bold(),"DELIVERY METHODS".bold(),"ENDPOINTS".bold(),"PARENTS".bold(),"CHILDREN".bold(),"MIN-MAX".bold());
+        //println!("{}\n{:-<270}",head,"");
+        for (i,param) in self.params.iter().enumerate(){
+            if i%50usize==0{
+                println!("{}\n{:-<270}",head,"");
+            }
             println!("{}",param);
         }
+        //println!("{}",head);
     }
     pub fn new<T>(oas:T)->Self
     where T:OAS+Clone+Serialize{
