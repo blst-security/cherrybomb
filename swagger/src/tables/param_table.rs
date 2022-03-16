@@ -76,11 +76,24 @@ impl fmt::Display for ParamForTable {
         let min_max = format!("{} - {}",min,max);
         let lines = *([self.statuses.len(),self.dms.len(),self.parents.len(),self.children.len(),self.eps.len()].iter().max().unwrap_or(&0));
         let mut string = String::new();
-        string.push_str(&format!("{:40}|{:12}|{:10}|{:16}|{:75}|{:40}|{:25}|{:42}\n",self.name.bold(),color_type(&self.param_type),color_status(&vv(&self.statuses,0)),vv(&self.dms,0).bold(),vv(&self.eps,0).bold().bright_cyan(),vv(&self.parents,0).bold(),vv(&self.children,0).bold(),min_max.bold()));
+        let name_len = *([self.name.len(),24].iter().min().unwrap_or(&0));
+        let parent = vv(&self.parents,0);
+        let parent = &parent[0..*([parent.len(),24].iter().min().unwrap_or(&0))];
+        let child = vv(&self.children,0);
+        let child = &child[0..*([child.len(),24].iter().min().unwrap_or(&0))];
+        let ep = vv(&self.eps,0);
+        let ep = &ep[0..*([ep.len(),74].iter().min().unwrap_or(&0))];
+        string.push_str(&format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}\n",&self.name.bold()[..name_len],color_type(&self.param_type),color_status(&vv(&self.statuses,0)),vv(&self.dms,0).bold(),ep.bold().bright_cyan(),parent.bold(),child.bold(),min_max.bold()));
         for i in 1..lines{
-            string.push_str(&format!("{:40}|{:12}|{:10}|{:16}|{:75}|{:40}|{:25}|{:42}\n","","",color_status(&vv(&self.statuses,i)),vv(&self.dms,i),vv(&self.eps,i).bold().bright_cyan(),vv(&self.parents,i).bold(),vv(&self.children,i).bold(),""));
+            let parent = vv(&self.parents,i);
+            let parent = &parent[0..*([parent.len(),24].iter().min().unwrap_or(&0))];
+            let child = vv(&self.children,i);
+            let child = &child[0..*([child.len(),24].iter().min().unwrap_or(&0))];
+            let ep = vv(&self.eps,i);
+            let ep = &ep[0..*([ep.len(),74].iter().min().unwrap_or(&0))];
+            string.push_str(&format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}\n","","",color_status(&vv(&self.statuses,i)),vv(&self.dms,i),ep.bold().bright_cyan(),parent.bold(),child.bold(),""));
         }
-        string.push_str(&format!("{:-<270}",""));
+        string.push_str(&format!("{:-<240}",""));
         write!(f, "{}",string)
     }
 }
@@ -115,11 +128,11 @@ impl ParamTable{
         //println!("info:{:?}",self.info);
         //println!("urls:{:?}",self.servers);
         //println!("eps:{:?}",self.eps);
-        let head = format!("{:40}|{:12}|{:10}|{:16}|{:75}|{:40}|{:25}|{:42}","NAME".bold(),"TYPE".bold(),"STATUSES".bold(),"DELIVERY METHODS".bold(),"ENDPOINTS".bold(),"PARENTS".bold(),"CHILDREN".bold(),"MIN-MAX".bold());
+        let head = format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}","NAME".bold().underline(),"TYPE".bold().underline(),"STATUSES".bold().underline(),"DELIVERY METHODS".bold().underline(),"ENDPOINTS".bold().underline(),"PARENTS".bold().underline(),"CHILDREN".bold().underline(),"MIN-MAX".bold().underline());
         //println!("{}\n{:-<270}",head,"");
         for (i,param) in self.params.iter().enumerate(){
             if i%50usize==0{
-                println!("{}\n{:-<270}",head,"");
+                println!("{}\n{:-<240}",head,"");
             }
             println!("{}",param);
         }
