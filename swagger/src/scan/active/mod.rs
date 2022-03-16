@@ -9,6 +9,8 @@ mod flow;
 mod http_client;
 use http_client::*;
 pub use http_client::Authorization;
+mod logs;
+use logs::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ActiveScanType {
@@ -66,6 +68,19 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                 }
             }
         };
+    }
+    pub fn print(&self, verbosity: u8) {
+        match verbosity {
+            0 => {
+                print_checks_table(&self.checks);
+                print_attack_alerts_table(&self.checks);
+            },
+            1 => {
+                print_checks_table(&self.checks);
+            },
+            2 => print_failed_checks_table(&self.checks),
+            _ => (),
+        }
     }
     pub fn print_to_file_string(&self) -> String {
         //let mut string = String::new();

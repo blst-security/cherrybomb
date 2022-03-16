@@ -6,7 +6,7 @@ pub use general::*;
 mod type_checks;
 pub use type_checks::*;
 mod utils;
-use utils::*;
+pub use utils::*;
 mod additional_checks;
 use strum::IntoEnumIterator;
 

@@ -1,4 +1,6 @@
 use super::*;
+use std::fmt;
+use colored::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct AttackRequestBuilder {
@@ -39,11 +41,20 @@ impl AttackRequestBuilder {
         }
     }
 }
+impl std::fmt::Display for AttackRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (mut payload,query,path,headers) = self.params_to_payload();  
+        if payload.trim().len() ==0{
+            payload = "NONE".to_string();
+        }
+        write!(f, "{}: {}{}\t{}: {}\t{}: {}\t{}: {}","Path".green().bold(),path.magenta(),query.magenta(),"Method".green().bold(),self.method.to_string().magenta(),"Payload".green().bold(),payload.magenta(),"Headers".green().bold(),format!("{:?}",headers).magenta())
+    }
+}
 impl AttackRequest {
     pub fn builder()->AttackRequestBuilder{
         AttackRequestBuilder::default()
     }
-    fn params_to_payload(&self) -> (String, String, String, Vec<MHeader>) {
+    pub fn params_to_payload(&self) -> (String, String, String, Vec<MHeader>) {
         let mut payload = String::from('{');
         let mut query = String::from('?');
         let mut path_ext = self.path.to_string();
@@ -76,7 +87,7 @@ impl AttackRequest {
         }
         (payload, query, path_ext, headers)
     }
-    fn get_headers(&self,payload_headers: &[MHeader]) -> HashMap<String, String> {
+    pub fn get_headers(&self,payload_headers: &[MHeader]) -> HashMap<String, String> {
         let mut new: Vec<MHeader> = self.headers
         .iter()
         .chain(payload_headers)
@@ -90,7 +101,7 @@ impl AttackRequest {
             .collect()
     }
 
-    pub async fn send_request(&self) -> AttackResponse {
+    pub async fn send_request(&self,print:bool) -> Result<AttackResponse,reqwest::Error> {
         let client = reqwest::Client::new();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
@@ -101,15 +112,25 @@ impl AttackRequest {
             .headers((&h).try_into().expect("not valid headers"))
             .build()
             .unwrap();
-        let res = client.execute(req).await.unwrap();
-        AttackResponse {
-            status: res.status().into(),
-            headers: res
-                .headers()
-                .iter()
-                .map(|(n, v)| (n.to_string(), format!("{:?}", v)))
-                .collect(),
-            payload: res.text().await.unwrap_or(String::new()),
+        match client.execute(req).await { 
+            Ok(res)=> {
+                if print{
+                    println!("{}: {}","Request".bright_blue().bold(),self);
+                }
+                Ok(AttackResponse {
+                    status: res.status().into(),
+                    headers: res
+                        .headers()
+                        .iter()
+                        .map(|(n, v)| (n.to_string(), format!("{:?}", v)))
+                        .collect(),
+                    payload: res.text().await.unwrap_or(String::new()),
+                })
+            },
+            Err(e)=>{
+                println!("{}: {}","FAILED TO EXECUTE".red().bold().blink(),self); 
+                Err(e)
+            }
         }
     }
 }
