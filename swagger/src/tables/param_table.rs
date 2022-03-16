@@ -201,23 +201,26 @@ impl ParamTable{
         }
 
     }
-    fn get_params_rec(params:&mut HashMap<ParamForTableKey,ParamForTableValue>,schema_ref:SchemaRef,path:String,parent:Option<String>,dm:QuePay,status:Option<String>,name:Option<String>,value:&Value){
-        let mut children = vec![];
-        let schema = schema_ref.inner(value); 
-        let name = if let Some(ref t) = schema.title{ 
+    fn get_name_s_ref(s_ref:&SchemaRef,value:&Value,name:&Option<String>)->String{
+        let schema = s_ref.inner(value); 
+        if let Some(ref t) = schema.title{ 
             t.to_string()
-        } else if let SchemaRef::Ref(r) = schema_ref{
+        } else if let SchemaRef::Ref(r) = s_ref{
             r.param_ref.split('/').last().unwrap().to_string()
         }else if let Some(n) = name{
-            n
+            n.to_string()
         }else{
             String::new()
-        };
+        }
+    }
+    fn get_params_rec(params:&mut HashMap<ParamForTableKey,ParamForTableValue>,schema_ref:SchemaRef,path:String,parent:Option<String>,dm:QuePay,status:Option<String>,name_f:Option<String>,value:&Value){
+        let mut children = vec![];
+        let schema = schema_ref.inner(value); 
+        let name = Self::get_name_s_ref(&schema_ref,value,&name_f);
         for s in Self::get_all_possible_schemas(&schema){
-            if let Some(t) = s.inner(value).title{
-                children.push(t);
-                Self::get_params_rec(params,s,path.clone(),Some(name.clone()),dm,status.clone(),None,value); 
-            }
+            let n = Self::get_name_s_ref(&schema_ref,value,&name_f);
+            children.push(n.clone());
+            Self::get_params_rec(params,s,path.clone(),Some(name.clone()),dm,status.clone(),Some(n),value); 
         }
         for (n,prop) in Self::get_props(&schema){
             Self::get_params_rec(params,prop,path.clone(),Some(name.clone()),dm,status.clone(),Some(n),value);
