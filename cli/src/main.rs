@@ -5,7 +5,7 @@ use colored::*;
 use cherrybomb::*;
 use mapper::digest::Header;
 
-const VERSION: &str = "0.4.4";
+const VERSION: &str = "0.5.0";
 const MAP_FILE: &str = "map";
 const DECIDE_FILE: &str = "decide";
 const SWAGGER_OUTPUT_FILE: &str = "results.txt";
