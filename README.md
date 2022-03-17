@@ -36,11 +36,14 @@ After installing the CLI, verify it's working by running
 cherrybomb --version
 ```
 
-#### Swagger scan
+#### OpenAPI specification scan
 ```
 cherrybomb swagger --file <PATH> --output <PATH> --verbosity <0/1/2>
 ```
-
+#### Genrate Parameter Table
+```
+cherrybomb swagger --file <PATH> --param-table
+```
 #### More features
 First, we have a mapping module that relies on HTTP logs and builds a map of the API.
 <br />
