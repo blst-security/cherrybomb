@@ -86,6 +86,7 @@ cherrybomb load --file <LOGS_FILE_PATH> --map <MAPPED_FILE_PATH>
 
  - [x] OAS 3 support
  - [x] Passive checks
+ - [x] Parameter table 
  - [ ] Improve installation script
  - [ ] Homebrew/APT support
  - [ ] Custom scans - optional checks + optional output + ignores(from alerts)
