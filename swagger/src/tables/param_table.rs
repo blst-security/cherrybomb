@@ -229,7 +229,7 @@ impl ParamTable{
         let tp = if let Some(ref tp) = schema.schema_type{
             tp.to_string()
         }else{
-            String::new()
+            String::from("object")
         };
         let key = ParamForTableKey{name,param_type:tp.clone()};
         let val = params.entry(key).or_insert_with(ParamForTableValue::default);
