@@ -25,6 +25,8 @@ It can also take in your logs and check them for business logic flaws.
 ```
 curl https://cherrybomb.blstsecurity.com/install	| /bin/bash
 ```
+The script requires sudo permissions to move the cherrybomb bin into <b>/usr/local/bin/</b>.</br>
+(If you want to view the shell script(or even help to improving it - [/scripts/install.sh](/scripts/install.sh))
 #### Direct download
 You can also download the binary file directly from [our website](https://www.blstsecurity.com/cherrybomb).
 <br />
@@ -36,15 +38,23 @@ After installing the CLI, verify it's working by running
 cherrybomb --version
 ```
 
-#### OpenAPI specification scan
+### OpenAPI specification scan
 ```
 cherrybomb swagger --file <PATH> --output <PATH> --verbosity <0/1/2>
 ```
-#### Genrate Parameter Table
+#### Output example for verbosity level 1:
+![checks_table](/images/checks_table.png)
+#### Output example for verbosity level 0:
+![alerts_table](/images/checks_table.png)
+
+### Genrate Parameter Table
 ```
 cherrybomb swagger --file <PATH> --param-table
 ```
-#### More features
+#### Table output example:
+![param_table](/images/param_table.png)
+
+### More features
 First, we have a mapping module that relies on HTTP logs and builds a map of the API.
 <br />
 Start mapping your logs by running
@@ -58,36 +68,22 @@ If there are any other formats you need conversion scripts to, message us on the
 <br />
 For futher insights, you can view your map visually in our web based visualizer: [https://www.blstsecurity.com/cherrybomb/Visualizer](https://www.blstsecurity.com/cherrybomb/Visualizer).
 
-Then, you can run passive or active scans of your logs/APIs for anomalies:
-
-**Passive** (1 step):
-<br />
-Run the decider only to **passively** check for anomalies in your logs, run
-```
-cherrybomb decide --file <LOGS_FILE_PATH> --map <MAPPED_FILE_PATH>
-```
-
-**Active** (2 steps):
-After mapping, prepare the attacker by running the command below.
-<br />
-This will print the populations (API groups) so you can choose which one you want to run the attacker on.
-```
-cherrybomb prepare --url <URL_TO_ATTACK> --map <MAPPED_FILE_PATH>
-```
-Now you can use the attacker to **actively** attack the API by running
-```
-cherrybomb attack --map <MAPPED_FILE_PATH> (the same one you used in the prepare step) --output <OUTPUT_FILE_NAME> --population <POPULATION_NUMBER> (the one you got from the prepare step) --generations <MAX_GENERATIONS_NUMBER> --verbosity <VERBOSITY_LEVEL>
-```
 In the future, if you want to load new logs to an existing map file, run
 ```
 cherrybomb load --file <LOGS_FILE_PATH> --map <MAPPED_FILE_PATH>
 ```
+
+# 🪦 (!)Deprecation notice:
+The <b>Attacker</b> and <b>Decider</b> modules will be deprecated(!) in our the next release(version 0.6).
+We are doing it since we haven't seen any usage of the modules thus far.
+Please let us know if you are indeed using those features and don't want them to be deprecated.
+
 # 🚧 Roadmap
 
  - [x] OAS 3 support
  - [x] Passive checks
  - [x] Parameter table 
- - [ ] Improve installation script
+ - [x] Improve installation script
  - [ ] Homebrew/APT support
  - [ ] Custom scans - optional checks + optional output + ignores(from alerts)
  - [ ] GraphQL schema support
