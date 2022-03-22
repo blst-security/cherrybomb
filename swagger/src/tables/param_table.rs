@@ -243,11 +243,15 @@ impl ParamTable{
         }
         val.children.extend(children);
         let (min,max) = Self::get_min_max(&schema,&tp);
-        if val.min>min{
-            val.min = min;
+        if let Some(m) = min{
+            if m>val.min.unwrap_or(i64::MIN){
+                val.min = min;
+            }
         }
-        if val.max < max{
-            val.max = max;
+        if let Some(m) = max{
+            if m < val.max.unwrap_or(i64::MAX){
+                val.max = max;
+            }
         }
     }
     pub fn get_params<T>(oas:&T,value:&Value)->Vec<ParamForTable>
