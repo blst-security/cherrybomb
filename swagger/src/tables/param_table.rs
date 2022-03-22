@@ -60,11 +60,11 @@ fn color_status(string:&str)->ColoredString{
 fn color_type(string:&str)->ColoredString{
     match string.to_lowercase().as_str(){
         "object"=>string.bold().truecolor(248,113,113),
-        "array"=>string.bold().truecolor(251,146,060),
+        "array"=>string.bold().truecolor(251,146,60),
         "string"=>string.bold().truecolor(190,242,100),
         "number"=>string.bold().truecolor(125,211,252),
         "integer"=>string.bold().truecolor(167,139,250),
-        "boolean"=>string.bold().truecolor(253,224,071),
+        "boolean"=>string.bold().truecolor(253,224,71),
         _=>string.bold(),
 
     }
@@ -76,21 +76,21 @@ impl fmt::Display for ParamForTable {
         let min_max = format!("{} - {}",min,max);
         let lines = *([self.statuses.len(),self.dms.len(),self.parents.len(),self.children.len(),self.eps.len()].iter().max().unwrap_or(&0));
         let mut string = String::new();
-        let name_len = *([self.name.len(),24].iter().min().unwrap_or(&0));
+        let name_len = *([self.name.len(),25].iter().min().unwrap_or(&0));
         let parent = vv(&self.parents,0);
-        let parent = &parent[0..*([parent.len(),24].iter().min().unwrap_or(&0))];
+        let parent = &parent[0..*([parent.len(),25].iter().min().unwrap_or(&0))];
         let child = vv(&self.children,0);
-        let child = &child[0..*([child.len(),24].iter().min().unwrap_or(&0))];
+        let child = &child[0..*([child.len(),25].iter().min().unwrap_or(&0))];
         let ep = vv(&self.eps,0);
-        let ep = &ep[0..*([ep.len(),74].iter().min().unwrap_or(&0))];
+        let ep = &ep[0..*([ep.len(),75].iter().min().unwrap_or(&0))];
         string.push_str(&format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}\n",&self.name.bold()[..name_len],color_type(&self.param_type),color_status(&vv(&self.statuses,0)),vv(&self.dms,0).bold(),ep.bold().bright_cyan(),parent.bold(),child.bold(),min_max.bold()));
         for i in 1..lines{
             let parent = vv(&self.parents,i);
-            let parent = &parent[0..*([parent.len(),24].iter().min().unwrap_or(&0))];
+            let parent = &parent[0..*([parent.len(),25].iter().min().unwrap_or(&0))];
             let child = vv(&self.children,i);
-            let child = &child[0..*([child.len(),24].iter().min().unwrap_or(&0))];
+            let child = &child[0..*([child.len(),25].iter().min().unwrap_or(&0))];
             let ep = vv(&self.eps,i);
-            let ep = &ep[0..*([ep.len(),74].iter().min().unwrap_or(&0))];
+            let ep = &ep[0..*([ep.len(),75].iter().min().unwrap_or(&0))];
             string.push_str(&format!("{:25}|{:12}|{:10}|{:16}|{:75}|{:25}|{:25}|{:42}\n","","",color_status(&vv(&self.statuses,i)),vv(&self.dms,i),ep.bold().bright_cyan(),parent.bold(),child.bold(),""));
         }
         string.push_str(&format!("{:-<240}",""));
@@ -223,6 +223,7 @@ impl ParamTable{
             Self::get_params_rec(params,s,path.clone(),Some(name.clone()),dm,status.clone(),Some(n),value); 
         }
         for (n,prop) in Self::get_props(&schema){
+            children.push(n.clone());
             Self::get_params_rec(params,prop,path.clone(),Some(name.clone()),dm,status.clone(),Some(n),value);
         }
         let tp = if let Some(ref tp) = schema.schema_type{
