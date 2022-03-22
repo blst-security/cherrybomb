@@ -102,7 +102,7 @@ pub fn parse_http(file_data: &str) -> Result<Vec<Session>, String> {
                         }
                     };
                     let method = match req1.method {
-                        Some(r) => Method::from_str(r),
+                        Some(r) => Method::method_from_str(r),
                         None => {
                             errors += "Failed at getting method from request in the logs files";
                             return Err(errors);

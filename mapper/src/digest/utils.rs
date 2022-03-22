@@ -166,7 +166,7 @@ impl Default for Method {
     }
 }
 impl Method {
-    pub fn from_str(s: &str) -> Self {
+    pub fn method_from_str(s: &str) -> Self {
         match s{
             "GET"=>Method::GET,
             "POST"=>Method::POST,

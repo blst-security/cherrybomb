@@ -40,6 +40,7 @@ impl Check for PassiveChecks {
         }
     }
 }
+/*
 impl Check for ActiveChecks {
     fn alerts_text(&self) -> ColoredString {
         match self.inner().len() {
@@ -65,7 +66,7 @@ impl Check for ActiveChecks {
             "PASSED"
         }
     }
-}
+}*/
 impl_passive_checks![
     //name in enum   check function   check name    check description
     (CheckServerUrl,check_server_url,"SERVER URL","Checks for server url misconfigurations"),
@@ -87,9 +88,3 @@ impl_passive_checks![
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definion of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes")
 ];
-impl_active_checks![(
-    CheckDefault,
-    check_default,
-    "CHECK DEFAULT",
-    "check default"
-)];

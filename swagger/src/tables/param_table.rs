@@ -40,7 +40,7 @@ pub struct ParamForTable{
 //value_from_vec
 fn vv<T>(vec:&[T],loc:usize)->String
 where T:Clone+std::fmt::Display{
-    if vec.len()>=loc+1 {
+    if vec.len()>loc {
         vec[loc].to_string()
     }else{
         String::new()
@@ -144,7 +144,7 @@ impl ParamTable{
             info:oas.info(), 
             servers:oas.servers().unwrap_or_default().iter().map(|s| s.url.clone()).collect(),
             params:Self::get_params(&oas,&serde_json::to_value(oas.clone()).unwrap()),
-            eps:oas.get_paths().iter().map(|(p,i)| p).cloned().collect(),
+            eps:oas.get_paths().iter().map(|(p,_)| p).cloned().collect(),
         }
     }
     fn get_all_possible_schemas(schema:&Schema)->Vec<SchemaRef>{
@@ -213,6 +213,7 @@ impl ParamTable{
             String::new()
         }
     }
+    #[allow(clippy::too_many_arguments)]
     fn get_params_rec(params:&mut HashMap<ParamForTableKey,ParamForTableValue>,schema_ref:SchemaRef,path:String,parent:Option<String>,dm:QuePay,status:Option<String>,name_f:Option<String>,value:&Value){
         let mut children = vec![];
         let schema = schema_ref.inner(value); 

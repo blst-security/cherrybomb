@@ -1,11 +1,11 @@
 use attacker::{Authorization, Verbosity};
-use swagger::{ActiveScanType,Authorization as SAuthorization};
+//use swagger::{ActiveScanType,Authorization as SAuthorization};
 use clap::{App, Arg, Error};
 use colored::*;
 use cherrybomb::*;
 use mapper::digest::Header;
 
-const VERSION: &str = "0.5.0";
+const VERSION: &str = "0.5.1";
 const MAP_FILE: &str = "map";
 const DECIDE_FILE: &str = "decide";
 const SWAGGER_OUTPUT_FILE: &str = "results.txt";
@@ -222,8 +222,9 @@ async fn main() -> Result<(), Error> {
         if let Some(file) = vars.value_of("FILE"){
             let output = if let Some(o) = vars.value_of("OUTPUT"){ o } else { SWAGGER_OUTPUT_FILE };
             let verbosity = if let Some(v) = vars.value_of("VERBOSITY"){ v.parse::<u8>().unwrap() } else { 1 } ;
-            let active = vars.is_present("ACTIVE");
+            //let active = vars.is_present("ACTIVE");
             let param_table = vars.is_present("PTABLE");
+            /*
             let scan_type = match vars.value_of("SCAN") {
                 Some(r) => {
                     match r {
@@ -236,6 +237,7 @@ async fn main() -> Result<(), Error> {
                 },
                 None => ActiveScanType::Partial(vec![]),
             };
+            
             let a = match vars.subcommand_matches("auth") {
                 Some(vars) => match vars.value_of("TYPE") {
                     Some(v) => match vars.value_of("TOKEN") {
@@ -245,8 +247,8 @@ async fn main() -> Result<(), Error> {
                     None => SAuthorization::None,
                 },
                 None => SAuthorization::None,
-            };
-            run_swagger(file,verbosity,output,&a,active,param_table,scan_type);
+            };*/
+            run_swagger(file,verbosity,output/*,&a,active*/,param_table/*,scan_type*/);
         }
     }else if let Some(vars) = matches.subcommand_matches("map") {
         if let Some(l) = vars.value_of("LOGS_FILE") {
