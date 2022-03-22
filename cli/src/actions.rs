@@ -109,7 +109,7 @@ pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,/*_auth:&SAuth,_activ
     };
 }
 
-pub fn map(logs_file: String, output: String) {
+pub fn map(logs_file: String, output: String,hint_file:Option<&str>) {
     let logs = match read_file(&logs_file) {
         Some(r) => r,
         None => {
@@ -121,7 +121,26 @@ pub fn map(logs_file: String, output: String) {
     let sessions = get_sessions(&logs);
     if !sessions.is_empty() {
         println!("{}", "Starts mapping...".green());
-        digest.load_vec_session(sessions,None);
+        if let Some(h_f) = hint_file{
+            let oas_hint:OAS3_1 = match read_file(h_f){
+                Some(c) => match serde_json::from_str(&c){
+                    Ok(s) => s,
+                    Err(e)=>{
+                        print_err(&e.to_string());
+                        print_err("Failed parsing the OpenAPI hint file");
+                        return;
+                    }
+                },
+                None=>{
+                    print_err(&format!("Failed reading hint file \"{}\"", &h_f));
+                    return;
+                }
+            };
+            let hint = oas_hint.get_paths().iter().map(|(p,_)| p.clone()).collect();
+            digest.load_vec_session(sessions,Some(hint));
+        }else{
+            digest.load_vec_session(sessions,None);
+        }
         let map_string = match serde_json::to_string(&digest) {
             Ok(r) => r,
             Err(_) => {

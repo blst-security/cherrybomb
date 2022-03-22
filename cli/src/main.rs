@@ -99,7 +99,14 @@ async fn main() -> Result<(), Error> {
                 .value_name("Map File Name")
                 .default_value("map")
                 .help("Sets the output map file's name")
-                .takes_value(true)))
+                .takes_value(true))
+            .arg(Arg::with_name("HINT")
+                .short("h")
+                .long("hint")
+                .value_name("OpenAPI specification file name")
+                .help("OpenAPI specification given as a hint to the mapper")
+                .takes_value(true))
+            )
 
         .subcommand(App::new("prepare")
             .about("Prepare the attacker for the attack")
@@ -253,9 +260,9 @@ async fn main() -> Result<(), Error> {
     }else if let Some(vars) = matches.subcommand_matches("map") {
         if let Some(l) = vars.value_of("LOGS_FILE") {
             if let Some(o) = vars.value_of("OUTPUT") {
-                map(l.to_string(), o.to_string());
+                map(l.to_string(), o.to_string(),vars.value_of("HINT"));
             } else {
-                map(l.to_string(), MAP_FILE.to_string());
+                map(l.to_string(), MAP_FILE.to_string(),vars.value_of("HINT"));
             }
         }
     } else if let Some(vars) = matches.subcommand_matches("prepare") {
