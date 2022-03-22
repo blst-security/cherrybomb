@@ -75,7 +75,7 @@ cherrybomb load --file <LOGS_FILE_PATH> --map <MAPPED_FILE_PATH>
 
 # 🪦 (!)Deprecation notice:
 The <b>Attacker</b> and <b>Decider</b> modules will be deprecated(!) in our the next release(version 0.6).
-We are doing it since we haven't seen any usage of the modules thus far.
+We are doing it since we have barely seen any usage of the modules thus far.
 Please let us know if you are indeed using those features and don't want them to be deprecated.
 
 # 🚧 Roadmap
