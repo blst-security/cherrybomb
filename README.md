@@ -47,6 +47,10 @@ cherrybomb --version
 ```
 cherrybomb swagger --file <PATH> --output <PATH> --verbosity <0/1/2>
 ```
+Or
+```
+cherrybomb oas --file <PATH> --output <PATH> --verbosity <0/1/2>
+```
 #### Output example for verbosity level 1:
 ![checks_table](/images/checks_table.png)
 #### Output example for verbosity level 0:
@@ -56,6 +60,10 @@ cherrybomb swagger --file <PATH> --output <PATH> --verbosity <0/1/2>
 ```
 cherrybomb swagger --file <PATH> --param-table
 ```
+Or
+```
+cherrybomb oas --file <PATH> --param-table
+```
 #### Table output example:
 ![param_table](/images/param_table.png)
 
@@ -64,7 +72,7 @@ First, we have a mapping module that relies on HTTP logs and builds a map of the
 <br />
 Start mapping your logs by running
 ```
-cherrybomb map --file <LOGS_FILE_PATH> --output <OUTPUT_FILE_NAME>
+cherrybomb map --file <LOGS_FILE_PATH> --output <OUTPUT_FILE_NAME> --hint <OAS FILE NAME>
 ```
 
 If you don't have an HTTP log file, but you have Burp suite logs, you are in luck, go to the scripts folder, there is a convertor script over there.
