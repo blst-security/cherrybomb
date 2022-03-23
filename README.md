@@ -31,6 +31,11 @@ The script requires sudo permissions to move the cherrybomb bin into <b>/usr/loc
 You can also download the binary file directly from [our website](https://www.blstsecurity.com/cherrybomb).
 <br />
 This is a binary file and you DO NOT have to install Rust.
+If you use this method you should run this command:
+```
+mkdir ~/.cherrybomb
+```
+To create a .cherrybomb dir in the home directory.
 
 ## Usage
 After installing the CLI, verify it's working by running
