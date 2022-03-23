@@ -1,6 +1,6 @@
 <div align="center">
   
-![cherry_bomb_v4_3_1 (1)](https://user-images.githubusercontent.com/12970637/151692589-fe2cd8ef-9463-44b8-992e-9da0adff815e.png)
+![cherry_bomb_v5_1](https://user-images.githubusercontent.com/12970637/159654379-eaff2dde-ba9c-403b-9f23-d412b4657847.png)
 
   <h1>Stop half-done API specifications</h1>
   
