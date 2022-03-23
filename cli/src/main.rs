@@ -1,10 +1,11 @@
 use attacker::{Authorization, Verbosity};
+use swagger::{ActiveScanType,Authorization as SAuthorization};
 use clap::{App, Arg, Error};
 use colored::*;
 use cherrybomb::*;
 use mapper::digest::Header;
 
-const VERSION: &str = "0.4.3";
+const VERSION: &str = "0.5.0";
 const MAP_FILE: &str = "map";
 const DECIDE_FILE: &str = "decide";
 const SWAGGER_OUTPUT_FILE: &str = "results.txt";
@@ -40,6 +41,18 @@ async fn main() -> Result<(), Error> {
                 .help("The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)")
                 .takes_value(true)
                 .default_value("1"))
+            .arg(Arg::with_name("ACTIVE")
+                .short("aaa")
+                .long("active")
+                .value_name("Active flag")
+                .help("A flag to dictate whether or not an active scan will be preformed")
+                .takes_value(false))
+            .arg(Arg::with_name("PTABLE")
+                .short("pt")
+                .long("param-table")
+                .value_name("Parameter table flag")
+                .help("A flag to dictate whether or not it should print the parameter table")
+                .takes_value(false))
             .arg(Arg::with_name("OUTPUT")
                 .short("o")
                 .long("output")
@@ -47,7 +60,30 @@ async fn main() -> Result<(), Error> {
                 .help("The output file, for the alerts and checks")
                 .takes_value(true)
                 .default_value(SWAGGER_OUTPUT_FILE))
-            )
+            .arg(Arg::with_name("SCAN")
+                .short("s")
+                .long("scan-type")
+                .value_name("Scan type")
+                .help("Sets the scan type - 0 - Full scan, 1 - Partial, 2 - Non-Invasive, 3 - Only tests")
+                .takes_value(true)
+                .default_value("0"))
+            .subcommand(App::new("auth")                                   
+                .about("Adds an auth token to the Attacker's requests, for auth based apps")
+                .arg(Arg::with_name("TYPE")
+                    //.short("tp")
+                    .long("type")
+                    .value_name("authorization type")
+                    .help("Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("TOKEN")
+                    //.short("tkn")
+                    .long("token")
+                    .value_name("authorization token value")
+                    .help("Sets the authorization token(if it's of type basic then username:password)")
+                    .required(true)
+                    .takes_value(true))
+            ))
         .subcommand(App::new("map")
             .about("Creates a new map from a given log file, outputs a digest file to the local directory")
             .arg(Arg::with_name("LOGS_FILE")
@@ -129,14 +165,14 @@ async fn main() -> Result<(), Error> {
             .subcommand(App::new("auth")                                   
                 .about("Adds an auth token to the Attacker's requests, for auth based apps")
                 .arg(Arg::with_name("TYPE")
-                    .short("t")
+                    //.short("t")
                     .long("type")
                     .value_name("authorization type")
                     .help("Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("TOKEN")
-                    .short("tkn")
+                    //.short("tkn")
                     .long("token")
                     .value_name("authorization token value")
                     .help("Sets the authorization token(if it's of type basic then username:password)")
@@ -186,7 +222,31 @@ async fn main() -> Result<(), Error> {
         if let Some(file) = vars.value_of("FILE"){
             let output = if let Some(o) = vars.value_of("OUTPUT"){ o } else { SWAGGER_OUTPUT_FILE };
             let verbosity = if let Some(v) = vars.value_of("VERBOSITY"){ v.parse::<u8>().unwrap() } else { 1 } ;
-            run_swagger(file,verbosity,output);
+            let active = vars.is_present("ACTIVE");
+            let param_table = vars.is_present("PTABLE");
+            let scan_type = match vars.value_of("SCAN") {
+                Some(r) => {
+                    match r {
+                        "0" => ActiveScanType::Full,
+                        "1" => ActiveScanType::Partial(vec![]),
+                        "2" => ActiveScanType::NonInvasive,
+                        "3" => ActiveScanType::OnlyTests,
+                        _   => ActiveScanType::Partial(vec![]),
+                    }
+                },
+                None => ActiveScanType::Partial(vec![]),
+            };
+            let a = match vars.subcommand_matches("auth") {
+                Some(vars) => match vars.value_of("TYPE") {
+                    Some(v) => match vars.value_of("TOKEN") {
+                        Some(v2) => SAuthorization::from_parts(v, v2.to_string()),
+                        None => SAuthorization::None,
+                    },
+                    None => SAuthorization::None,
+                },
+                None => SAuthorization::None,
+            };
+            run_swagger(file,verbosity,output,&a,active,param_table,scan_type);
         }
     }else if let Some(vars) = matches.subcommand_matches("map") {
         if let Some(l) = vars.value_of("LOGS_FILE") {

@@ -15,7 +15,7 @@ impl Default for Authorization {
     }
 }
 impl Authorization {
-    /*pub fn from_parts(tp: &str, value: String) -> Self {
+    pub fn from_parts(tp: &str, value: String) -> Self {
         match tp {
             "0" => {
                 let vals: Vec<&str> = value.split(":").collect();
@@ -26,7 +26,7 @@ impl Authorization {
             "3" => Self::APIKey(value),
             _ => Self::None,
         }
-    }*/
+    }
     pub fn get_header(&self) -> Option<MHeader> {
         match self {
             Self::Authorization(Auth::Basic(username, password)) => Some(MHeader {
