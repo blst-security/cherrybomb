@@ -84,6 +84,43 @@ async fn main() -> Result<(), Error> {
                     .required(true)
                     .takes_value(true))
             ))
+            .subcommand(App::new("oas")
+            .about("Runs a set of passive checks on a given OpenAPI specification file")
+            .arg(Arg::with_name("FILE")
+                .short("f")
+                .long("file")
+                .value_name("OAS file")
+                .help("The OAS file")
+                .required(true)
+                .takes_value(true))
+            .arg(Arg::with_name("VERBOSITIY")
+                .short("v")
+                .long("verbosity")
+                .value_name("Output verbosity")
+                .help("The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)")
+                .takes_value(true)
+                .default_value("1"))
+            .arg(Arg::with_name("PTABLE")
+                .short("pt")
+                .long("param-table")
+                .value_name("Parameter table flag")
+                .help("A flag to dictate whether or not it should print the parameter table")
+                .takes_value(false))
+            .arg(Arg::with_name("OUTPUT")
+                .short("o")
+                .long("output")
+                .value_name("Output file")
+                .help("The output file, for the alerts and checks")
+                .takes_value(true)
+                .default_value(SWAGGER_OUTPUT_FILE))
+            .arg(Arg::with_name("SCAN")
+                .short("s")
+                .long("scan-type")
+                .value_name("Scan type")
+                .help("Sets the scan type - 0 - Full scan, 1 - Partial, 2 - Non-Invasive, 3 - Only tests")
+                .takes_value(true)
+                .default_value("0"))
+            )
         .subcommand(App::new("map")
             .about("Creates a new map from a given log file, outputs a digest file to the local directory")
             .arg(Arg::with_name("LOGS_FILE")
@@ -107,7 +144,7 @@ async fn main() -> Result<(), Error> {
                 .help("OpenAPI specification given as a hint to the mapper")
                 .takes_value(true))
             )
-
+	
         .subcommand(App::new("prepare")
             .about("Prepare the attacker for the attack")
             .arg(Arg::with_name("URL")
@@ -256,6 +293,13 @@ async fn main() -> Result<(), Error> {
                 None => SAuthorization::None,
             };*/
             run_swagger(file,verbosity,output/*,&a,active*/,param_table/*,scan_type*/);
+        }
+    }else if let Some(vars) = matches.subcommand_matches("oas"){
+        if let Some(file) = vars.value_of("FILE"){
+            let output = if let Some(o) = vars.value_of("OUTPUT"){ o } else { SWAGGER_OUTPUT_FILE };
+            let verbosity = if let Some(v) = vars.value_of("VERBOSITY"){ v.parse::<u8>().unwrap() } else { 1 } ;
+            let param_table = vars.is_present("PTABLE");
+            run_swagger(file,verbosity,output,param_table);
         }
     }else if let Some(vars) = matches.subcommand_matches("map") {
         if let Some(l) = vars.value_of("LOGS_FILE") {
