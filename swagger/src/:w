@@ -280,7 +280,10 @@ impl ParamTable{
                 for param in params1{
                     let param = param.inner(value);
                     if let Some(schema) = param.schema.clone(){
-                        Self::get_params_rec(&mut params,schema,path.clone(),None,param.from(),None,Some(param.name),value);
+                        if param.name() =="productId"{
+                            println!("{:?}",param.from());
+                        }
+                        Self::get_params_rec(&mut params,schema,path.clone(),None,param.from(),None,None,value);
                     } 
                 }
 
@@ -289,7 +292,7 @@ impl ParamTable{
             for param in params1{
                 let param = param.inner(value);
                 if let Some(schema) = param.schema.clone(){
-                    Self::get_params_rec(&mut params,schema,path.clone(),None,param.from(),None,Some(param.name),value);
+                    Self::get_params_rec(&mut params,schema,path.clone(),None,param.from(),None,None,value);
                 } 
             }
         }
