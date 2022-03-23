@@ -127,9 +127,6 @@ impl EpTable{
     where T:OAS+Clone+Serialize{
         let val = serde_json::to_value(&oas).unwrap();
         let eps:Vec<EpForTable> = oas.get_paths().iter().map(|(path,item)| EpForTable::from_oas_path(path,item,&val)).collect();
-        for i in 0..10{
-            println!("{:?}",&eps[i]);
-        }
         EpTable{
             eps,
             servers:oas.servers().as_ref().unwrap_or(&vec![]).iter().map(|s| s.url.clone()).collect(),
