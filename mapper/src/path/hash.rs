@@ -24,7 +24,7 @@ impl std::fmt::Display for Part {
     }
 }
 impl Part{
-    pub fn cmp(&self,other:Self)->bool{
+    pub fn compare(&self,other:Self)->bool{
         matches!((self,other), (Part::String(_),Part::String(_)) | (Part::Number(_),Part::Number(_)) | (Part::Uuid,Part::Uuid))
     }
     pub fn cmp_join(self,other:Self)->Option<Self>{
@@ -52,7 +52,7 @@ impl Part{
             _=>(),
         }
     }
-    pub fn from_str(part:&str)->Self{
+    pub fn part_from_str(part:&str)->Self{
         match Uuid::parse_str(part){
              Ok(_)=>Part::Uuid,
              Err(_)=>{

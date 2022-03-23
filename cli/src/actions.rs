@@ -9,9 +9,9 @@ use std::io::Write;
 use url::Url;
 use uuid::Uuid;
 use swagger::scan::passive::{PassiveSwaggerScan,PassiveScanType};
-use swagger::scan::active::{ActiveScan,ActiveScanType};
-use swagger::{Swagger,OAS3_1,OAS,Authorization as SAuth,ParamTable};
-use futures::executor;
+//use swagger::scan::active::{ActiveScan,ActiveScanType};
+use swagger::{Swagger,OAS3_1,OAS/*,Authorization as SAuth*/,ParamTable};
+//use futures::executor;
 
 pub fn add_token(token: String) -> bool {
     match Uuid::parse_str(&token) {
@@ -55,7 +55,8 @@ where T:OAS+Serialize+for<'de> Deserialize<'de>{
     let print = scan.print_to_file_string();
     write_to_file(output_file,print);
 }
-pub fn _run_active_swagger_scan<T>(scan_try:Result<ActiveScan<T>,&'static str>,_verbosity:u8,_output_file:&str,auth:&SAuth,tp:ActiveScanType)
+/*
+pub fn _run_active_swagger_scan<T>(scan_try:Result<ActiveScan<T>,&'static str>,_verbosity:u8,_output_file:&str,_auth:&SAuth,_tp:ActiveScanType)
 where T:OAS+Serialize+for<'de> Deserialize<'de>{
     let mut scan = match scan_try{
         Ok(s)=>s,
@@ -68,8 +69,8 @@ where T:OAS+Serialize+for<'de> Deserialize<'de>{
     //scan.print(verbosity);
     //let print = scan.print_to_file_string();
     //write_to_file(output_file,print);
-}
-pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,_auth:&SAuth,_active:bool,param_table:bool,_active_scan_type:ActiveScanType){
+}*/
+pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,/*_auth:&SAuth,_active:bool,*/param_table:bool,/*_active_scan_type:ActiveScanType*/){
     let swagger_str = match read_file(file){
         Some(s)=>s,
         None=>{
@@ -86,28 +87,29 @@ pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,_auth:&SAuth,_active:
     };
     let version = swagger_value["openapi"].to_string().trim().replace("\"","");
     if version.starts_with("3.0"){
-        run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(swagger_value.clone()),verbosity,output_file);
         if param_table{
-            ParamTable::new(serde_json::from_value::<Swagger>(swagger_value.clone()).unwrap()).print();
+            ParamTable::new(serde_json::from_value::<Swagger>(swagger_value).unwrap()).print();
+        }else{
+            run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(swagger_value),verbosity,output_file);
         }
         //if active{
             //run_active_swagger_scan::<Swagger>(ActiveScan::<Swagger>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
         //}
     }else if version.starts_with("3.1"){
-        run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(swagger_value.clone()),verbosity,output_file);
         if param_table{
-            ParamTable::new(serde_json::from_value::<OAS3_1>(swagger_value.clone()).unwrap()).print();
+            ParamTable::new(serde_json::from_value::<OAS3_1>(swagger_value).unwrap()).print();
+        }else{
+            run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(swagger_value),verbosity,output_file);
         }
         //if active{
             //run_active_swagger_scan::<OAS3_1>(ActiveScan::<OAS3_1>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
         //}
     }else{
         print_err("Unsupported OpenAPI specification version");
-        return;
     };
 }
 
-pub fn map(logs_file: String, output: String) {
+pub fn map(logs_file: String, output: String,hint_file:Option<&str>) {
     let logs = match read_file(&logs_file) {
         Some(r) => r,
         None => {
@@ -119,7 +121,26 @@ pub fn map(logs_file: String, output: String) {
     let sessions = get_sessions(&logs);
     if !sessions.is_empty() {
         println!("{}", "Starts mapping...".green());
-        digest.load_vec_session(sessions);
+        if let Some(h_f) = hint_file{
+            let oas_hint:OAS3_1 = match read_file(h_f){
+                Some(c) => match serde_json::from_str(&c){
+                    Ok(s) => s,
+                    Err(e)=>{
+                        print_err(&e.to_string());
+                        print_err("Failed parsing the OpenAPI hint file");
+                        return;
+                    }
+                },
+                None=>{
+                    print_err(&format!("Failed reading hint file \"{}\"", &h_f));
+                    return;
+                }
+            };
+            let hint = oas_hint.get_paths().iter().map(|(p,_)| p.clone()).collect();
+            digest.load_vec_session(sessions,Some(hint));
+        }else{
+            digest.load_vec_session(sessions,None);
+        }
         let map_string = match serde_json::to_string(&digest) {
             Ok(r) => r,
             Err(_) => {
@@ -347,7 +368,7 @@ pub fn load(logs_file: String, map_file: String) {
     let sessions = get_sessions(&logs);
     if !sessions.is_empty() {
         println!("{}", "Starts mapping...".green());
-        d_map.load_vec_session(sessions);
+        d_map.load_vec_session(sessions,None);
         let map_string = match serde_json::to_string(&d_map) {
             Ok(r) => r,
             Err(_) => {

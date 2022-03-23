@@ -29,7 +29,7 @@ pub enum StringDescriptor {
     Random,
 }
 impl StringDescriptor {
-    pub fn matches(&self, string: &String) -> bool {
+    pub fn matches(&self, string: &str) -> bool {
         match self {
             Self::Uuid(v) => {
                 if let Ok(u) = Uuid::parse_str(string) {
@@ -38,7 +38,7 @@ impl StringDescriptor {
                     false
                 }
             }
-            Self::List(l) => l.contains(string),
+            Self::List(l) => l.contains(&(string.to_string())),
             Self::Random => true,
             _ => true,
         }

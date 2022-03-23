@@ -235,13 +235,17 @@ impl Digest{
 }
 pub trait MapLoad {
     fn load_session(&mut self, _session: Session);
-    fn load_vec_session(&mut self, _sessions: Vec<Session>);
+    fn load_vec_session(&mut self, sessions: Vec<Session>,hint:Option<Vec<String>>);
     fn load_req_res(&mut self, _req_res: ReqRes);
     fn load_vec_req_res(&mut self, _req_reses: Vec<ReqRes>);
 }
 impl MapLoad for Digest {
-    fn load_vec_session(&mut self, sessions: Vec<Session>) {
-        let paths = Self::build_paths(&sessions);
+    fn load_vec_session(&mut self, sessions: Vec<Session>,hint:Option<Vec<String>>) {
+        let paths = if let Some(ps) = hint{
+            ps.iter().map(|p| Path{path_ext:p.to_string(),..Path::default()}).collect()
+        }else{
+            Self::build_paths(&sessions)
+        };
         self.load_sessions_to_hash(&sessions);
         self.eps = self.turn_hash(paths);
         let links = Self::build_links(&self.eps,&sessions);
