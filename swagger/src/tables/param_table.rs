@@ -138,12 +138,13 @@ impl ParamTable{
         }
         //println!("{}",head);
     }
-    pub fn new<T>(oas:T)->Self
-    where T:OAS+Clone+Serialize{
+    pub fn new<T>(value:&Value)->Self
+    where T:Clone+OAS+ for<'de> serde::Deserialize<'de>{
+        let oas = serde_json::from_value::<T>(value.clone()).unwrap();
         ParamTable{
             info:oas.info(), 
             servers:oas.servers().unwrap_or_default().iter().map(|s| s.url.clone()).collect(),
-            params:Self::get_params(&oas,&serde_json::to_value(oas.clone()).unwrap()),
+            params:Self::get_params(&oas,value),
             eps:oas.get_paths().iter().map(|(p,_)| p).cloned().collect(),
         }
     }
