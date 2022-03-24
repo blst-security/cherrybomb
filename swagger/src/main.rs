@@ -35,7 +35,7 @@ async fn main() {
     //println!("{:?}",serde_json::to_string(&a).unwrap());
     //a.print(0);
     //let t = EpTable::new::<OAS3_1>(serde_json::from_value::<OAS3_1>(swagger_value).unwrap());
-    let t = ParamTable::new(serde_json::from_value::<OAS3_1>(swagger_value).unwrap());
+    let t = ParamTable::new::<OAS3_1>(&swagger_value);
     //println!("{:?}",serde_json::to_string(&t).unwrap());
     t.print();
     //print_checks_table(&a);
