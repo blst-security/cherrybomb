@@ -200,7 +200,6 @@ impl ParamTable{
             },
             _=>(Some(0),Some(0)),
         }
-
     }
     fn get_name_s_ref(s_ref:&SchemaRef,value:&Value,name:&Option<String>)->String{
         let schema = s_ref.inner(value); 

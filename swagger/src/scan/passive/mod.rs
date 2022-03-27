@@ -58,13 +58,20 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
         //self.passive_checks.clone()
     }
     pub fn print(&self, verbosity: u8) {
+        let failed:u8 = self.passive_checks.iter().map(|c| if c.result()=="FAILED" { 1 } else { 0 } ).sum();
         match verbosity {
             0 => {
                 print_checks_table(&self.passive_checks);
                 print_alerts_table(&self.passive_checks);
+                if failed>0{
+                    std::process::exit(1);
+                }
             }
             1 => {
                 print_checks_table(&self.passive_checks);
+                if failed>0{
+                    std::process::exit(1);
+                }
             }
             2 => print_failed_checks_table(&self.passive_checks),
             _ => (),
