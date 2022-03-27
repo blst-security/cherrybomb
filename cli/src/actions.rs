@@ -88,7 +88,7 @@ pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,/*_auth:&SAuth,_activ
     let version = swagger_value["openapi"].to_string().trim().replace("\"","");
     if version.starts_with("3.0"){
         if param_table{
-            ParamTable::new(serde_json::from_value::<Swagger>(swagger_value).unwrap()).print();
+            ParamTable::new::<Swagger>(&swagger_value).print();
         }else{
             run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(swagger_value),verbosity,output_file);
         }
@@ -97,7 +97,7 @@ pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,/*_auth:&SAuth,_activ
         //}
     }else if version.starts_with("3.1"){
         if param_table{
-            ParamTable::new(serde_json::from_value::<OAS3_1>(swagger_value).unwrap()).print();
+            ParamTable::new::<OAS3_1>(&swagger_value).print();
         }else{
             run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(swagger_value),verbosity,output_file);
         }
@@ -136,7 +136,18 @@ pub fn map(logs_file: String, output: String,hint_file:Option<&str>) {
                     return;
                 }
             };
-            let hint = oas_hint.get_paths().iter().map(|(p,_)| p.clone()).collect();
+            let hint_servers = oas_hint.servers().unwrap_or(vec![]).iter().filter_map(|s| {
+                if let Ok(u) = Url::parse(&s.url){
+                    if u.path().trim() != ""{
+                        Some(u.path().trim().to_string())
+                    }else{
+                        None
+                    }
+                }else{
+                    Some(s.url.clone())
+                }
+            }).collect::<Vec<String>>();
+            let hint = oas_hint.get_paths().iter().map(|(p,_)| hint_servers.iter().map(|s| format!("{}/{}",s,p)).collect::<Vec<String>>()).flatten().collect();
             digest.load_vec_session(sessions,Some(hint));
         }else{
             digest.load_vec_session(sessions,None);

@@ -33,10 +33,11 @@ impl Check for PassiveChecks {
         top
     }
     fn result(&self) -> &'static str {
-        if !self.inner().is_empty() {
-            "FAILED"
-        } else {
+        //let failed = self.inner().iter().map(|a| if a.level != Level::Info {1}else{0}).sum::<u64>();
+        if self.inner().is_empty() {
             "PASSED"
+        } else {
+            "FAILED"
         }
     }
 }
