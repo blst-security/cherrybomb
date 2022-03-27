@@ -63,18 +63,13 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
             0 => {
                 print_checks_table(&self.passive_checks);
                 print_alerts_table(&self.passive_checks);
-                if failed>0{
-                    std::process::exit(1);
-                }
             }
-            1 => {
-                print_checks_table(&self.passive_checks);
-                if failed>0{
-                    std::process::exit(1);
-                }
-            }
+            1 => print_checks_table(&self.passive_checks),
             2 => print_failed_checks_table(&self.passive_checks),
             _ => (),
+        }
+        if failed>0{
+            std::process::exit(1);
         }
     }
     pub fn print_to_file_string(&self) -> String {
