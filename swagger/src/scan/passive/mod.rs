@@ -15,6 +15,11 @@ pub enum PassiveScanType {
     Full,
     Partial(Vec<PassiveChecks>),
 }
+impl Default for PassiveScanType {
+    fn default() -> Self {
+        Self::Full
+    }
+}
 #[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
 pub struct PassiveSwaggerScan<T>
 where
@@ -24,7 +29,7 @@ where
     swagger_value: Value,
     //alerts:Vec<iveChecks>>,
     verbosity: u8,
-    passive_checks: Vec<PassiveChecks>,
+    pub passive_checks: Vec<PassiveChecks>,
 }
 impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
     pub fn new(swagger_value: Value) -> Result<Self, &'static str> {
@@ -41,7 +46,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
             }
         }
     }
-    pub fn run(&mut self, tp: PassiveScanType) {
+    pub fn run(&mut self, tp:PassiveScanType) {
         //->Vec<PassiveChecks>{
         match tp {
             PassiveScanType::Full => {

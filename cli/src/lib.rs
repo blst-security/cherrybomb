@@ -5,3 +5,5 @@ mod actions;
 pub use actions::*;
 mod utils;
 pub use utils::*;
+mod config;
+pub use config::*;

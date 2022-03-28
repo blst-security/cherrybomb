@@ -10,7 +10,7 @@ use url::Url;
 use uuid::Uuid;
 use swagger::scan::passive::{PassiveSwaggerScan,PassiveScanType};
 //use swagger::scan::active::{ActiveScan,ActiveScanType};
-use swagger::{Swagger,OAS3_1,OAS/*,Authorization as SAuth*/,ParamTable};
+use swagger::{Swagger,OAS3_1,OAS/*,Authorization as SAuth*/,ParamTable,EpTable};
 //use futures::executor;
 
 pub fn add_token(token: String) -> bool {
@@ -41,7 +41,7 @@ pub fn add_token(token: String) -> bool {
     }
 }
 
-pub fn run_passive_swagger_scan<T>(scan_try:Result<PassiveSwaggerScan<T>,&'static str>,verbosity:u8,output_file:&str)
+pub fn run_passive_swagger_scan<T>(scan_try:Result<PassiveSwaggerScan<T>,&'static str>,verbosity:u8,output_file:&str,tp:PassiveScanType)
 where T:OAS+Serialize+for<'de> Deserialize<'de>{
     let mut scan = match scan_try{
         Ok(s)=>s,
@@ -50,7 +50,7 @@ where T:OAS+Serialize+for<'de> Deserialize<'de>{
             return;
         },
     };
-    scan.run(PassiveScanType::Full);
+    scan.run(tp);
     scan.print(verbosity);
     let print = scan.print_to_file_string();
     write_to_file(output_file,print);
@@ -70,43 +70,49 @@ where T:OAS+Serialize+for<'de> Deserialize<'de>{
     //let print = scan.print_to_file_string();
     //write_to_file(output_file,print);
 }*/
-pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,/*_auth:&SAuth,_active:bool,*/param_table:bool,/*_active_scan_type:ActiveScanType*/){
-    let swagger_str = match read_file(file){
-        Some(s)=>s,
-        None=>{
-            print_err(&format!("Failed at reading swagger file \"{}\"", file));
-            return;
-        }
+pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,/*_auth:&SAuth,_active:bool,*/_param_table:bool,/*_active_scan_type:ActiveScanType*/config:&str){
+    let config = if let Some(c) = Config::from_file(config){
+        c
+    }else{
+        println!("No config file was loaded to the scan, default configuration is being used");
+        Config::default()
     };
-    let swagger_value:serde_json::Value = match serde_json::from_str(&swagger_str){
-        Ok(s)=>s,
-        Err(_)=>{
-            print_err(&format!("Failed at parsing swagger json file:\"{}\"", file));
-            return;
-        }
-    };
-    let version = swagger_value["openapi"].to_string().trim().replace("\"","");
+    let (value,version) = if let Some((v1,v2)) = get_oas_value_version(file){ (v1,v2)} else { return; };
     if version.starts_with("3.0"){
-        if param_table{
-            ParamTable::new::<Swagger>(&swagger_value).print();
-        }else{
-            run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(swagger_value),verbosity,output_file);
-        }
+        run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(value),verbosity,output_file,config.scan_type);
         //if active{
             //run_active_swagger_scan::<Swagger>(ActiveScan::<Swagger>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
         //}
     }else if version.starts_with("3.1"){
-        if param_table{
-            ParamTable::new::<OAS3_1>(&swagger_value).print();
-        }else{
-            run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(swagger_value),verbosity,output_file);
-        }
+        run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(value),verbosity,output_file,config.scan_type);
         //if active{
             //run_active_swagger_scan::<OAS3_1>(ActiveScan::<OAS3_1>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
         //}
     }else{
         print_err("Unsupported OpenAPI specification version");
     };
+}
+
+pub fn param_table(file:&str){
+    let (value,version) = if let Some((v1,v2)) = get_oas_value_version(file){ (v1,v2)} else { return; };
+    if version.starts_with("3.0"){
+        ParamTable::new::<Swagger>(&value).print();
+    }else if version.starts_with("3.1"){
+        ParamTable::new::<OAS3_1>(&value).print();
+    }else{
+        print_err("Unsupported OpenAPI specification version");
+    }
+}
+
+pub fn ep_table(file:&str){
+    let (value,version) = if let Some((v1,v2)) = get_oas_value_version(file){ (v1,v2)} else { return; };
+    if version.starts_with("3.0"){
+        EpTable::new::<Swagger>(&value).print();
+    }else if version.starts_with("3.1"){
+        EpTable::new::<OAS3_1>(&value).print();
+    }else{
+        print_err("Unsupported OpenAPI specification version");
+    }
 }
 
 pub fn map(logs_file: String, output: String,hint_file:Option<&str>) {
