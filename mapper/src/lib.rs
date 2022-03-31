@@ -168,17 +168,17 @@ impl MapEp for Endpoint {
 }
 impl Digest{
     fn build_paths(sessions:&[Session])->Vec<Path>{
-        let paths = sessions.iter().map(|s|{
+        let paths = sessions.iter().flat_map(|s|{
             let pts:Vec<String> = s.req_res.iter().filter_map(|rr| {
                 if rr.status != 404{
-                    let end_bytes = rr.path.find('?').unwrap_or_else(|| rr.path.len());
+                    let end_bytes = rr.path.find('?').unwrap_or(rr.path.len());
                     Some(rr.path[..end_bytes].to_string())
                 }else{
                     None
                 }
             }).collect();
             pts
-        }).flatten().collect();
+        }).collect();
         let paths1 = first_cycle(paths);
         second_cycle(paths1)
         //paths

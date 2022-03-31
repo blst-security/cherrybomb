@@ -7,7 +7,7 @@ use serde::{Serialize,Deserialize};
 //use std::collections::HashSet;
 
 pub fn to_ext(path:String)->String{
-    let end_bytes = path.find('?').unwrap_or_else(|| path.len());
+    let end_bytes = path.find('?').unwrap_or(path.len());
     let pts:String = path[..end_bytes].to_string();
     let (path,_) = first_cycle_single(pts); 
     let path_ext = path.split('/').map(|part|{
@@ -22,7 +22,7 @@ pub fn to_ext(path:String)->String{
     path_ext
 }
 pub fn without_query(path:&str)->String{
-    let end_bytes = path.find('?').unwrap_or_else(|| path.len());
+    let end_bytes = path.find('?').unwrap_or(path.len());
     let pts:String = path[..end_bytes].to_string();
     pts
 }
