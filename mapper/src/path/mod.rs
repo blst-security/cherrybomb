@@ -33,19 +33,11 @@ pub struct Path{
 }
 impl Path{
     pub fn matches(&self,path:&str)->bool{
-        let parts:Vec<&str> = path.split('/').filter_map(|s| {
-            if s.trim().is_empty(){
-                None
-            }else{
-                Some(s)
-            }
+        let parts:Vec<&str> = path.split('/').filter(|s| {
+            !s.trim().is_empty()
         }).collect();
-        let ext_parts:Vec<&str> = self.path_ext.split('/').filter_map(|s|{
-            if s.trim().is_empty(){
-                None
-            }else{
-                Some(s)
-            }
+        let ext_parts:Vec<&str> = self.path_ext.split('/').filter(|s|{
+            !s.trim().is_empty()
         }).collect();
         if parts.len()==ext_parts.len(){
             let mut matches = true;
