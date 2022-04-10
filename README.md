@@ -56,7 +56,7 @@ cherrybomb oas --file <PATH> --output <PATH> --verbosity <0/1/2>
 #### Output example for verbosity level 0:
 ![alerts_table](/images/checks_table.png)
 
-### Genrate Parameter Table
+### Generate Parameter Table
 ```
 cherrybomb swagger --file <PATH> --param-table
 ```
