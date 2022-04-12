@@ -97,10 +97,13 @@ Please let us know if you are indeed using those features and don't want them to
  - [x] Passive checks
  - [x] Parameter table 
  - [x] Improve installation script
+ - [ ] Endpoints table
+ - [ ] OAS 3.1 support
+ - [ ] YAML support (currently only JSON is supported)
+ - [ ] Swagger 2 support (currently only version 3 is supported)
  - [ ] Homebrew/APT support
  - [ ] Custom scans - optional checks + optional output + ignores(from alerts)
  - [ ] GraphQL schema support
- - [ ] Swagger 2 support (currently only version 3 is supported)
  - [ ] Active scans
  - [ ] More passive scans
  - [ ] Swagger and logs validator (compares your logs with the swagger to verify correctness)
