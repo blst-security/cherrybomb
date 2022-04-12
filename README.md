@@ -98,7 +98,6 @@ Please let us know if you are indeed using those features and don't want them to
  - [x] Parameter table 
  - [x] Improve installation script
  - [ ] Endpoints table
- - [ ] OAS 3.1 support
  - [ ] YAML support (currently only JSON is supported)
  - [ ] Swagger 2 support (currently only version 3 is supported)
  - [ ] Homebrew/APT support
