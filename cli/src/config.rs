@@ -1,7 +1,7 @@
 use super::*;
 use std::fs::File;
 use std::io::{Write,Read};
-use swagger::PassiveScanType;
+use swagger::{PassiveScanType,PassiveChecks};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Config{
@@ -19,7 +19,50 @@ impl Default for Config{
         }
     }
 }
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum StrScanType{
+    Full(String),
+    Partial(Vec<String>),
+}
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ConfigStr{
+    scan_type:StrScanType,
+    pub alerts_ignore:Vec<String>,
+    pub fail_on_info:bool,
+}
+impl Default for ConfigStr{
+    fn default() -> Self{
+        ConfigStr{
+            scan_type:StrScanType::Full("Full".to_string()),
+            alerts_ignore:vec![],
+            fail_on_info:true,
+        }
+    }
+}
 impl Config{
+    fn from_conf_str(conf_str:ConfigStr)->Config{
+        let scan_type = match conf_str.scan_type{
+            StrScanType::Full(_)=>{
+                PassiveScanType::Full
+            },
+            StrScanType::Partial(vec)=>{
+                PassiveScanType::Partial(vec.iter().filter_map(|check|{
+                    if let Some(c) = PassiveChecks::from_string(&check){
+                        Some(c)
+                    }else{
+                        println!("Check name: {} does not exist, the config will load without it.",check);
+                        None
+                    } 
+                }).collect())
+            },
+        };
+        Config{
+            scan_type,
+            alerts_ignore:conf_str.alerts_ignore,
+            fail_on_info:conf_str.fail_on_info,
+        }
+    }
     pub fn from_file(file:&str)->Option<Config>{
         let mut filename =  dirs::home_dir().unwrap();
         let dir = dirs::home_dir().unwrap();
@@ -53,8 +96,8 @@ impl Config{
                 return None;
             }
         };
-        if let Ok(conf) = serde_json::from_str::<Config>(&file_data){
-            Some(conf)
+        if let Ok(conf) = serde_json::from_str::<ConfigStr>(&file_data){
+            Some(Config::from_conf_str(conf))
         }else{
             println!("Config does not match format, go to our docs on github for further explaination");
             None

@@ -8,6 +8,14 @@ macro_rules! impl_passive_checks{
             )*
         }
         impl PassiveChecks{
+            pub fn from_string(string:&str)->Option<Self>{
+                match string{
+                    $(
+                        $name=>Some(PassiveChecks::$check(vec![])),
+                    )*
+                    _=>None,
+                }
+            }
             pub fn description(&self)->&'static str{
                 match &self{
                     $(

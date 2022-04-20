@@ -74,7 +74,7 @@ impl<T: OAS + Serialize> PassiveAuthScan for PassiveSwaggerScan<T> {
         for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {
                 let secs = if let Some(s) = &op.security {
-                    s.iter().map(|v| v.keys()).flatten().collect()
+                    s.iter().flat_map(|v| v.keys()).collect()
                 } else {
                     vec![]
                 };

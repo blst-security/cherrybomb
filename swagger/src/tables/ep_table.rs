@@ -121,7 +121,7 @@ impl EpForTable{
             }else{
                 vec![]
             };
-            let res:Vec<String>= op.responses().iter().map(|(_,payload)|{
+            let res:Vec<String>= op.responses().iter().flat_map(|(_,payload)|{
                 let mut params = HashSet::new();
                 if let Some(c) = &payload.inner(value).content {
                     for m_t in c.values(){
@@ -131,7 +131,7 @@ impl EpForTable{
                     }
                 }
                 params.iter().cloned().collect::<Vec<String>>()
-            }).flatten().collect();
+            }).collect();
             query_params.extend(q);
             headers_params.extend(h);
             req_body_params.extend(req);
@@ -143,7 +143,7 @@ impl EpForTable{
             ops:ops1.iter().map(|(m,_)| m).cloned().collect(),
             query_params,
             headers_params,
-            statuses:ops1.iter().map(|(_,op)| op.responses.as_ref().unwrap_or(&HashMap::new()).iter().map(|(s,_)| s).cloned().collect::<Vec<String>>()).flatten().collect(),
+            statuses:ops1.iter().flat_map(|(_,op)| op.responses.as_ref().unwrap_or(&HashMap::new()).iter().map(|(s,_)| s).cloned().collect::<Vec<String>>()).collect(),
             res_params,
             req_body_params
         }
@@ -167,7 +167,7 @@ impl EpTable{
     pub fn new<T>(value:&Value)->Self
     where T:OAS+Clone+Serialize+ for<'de> serde::Deserialize<'de>{
         let oas = serde_json::from_value::<T>(value.clone()).unwrap();
-        let eps:Vec<EpForTable> = oas.get_paths().iter().map(|(path,item)| EpForTable::from_oas_path(path,item,&value)).collect();
+        let eps:Vec<EpForTable> = oas.get_paths().iter().map(|(path,item)| EpForTable::from_oas_path(path,item,value)).collect();
         EpTable{
             eps,
             servers:oas.servers().as_ref().unwrap_or(&vec![]).iter().map(|s| s.url.clone()).collect(),

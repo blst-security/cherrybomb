@@ -28,7 +28,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         match security {
             Some(x) => {
                 for i in x {
-                    let y = i.values().cloned().flatten().collect::<Vec<String>>();
+                    let y = i.values().flatten().cloned().collect::<Vec<String>>();
                     for item in y {
                         if  !item.starts_with("read"){
                             alerts.push(Alert::new(Level::Medium,"Request GET has to be only read permission",format!("swagger path:{} method:{}",path,Method::GET)));
@@ -45,7 +45,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         match security {
             Some(x) => {
                 for i in x {
-                    let y = i.values().cloned().flatten().collect::<Vec<String>>();
+                    let y = i.values().flatten().cloned().collect::<Vec<String>>();
                     for item in y {
                         if  !item.starts_with("write"){
                             alerts.push(Alert::new(Level::Medium,"Request PUT has to be only write permission",format!("swagger path:{} method:{}",path,Method::PUT)));
@@ -62,7 +62,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         match security {
             Some(x) => {
                 for i in x {
-                    let y = i.values().cloned().flatten().collect::<Vec<String>>();
+                    let y = i.values().flatten().cloned().collect::<Vec<String>>();
                     for item in y {
                         if  !item.starts_with("write:") && !item.starts_with("read:") {
                             alerts.push(Alert::new(Level::Low,"Request POST has to be with read and write permissions",format!("swagger path:{} method:{}",path,Method::POST)));

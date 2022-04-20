@@ -10,9 +10,9 @@ use url::Url;
 use uuid::Uuid;
 use swagger::scan::passive::{PassiveSwaggerScan,PassiveScanType};
 //use swagger::scan::active::{ActiveScan,ActiveScanType};
-use swagger::{Swagger,OAS3_1,OAS/*,Authorization as SAuth*/,ParamTable,EpTable};
+use swagger::{Swagger,OAS3_1,OAS,Check/*,Authorization as SAuth*/,ParamTable,EpTable};
 //use futures::executor;
-
+/*
 pub fn add_token(token: String) -> bool {
     match Uuid::parse_str(&token) {
         Ok(_) => {
@@ -40,20 +40,32 @@ pub fn add_token(token: String) -> bool {
         }
     }
 }
-
-pub fn run_passive_swagger_scan<T>(scan_try:Result<PassiveSwaggerScan<T>,&'static str>,verbosity:u8,output_file:&str,tp:PassiveScanType)
+*/
+pub fn run_passive_swagger_scan<T>(scan_try:Result<PassiveSwaggerScan<T>,&'static str>,verbosity:u8,output_file:Option<String>,tp:PassiveScanType,json:bool) -> i8
 where T:OAS+Serialize+for<'de> Deserialize<'de>{
     let mut scan = match scan_try{
         Ok(s)=>s,
         Err(e)=>{
             print_err(e);
-            return;
+            return -1;
         },
     };
     scan.run(tp);
-    scan.print(verbosity);
-    let print = scan.print_to_file_string();
-    write_to_file(output_file,print);
+    let failed = if json{
+        println!("{}",serde_json::to_string(&scan).unwrap());
+        scan.passive_checks.iter().map(|c| if c.result()=="FAILED" { 1 } else { 0 }).sum()
+    } else{
+        scan.print(verbosity) as i8
+    };
+    if let Some(f) = output_file{
+        let print = if json {
+            serde_json::to_string(&scan).unwrap()
+        }else{
+            scan.print_to_file_string()
+        };
+        write_to_file(&f,print);
+    }
+    failed
 }
 /*
 pub fn _run_active_swagger_scan<T>(scan_try:Result<ActiveScan<T>,&'static str>,_verbosity:u8,_output_file:&str,_auth:&SAuth,_tp:ActiveScanType)
@@ -70,27 +82,28 @@ where T:OAS+Serialize+for<'de> Deserialize<'de>{
     //let print = scan.print_to_file_string();
     //write_to_file(output_file,print);
 }*/
-pub fn run_swagger(file:&str,verbosity:u8,output_file:&str,/*_auth:&SAuth,_active:bool,*/_param_table:bool,/*_active_scan_type:ActiveScanType*/config:&str){
+pub fn run_swagger(file:&str,verbosity:u8,output_file:Option<String>,/*_auth:&SAuth,_active:bool,_active_scan_type:ActiveScanType*/config:&str,json:bool)->i8{
     let config = if let Some(c) = Config::from_file(config){
         c
     }else{
-        println!("No config file was loaded to the scan, default configuration is being used");
+        //println!("No config file was loaded to the scan, default configuration is being used");
         Config::default()
     };
-    let (value,version) = if let Some((v1,v2)) = get_oas_value_version(file){ (v1,v2)} else { return; };
+    let (value,version) = if let Some((v1,v2)) = get_oas_value_version(file){ (v1,v2)} else { return -1; };
     if version.starts_with("3.0"){
-        run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(value),verbosity,output_file,config.scan_type);
+        run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(value),verbosity,output_file,config.scan_type,json)
         //if active{
             //run_active_swagger_scan::<Swagger>(ActiveScan::<Swagger>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
         //}
     }else if version.starts_with("3.1"){
-        run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(value),verbosity,output_file,config.scan_type);
+        run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(value),verbosity,output_file,config.scan_type,json)
         //if active{
             //run_active_swagger_scan::<OAS3_1>(ActiveScan::<OAS3_1>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
         //}
     }else{
         print_err("Unsupported OpenAPI specification version");
-    };
+        -1
+    }
 }
 
 pub fn param_table(file:&str){
@@ -115,7 +128,7 @@ pub fn ep_table(file:&str){
     }
 }
 
-pub fn map(logs_file: String, output: String,hint_file:Option<&str>) {
+pub fn map(logs_file: String, output: String,hint_file:Option<String>) {
     let logs = match read_file(&logs_file) {
         Some(r) => r,
         None => {
@@ -128,7 +141,7 @@ pub fn map(logs_file: String, output: String,hint_file:Option<&str>) {
     if !sessions.is_empty() {
         println!("{}", "Starts mapping...".green());
         if let Some(h_f) = hint_file{
-            let oas_hint:OAS3_1 = match read_file(h_f){
+            let oas_hint:OAS3_1 = match read_file(&h_f){
                 Some(c) => match serde_json::from_str(&c){
                     Ok(s) => s,
                     Err(e)=>{
@@ -142,7 +155,7 @@ pub fn map(logs_file: String, output: String,hint_file:Option<&str>) {
                     return;
                 }
             };
-            let hint_servers = oas_hint.servers().unwrap_or(vec![]).iter().filter_map(|s| {
+            let hint_servers = oas_hint.servers().unwrap_or_default().iter().filter_map(|s| {
                 if let Ok(u) = Url::parse(&s.url){
                     if u.path().trim() != ""{
                         Some(u.path().trim().to_string())
@@ -153,7 +166,7 @@ pub fn map(logs_file: String, output: String,hint_file:Option<&str>) {
                     Some(s.url.clone())
                 }
             }).collect::<Vec<String>>();
-            let hint = oas_hint.get_paths().iter().map(|(p,_)| hint_servers.iter().map(|s| format!("{}/{}",s,p)).collect::<Vec<String>>()).flatten().collect();
+            let hint = oas_hint.get_paths().iter().flat_map(|(p,_)| hint_servers.iter().map(|s| format!("{}/{}",s,p)).collect::<Vec<String>>()).collect();
             digest.load_vec_session(sessions,Some(hint));
         }else{
             digest.load_vec_session(sessions,None);
@@ -178,7 +191,6 @@ pub fn map(logs_file: String, output: String,hint_file:Option<&str>) {
         print_err("Something went wrong while mapping, check the errors above");
     }
 }
-
 pub fn prepare_attacker(mut url: String, map_file: String) {
     let d_map: Digest = match read_file(&format!("{}_checkpoint.json", map_file)) {
         Some(s_map) => match serde_json::from_str(&s_map) {
@@ -297,7 +309,6 @@ pub async fn attack_domain(
     }
     println!("{}", "Attcker done!".purple().bold());
 }
-
 pub fn decide_sessions(logs_file: String, map_file: String) {
     let vec_sessions = match read_file(&logs_file) {
         Some(r) => r,

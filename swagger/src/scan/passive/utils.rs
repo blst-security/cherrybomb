@@ -279,7 +279,7 @@ where
     swagger
         .get_paths()
         .iter()
-        .map(|(path, item)| {
+        .flat_map(|(path, item)| {
             let mut d_vec = vec![];
             for (m, op) in item.get_ops() {
                 let sec = if let Some(s) = &op.security {
@@ -291,7 +291,6 @@ where
             }
             d_vec
         })
-        .flatten()
         .collect()
 }
 pub fn get_schemas_by_type<T>(swagger: &T, swagger_value: &Value, tp: &str) -> Vec<(Schema, String)>
@@ -371,54 +370,50 @@ pub fn get_all_params_by_type(
             schemas.extend(
                 any_of
                     .iter()
-                    .map(|a| {
+                    .flat_map(|a| {
                         get_all_params_by_type(
                             &a.inner(swagger_value),
                             swagger_value,
                             tp,
                             location.clone(),
                         )
-                    })
-                    .flatten(),
+                    }),
             );
             schemas.extend(
                 all_of
                     .iter()
-                    .map(|a| {
+                    .flat_map(|a| {
                         get_all_params_by_type(
                             &a.inner(swagger_value),
                             swagger_value,
                             tp,
                             location.clone(),
                         )
-                    })
-                    .flatten(),
+                    }),
             );
             schemas.extend(
                 one_of
                     .iter()
-                    .map(|a| {
+                    .flat_map(|a| {
                         get_all_params_by_type(
                             &a.inner(swagger_value),
                             swagger_value,
                             tp,
                             location.clone(),
                         )
-                    })
-                    .flatten(),
+                    }),
             );
             schemas.extend(
                 props
                     .iter()
-                    .map(|(name, p)| {
+                    .flat_map(|(name, p)| {
                         get_all_params_by_type(
                             &p.inner(swagger_value),
                             swagger_value,
                             tp,
                             format!("{} prop:{}", location, name),
                         )
-                    })
-                    .flatten(),
+                    }),
             );
         }
         _ => (),

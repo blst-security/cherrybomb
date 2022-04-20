@@ -73,7 +73,7 @@ pub fn get_oas_value_version(file:&str)->Option<(serde_json::Value,String)>{
             return None;
         }
     };
-    let version = swagger_value["openapi"].to_string().trim().replace("\"","");
+    let version = swagger_value["openapi"].to_string().trim().replace('\"',"");
     Some((swagger_value,version))
 }
 pub fn parse_http(file_data: &str) -> Result<Vec<Session>, String> {
