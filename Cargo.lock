@@ -96,6 +96,7 @@ dependencies = [
  "mapper",
  "serde",
  "serde_json",
+ "serde_yaml",
  "swagger",
  "tokio",
  "url",

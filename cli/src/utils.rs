@@ -66,9 +66,8 @@ pub fn get_oas_value_version(file:&str)->Option<(serde_json::Value,String)>{
             return None;
         }
     };
-    let swagger_value:serde_json::Value = match serde_json::from_str(&swagger_str){
-        Ok(s)=>s,
-        Err(_)=>{
+    let swagger_value:serde_json::Value = if let Ok(s) = serde_json::from_str(&swagger_str){ s } else{
+        if let Ok(s) = serde_yaml::from_str::<serde_json::Value>(&swagger_str){ s } else{
             print_err(&format!("Failed at parsing swagger json file:\"{}\"", file));
             return None;
         }
