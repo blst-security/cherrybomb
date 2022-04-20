@@ -1,7 +1,7 @@
 use clap::{Parser,Subcommand};
 use std::str::FromStr;
 use std::fmt;
-//use colored::*;
+use colored::*;
 use cherrybomb::*;
 use attacker::{Authorization, Verbosity};
 use mapper::digest::Header;
@@ -93,6 +93,9 @@ impl SwaggerOpt{
 #[derive(Parser, Debug,Clone)]
 #[clap(name = "param-table")]
 pub struct ParamTableOpt {
+    ///An option to present a single parameter with that name and type. Format - NAME:TYPE
+    #[clap(short, long)]
+    name_type:Option<String>,
     ///The output file
     #[clap(short, long)]
     output: Option<String>,
@@ -103,6 +106,9 @@ pub struct ParamTableOpt {
 #[derive(Parser, Debug,Clone)]
 #[clap(name = "ep-table")]
 pub struct EpTableOpt {
+    ///An option to present a single endpoint with that path
+    #[clap(short, long)]
+    path:Option<String>,
     ///The output file
     #[clap(short, long)]
     output: Option<String>,
@@ -212,8 +218,8 @@ struct Cli {
 pub fn parse_oas(oas:OASOpt){
     let res = match oas.format{
         OutputFormat::Cli=>{
-            let f = run_swagger(&oas.file,oas.verbosity.unwrap_or(1),oas.output,&oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n\n"); CONFIG_DEFAULT_FILE.to_string()}),false);
-            println!("\n\nFor a WebUI version of the scan you can go to https://www.blstsecurity.com and run the OAS scan on the main page!\n\n");
+            let f = run_swagger(&oas.file,oas.verbosity.unwrap_or(1),oas.output,&oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),false);
+            println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
             f 
         },
         OutputFormat::Web=>{
@@ -222,33 +228,33 @@ pub fn parse_oas(oas:OASOpt){
         OutputFormat::Txt=>{
             let f = run_swagger(&oas.file,oas.verbosity.unwrap_or(1),
             Some(oas.output.unwrap_or_else(|| SWAGGER_OUTPUT_FILE.to_string())),
-            &oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n\n"); CONFIG_DEFAULT_FILE.to_string()}),
+            &oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),
             false
             );
-            println!("\n\nFor a WebUI version of the scan you can go to https://www.blstsecurity.com and run the OAS scan on the main page!\n\n");
+            println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
             f 
         },
         OutputFormat::Json=>{
-            run_swagger(&oas.file,oas.verbosity.unwrap_or(1),oas.output,&oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n\n"); CONFIG_DEFAULT_FILE.to_string()}),true)
+            run_swagger(&oas.file,oas.verbosity.unwrap_or(1),oas.output,&oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),true)
         },
     };
     std::process::exit(res.into());
 }
 pub fn parse_param_table(p_table:ParamTableOpt){
     param_table(&p_table.file); 
-    println!("\n\nFor a WebUI version of the scan you can go to https://www.blstsecurity.com and run the OAS scan on the main page!\n\n");
+    println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
 pub fn parse_ep_table(e_table:EpTableOpt){
     ep_table(&e_table.file);
-    println!("\n\nFor a WebUI version of the scan you can go to https://www.blstsecurity.com and run the OAS scan on the main page!\n\n");
+    println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
 pub fn parse_mapper(mapper:MapperOpt){
     map(mapper.file,mapper.output.unwrap_or_else(|| MAP_FILE.to_string()),mapper.hint);
-    println!("\n\nFor better map visualization you can go and sign up at https://www.blstsecurity.com and get access to our dashboards!\n\n");
+    println!("\n\nFor better map visualization you can go and sign up at {} and get access to our dashboards!\n","https://www.blstsecurity.com".bold().underline());
 }
 pub fn parse_load(load1:LoadOpt){
     load(load1.file,load1.map.unwrap_or_else(|| MAP_FILE.to_string()));
-    println!("\n\nFor better map visualization you can go and sign up at https://www.blstsecurity.com and get access to our dashboards!\n\n");
+    println!("\n\nFor better map visualization you can go and sign up at {} and get access to our dashboards!\n","https://www.blstsecurity.com".bold().underline());
 }
 pub fn parse_prepare(prep:PrepareOpt){
     prepare_attacker(prep.url,prep.map);
@@ -312,7 +318,7 @@ fn main() {
 /_/ /    ----/\\/   /_/__  /_____     /___.    ____/ /_/ /
 \\ \\/    __  / /        /\\/   /_/    / / /     /\\__\\/\\_\\/
   /________/ /________/ /__________/ / /_____/ /
-  \\.   .___\\/\\.   .___\\/\\.   ._____\\/  \\. .__\\/\n\n"
+  \\.   .___\\/\\.   .___\\/\\.   ._____\\/  \\. .__\\/\n"
             );
             println!("\nCHERRYBOMB v{}", VERSION);
             println!("\nFor more information try {}", "--help".green());
