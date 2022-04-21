@@ -151,7 +151,7 @@ impl EpForTable{
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct EpTable{
-    eps:Vec<EpForTable>,
+    pub eps:Vec<EpForTable>,
     servers:Vec<String>,
 }
 impl EpTable{
@@ -162,6 +162,19 @@ impl EpTable{
                 println!("{}\n{:-<190}",head,"");
             }
             print!("{}",ep);
+        }
+    }
+    pub fn path_only(&self,path:&str)->Self{
+        let eps = self.eps.iter().filter_map(|p|{
+            if p.path.as_str()==path{
+                Some(p)
+            }else{
+                None
+            }
+        }).cloned().collect::<Vec<EpForTable>>();
+        EpTable{
+            servers:self.servers.clone(),
+            eps,
         }
     }
     pub fn new<T>(value:&Value)->Self

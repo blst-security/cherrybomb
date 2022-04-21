@@ -102,24 +102,43 @@ pub fn run_swagger(file:&str,verbosity:u8,output_file:Option<String>,/*_auth:&SA
         -1
     }
 }
-
-pub fn param_table(file:&str){
+pub fn param_table(file:&str,param:Option<String>){
     let (value,version) = if let Some((v1,v2)) = get_oas_value_version(file){ (v1,v2)} else { return; };
     if version.starts_with("3.0"){
-        ParamTable::new::<Swagger>(&value).print();
+        let table = ParamTable::new::<Swagger>(&value);
+        if let Some(p) = param{
+            table.named_param(&p).print(); 
+        }else{
+            table.print();
+        }
     }else if version.starts_with("3.1"){
-        ParamTable::new::<OAS3_1>(&value).print();
+        let table = ParamTable::new::<OAS3_1>(&value);
+        if let Some(p) = param{
+            table.named_param(&p).print(); 
+        }else{
+            table.print();
+        }
     }else{
         print_err("Unsupported OpenAPI specification version");
     }
 }
 
-pub fn ep_table(file:&str){
+pub fn ep_table(file:&str,path:Option<String>){
     let (value,version) = if let Some((v1,v2)) = get_oas_value_version(file){ (v1,v2)} else { return; };
     if version.starts_with("3.0"){
-        EpTable::new::<Swagger>(&value).print();
+        let table = EpTable::new::<Swagger>(&value);
+        if let Some(p) = path{
+            table.path_only(&p).print();
+        }else{
+            table.print();
+        }
     }else if version.starts_with("3.1"){
-        EpTable::new::<OAS3_1>(&value).print();
+        let table = EpTable::new::<OAS3_1>(&value);
+        if let Some(p) = path{
+            table.path_only(&p).print();
+        }else{
+            table.print();
+        }
     }else{
         print_err("Unsupported OpenAPI specification version");
     }

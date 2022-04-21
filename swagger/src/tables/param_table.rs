@@ -22,7 +22,7 @@ pub struct ParamForTableValue{
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct ParamForTable{
-    name:String,
+    pub name:String,
     //probably will become an Enum
     #[serde(rename = "type")]
     param_type:String,
@@ -120,7 +120,7 @@ impl ParamForTable{
 pub struct ParamTable{
     info:Info,
     servers:Vec<String>,
-    params:Vec<ParamForTable>,
+    pub params:Vec<ParamForTable>,
     eps:Vec<String>,
 }
 impl ParamTable{
@@ -137,6 +137,21 @@ impl ParamTable{
             println!("{}",param);
         }
         //println!("{}",head);
+    }
+    pub fn named_param(&self,param:&str)->Self{
+        let params = self.params.iter().filter_map(|p|{
+            if p.name.as_str()==param{
+                Some(p)
+            }else{
+                None
+            }
+        }).cloned().collect::<Vec<ParamForTable>>();
+        ParamTable{
+            info:self.info.clone(),
+            servers:self.servers.clone(),
+            params,
+            eps:self.eps.clone(),
+        }
     }
     pub fn new<T>(value:&Value)->Self
     where T:Clone+OAS+ for<'de> serde::Deserialize<'de>{

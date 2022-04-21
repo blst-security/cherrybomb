@@ -93,9 +93,9 @@ impl SwaggerOpt{
 #[derive(Parser, Debug,Clone)]
 #[clap(name = "param-table")]
 pub struct ParamTableOpt {
-    ///An option to present a single parameter with that name and type. Format - NAME:TYPE
+    ///An option to present a single parameter with that name.
     #[clap(short, long)]
-    name_type:Option<String>,
+    name:Option<String>,
     ///The output file
     #[clap(short, long)]
     output: Option<String>,
@@ -241,11 +241,11 @@ pub fn parse_oas(oas:OASOpt){
     std::process::exit(res.into());
 }
 pub fn parse_param_table(p_table:ParamTableOpt){
-    param_table(&p_table.file); 
+    param_table(&p_table.file,p_table.name); 
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
 pub fn parse_ep_table(e_table:EpTableOpt){
-    ep_table(&e_table.file);
+    ep_table(&e_table.file,e_table.path);
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
 pub fn parse_mapper(mapper:MapperOpt){
