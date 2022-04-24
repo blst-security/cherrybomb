@@ -48,12 +48,11 @@ impl Config{
             },
             StrScanType::Partial(vec)=>{
                 PassiveScanType::Partial(vec.iter().filter_map(|check|{
-                    if let Some(c) = PassiveChecks::from_string(&check){
-                        Some(c)
-                    }else{
+                    let c = PassiveChecks::from_string(check);
+                    if c.is_none(){
                         println!("Check name: {} does not exist, the config will load without it.",check);
-                        None
-                    } 
+                    }
+                    c
                 }).collect())
             },
         };
