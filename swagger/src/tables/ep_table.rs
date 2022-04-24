@@ -165,12 +165,8 @@ impl EpTable{
         }
     }
     pub fn path_only(&self,path:&str)->Self{
-        let eps = self.eps.iter().filter_map(|p|{
-            if p.path.as_str()==path{
-                Some(p)
-            }else{
-                None
-            }
+        let eps = self.eps.iter().filter(|p|{
+            p.path.as_str()==path
         }).cloned().collect::<Vec<EpForTable>>();
         EpTable{
             servers:self.servers.clone(),

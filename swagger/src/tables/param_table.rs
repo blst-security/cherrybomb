@@ -139,12 +139,8 @@ impl ParamTable{
         //println!("{}",head);
     }
     pub fn named_param(&self,param:&str)->Self{
-        let params = self.params.iter().filter_map(|p|{
-            if p.name.as_str()==param{
-                Some(p)
-            }else{
-                None
-            }
+        let params = self.params.iter().filter(|p|{
+            p.name.as_str()==param
         }).cloned().collect::<Vec<ParamForTable>>();
         ParamTable{
             info:self.info.clone(),
