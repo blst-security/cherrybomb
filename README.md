@@ -45,11 +45,7 @@ cherrybomb --version
 
 ### OpenAPI specification scan
 ```
-cherrybomb swagger --file <PATH> --output <PATH> --verbosity <0/1/2>
-```
-Or
-```
-cherrybomb oas --file <PATH> --output <PATH> --verbosity <0/1/2>
+cherrybomb oas --file <PATH> --config <PATH> --verbosity <0/1/2> --format <cli/txt/json> --output <PATH>
 ```
 #### Output example for verbosity level 1:
 ![checks_table](/images/checks_table.png)
@@ -58,15 +54,42 @@ cherrybomb oas --file <PATH> --output <PATH> --verbosity <0/1/2>
 
 ### Generate Parameter Table
 ```
-cherrybomb swagger --file <PATH> --param-table
-```
-Or
-```
-cherrybomb oas --file <PATH> --param-table
+cherrybomb param-table --file <PATH> --name <SINGLE PARAM NAME(OPTIONAL)>
 ```
 #### Table output example:
 ![param_table](/images/param_table.png)
 
+### Generate Endpoint Table
+```
+cherrybomb ep-table --file <PATH> --name <SINGLE PARAM NAME(OPTIONAL)>
+```
+#### Table output example:
+![ep_table](/images/ep_table.png)
+
+### Configuration options:
+You can configure the OAS scan using the config.json file in your .cherrybomb director that we create by default in your home path(after one scan at least or downloading using the install script).
+#### Go through only part of the checks
+Full scan:
+```
+{
+  "scan_type":"Full",
+	...
+}
+```
+Only run the server url and the default response checks: 
+```
+{
+  "scan_type":["SERRVER URL","DEFAULT RESPONSE"],
+	...
+}
+```
+#### Fail or not when the highest alert level is info
+```
+{
+  "fail_on_info":true,
+	...
+}
+```
 ### More features
 First, we have a mapping module that relies on HTTP logs and builds a map of the API.
 <br />
@@ -97,14 +120,15 @@ Please let us know if you are indeed using those features and don't want them to
  - [x] Passive checks
  - [x] Parameter table 
  - [x] Improve installation script
- - [ ] Endpoints table
- - [ ] YAML support (currently only JSON is supported)
+ - [x] Endpoints table
+ - [x] YAML support (currently only JSON is supported)
+ - [x] Custom scans - optional checks + optional output 
+ - [ ] Ignore alerts + don't fail on info
+ - [ ] More passive checks
  - [ ] Swagger 2 support (currently only version 3 is supported)
  - [ ] Homebrew/APT support
- - [ ] Custom scans - optional checks + optional output + ignores(from alerts)
  - [ ] GraphQL schema support
  - [ ] Active scans
- - [ ] More passive scans
  - [ ] Swagger and logs validator (compares your logs with the swagger to verify correctness)
 
 # 🍻 Integration
@@ -116,11 +140,11 @@ For all methods of integrating with BLST, please go to the [integrations folder]
 Please read [our documentation](https://www.blstsecurity.com/cherrybomb/Documentation) to understand the format of sessions our mapper needs to function correctly.
 
 ### Get help
-If you have any questions, please send us a message to [support@blstsecurity.com](mailto:support@blstsecurity.com).
+If you have any questions, please send us a message to [support@blstsecurity.com](mailto:support@blstsecurity.com) or ask us on our [discord server](https://discord.gg/WdHhv4DqwU).
 <br />
 You are also welcome to open an Issue here on GitHub.
 
 # 🤝 Contributing
-Please talk to us over at our [discord server](https://discord.gg/WdHhv4DqwU) to see where and how can you contribute to our project.
-<br />
-You can also find info about how to contribute to Cherrybomb [here](https://github.com/blst-security/cherrybomb/blob/main/CONTRIBUTING.md).
+You can find ciontribution options from our open issues, you should look for the "More passive checks" issue(it's a great issue to start from).
+You can also find info about contributing new checks to Cherrybomb [here](https://github.com/blst-security/cherrybomb/blob/main/CONTRIBUTING.md).</br>
+If you have any question or need any help talk to us over at our [discord server](https://discord.gg/WdHhv4DqwU) to see where and how can you contribute to our project.
