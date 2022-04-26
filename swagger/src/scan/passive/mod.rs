@@ -62,8 +62,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
         };
         //self.passive_checks.clone()
     }
-    pub fn print(&self, verbosity: u8) -> u8{
-        let failed:u8 = self.passive_checks.iter().map(|c| if c.result()=="FAILED" { 1 } else { 0 } ).sum();
+    pub fn print(&self, verbosity: u8) {
         match verbosity {
             0 => {
                 print_checks_table(&self.passive_checks);
@@ -73,7 +72,6 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
             2 => print_failed_checks_table(&self.passive_checks),
             _ => (),
         }
-        failed
     }
     pub fn print_to_file_string(&self) -> String {
         let mut string = String::new();

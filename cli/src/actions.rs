@@ -5,7 +5,8 @@ use decider::*;
 use mapper::digest::*;
 use mapper::*;
 use url::Url;
-use swagger::scan::passive::{PassiveSwaggerScan,PassiveScanType};
+use swagger::scan::passive::PassiveSwaggerScan;
+use swagger::scan::Level;
 //use swagger::scan::active::{ActiveScan,ActiveScanType};
 use swagger::{Swagger,OAS3_1,OAS,Check/*,Authorization as SAuth*/,ParamTable,EpTable};
 //use futures::executor;
@@ -38,7 +39,7 @@ pub fn add_token(token: String) -> bool {
     }
 }
 */
-pub fn run_passive_swagger_scan<T>(scan_try:Result<PassiveSwaggerScan<T>,&'static str>,verbosity:u8,output_file:Option<String>,tp:PassiveScanType,json:bool) -> i8
+pub fn run_passive_swagger_scan<T>(scan_try:Result<PassiveSwaggerScan<T>,&'static str>,verbosity:u8,output_file:Option<String>,conf:Config,json:bool) -> i8
 where T:OAS+Serialize+for<'de> Deserialize<'de>{
     let mut scan = match scan_try{
         Ok(s)=>s,
@@ -47,12 +48,13 @@ where T:OAS+Serialize+for<'de> Deserialize<'de>{
             return -1;
         },
     };
-    scan.run(tp);
+    scan.run(conf.scan_type);
     let failed = if json{
         println!("{}",serde_json::to_string(&scan).unwrap());
-        scan.passive_checks.iter().map(|c| if c.result()=="FAILED" { 1 } else { 0 }).sum()
+        scan.passive_checks.iter().map(|c| if (conf.fail_on_info && c.result()=="FAILED") || (c.top_severity() >Level::Info) { 1 } else { 0 }).sum()
     } else{
-        scan.print(verbosity) as i8
+        scan.print(verbosity);
+        scan.passive_checks.iter().map(|c| if (conf.fail_on_info && c.result()=="FAILED") || (c.top_severity() >Level::Info) { 1 } else { 0 }).sum()
     };
     if let Some(f) = output_file{
         let print = if json {
@@ -88,12 +90,12 @@ pub fn run_swagger(file:&str,verbosity:u8,output_file:Option<String>,/*_auth:&SA
     };
     let (value,version) = if let Some((v1,v2)) = get_oas_value_version(file){ (v1,v2)} else { return -1; };
     if version.starts_with("3.0"){
-        run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(value),verbosity,output_file,config.scan_type,json)
+        run_passive_swagger_scan::<Swagger>(PassiveSwaggerScan::<Swagger>::new(value),verbosity,output_file,config,json)
         //if active{
             //run_active_swagger_scan::<Swagger>(ActiveScan::<Swagger>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
         //}
     }else if version.starts_with("3.1"){
-        run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(value),verbosity,output_file,config.scan_type,json)
+        run_passive_swagger_scan::<OAS3_1>(PassiveSwaggerScan::<OAS3_1>::new(value),verbosity,output_file,config,json)
         //if active{
             //run_active_swagger_scan::<OAS3_1>(ActiveScan::<OAS3_1>::new(swagger_value),verbosity,output_file,auth,active_scan_type);
         //}
