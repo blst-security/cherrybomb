@@ -24,7 +24,11 @@ impl MapDigest for Digest {
         let ep_hashes = &self.ep_hash;
         let mut eps = vec![];
         for ep_hash in ep_hashes {
-            let pos = paths.iter().position(|path| path.path_ext == ep_hash.path).unwrap(); 
+            let pos = if let Some(p) = paths.iter().position(|path| path.matches(&ep_hash.path)){
+                p
+            }else{
+                continue;
+            }; 
             eps.push(Endpoint::from_hash(ep_hash,paths[pos].clone()))
         }
         eps
@@ -164,17 +168,17 @@ impl MapEp for Endpoint {
 }
 impl Digest{
     fn build_paths(sessions:&[Session])->Vec<Path>{
-        let paths = sessions.iter().map(|s|{
+        let paths = sessions.iter().flat_map(|s|{
             let pts:Vec<String> = s.req_res.iter().filter_map(|rr| {
                 if rr.status != 404{
-                    let end_bytes = rr.path.find('?').unwrap_or_else(|| rr.path.len());
+                    let end_bytes = rr.path.find('?').unwrap_or(rr.path.len());
                     Some(rr.path[..end_bytes].to_string())
                 }else{
                     None
                 }
             }).collect();
             pts
-        }).flatten().collect();
+        }).collect();
         let paths1 = first_cycle(paths);
         second_cycle(paths1)
         //paths
@@ -218,12 +222,16 @@ impl Digest{
                         to: eps[pos2].clone(),
                     });
                 }*/
-                let path1 = to_ext(session.req_res[i].path.clone());
-                //HAS TO BE ONE!!!!!!
-                let pos1 = eps.iter().position(|ep| ep.path.path_ext==path1).unwrap();
-                let path2 = to_ext(session.req_res[i+1].path.clone());
-                //HAS TO BE ONE!!!!!!
-                let pos2 = eps.iter().position(|ep| ep.path.path_ext==path2).unwrap();
+                let pos1 = if let Some(p)=eps.iter().position(|ep| ep.path.matches(&without_query(&session.req_res[i].path))){
+                    p
+                }else{
+                    continue;
+                };
+                let pos2 = if let Some(p)=eps.iter().position(|ep| ep.path.matches(&without_query(&session.req_res[i+1].path))){
+                    p 
+                }else{
+                    continue;
+                };
                 links.push(Link {
                     from: eps[pos1].clone(),
                     to: eps[pos2].clone(),

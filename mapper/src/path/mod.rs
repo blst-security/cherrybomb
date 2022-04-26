@@ -7,7 +7,7 @@ use serde::{Serialize,Deserialize};
 //use std::collections::HashSet;
 
 pub fn to_ext(path:String)->String{
-    let end_bytes = path.find('?').unwrap_or_else(|| path.len());
+    let end_bytes = path.find('?').unwrap_or(path.len());
     let pts:String = path[..end_bytes].to_string();
     let (path,_) = first_cycle_single(pts); 
     let path_ext = path.split('/').map(|part|{
@@ -21,12 +21,37 @@ pub fn to_ext(path:String)->String{
     }).collect::<Vec<String>>().join("/");
     path_ext
 }
+pub fn without_query(path:&str)->String{
+    let end_bytes = path.find('?').unwrap_or(path.len());
+    let pts:String = path[..end_bytes].to_string();
+    pts
+}
 #[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq,Hash)]
 pub struct Path{
     pub path_ext:String,
     pub params:PayloadDescriptor,
 }
 impl Path{
+    pub fn matches(&self,path:&str)->bool{
+        let parts:Vec<&str> = path.split('/').filter(|s| {
+            !s.trim().is_empty()
+        }).collect();
+        let ext_parts:Vec<&str> = self.path_ext.split('/').filter(|s|{
+            !s.trim().is_empty()
+        }).collect();
+        if parts.len()==ext_parts.len(){
+            let mut matches = true;
+            for (p,p_e) in parts.iter().zip(ext_parts.iter()){
+                if p != p_e && !p_e.starts_with('{'){
+                    matches = false;
+                    break;
+                }
+            }
+            matches
+        }else{
+            false
+        }
+    }
     pub fn _cmp(self,_path:String)->bool{
         true
     }

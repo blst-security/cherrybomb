@@ -33,10 +33,11 @@ impl Check for PassiveChecks {
         top
     }
     fn result(&self) -> &'static str {
-        if !self.inner().is_empty() {
-            "FAILED"
-        } else {
+        //let failed = self.inner().iter().map(|a| if a.level != Level::Info {1}else{0}).sum::<u64>();
+        if self.inner().is_empty() {
             "PASSED"
+        } else {
+            "FAILED"
         }
     }
 }
@@ -75,7 +76,7 @@ impl_passive_checks![
     (CheckResponseBodySchema,check_response_body_schema,"RESPONSE BODY SCHEMA","Checks the response body schema, and alerts when there is none"),
     (CheckDefaultType,check_default_type,"DEFAULT TYPE","Checks that the default type is the same as the parameter type"),
     (CheckEnumType,check_enum_type,"ENUM TYPE","Checks that the Enum type is the same as the parameter type"),
-    (CheckRequiredUndefined,check_required_undefined,"REQUIRED UNDEFINED","Checks for any required parameters that are undefined"),
+    //(CheckRequiredUndefined,check_required_undefined,"REQUIRED UNDEFINED","Checks for any required parameters that are undefined"),
     (CheckUnusedSchema,check_unused_schema,"UNUSED SCHEMA","Checks for unused schemas"),
     (Check401,check_401,"401","Checks for a 401 response if there is authentication necessary"),
     (Check403,check_403,"403","Checks for a 403 response if there is authentication necessary"),

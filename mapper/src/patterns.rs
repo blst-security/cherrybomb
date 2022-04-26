@@ -49,6 +49,9 @@ fn fingerprint_number(numbers: Vec<&String>) -> ValueDescriptor {
 }
 pub fn search_for_patterns(values: Vec<&String>) -> ValueDescriptor {
     let pointers = values.iter().take(10);
+    if pointers.len()==0{
+        return ValueDescriptor::default();
+    }
     let mut weights = (0u16, 0u16, 0u16);
     for pointer in pointers.clone(){
         if pointer.parse::<f64>().is_ok() {

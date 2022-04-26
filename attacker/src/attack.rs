@@ -142,12 +142,12 @@ fn gen_string(method: GenMethod, bits: Vec<u8>, param: StringDescriptor) -> Stri
 }
 pub fn gen_type(bits: Vec<u8>) -> GenMethod {
     let mut b = bits.chunks(bits.len() / 2);
-    let bits_first = b.next().unwrap().iter().copied().collect::<Vec<u8>>();
-    let bits_second = b.next().unwrap().iter().copied().collect::<Vec<u8>>();
+    let bits_first = b.next().unwrap().to_vec();
+    let bits_second = b.next().unwrap().to_vec();
     if convert(bits_first.clone()) >= convert(bits_second.clone()) {
         let mut bb = bits_first.chunks(bits_first.len() / 2);
-        let b_f = bb.next().unwrap().iter().copied().collect::<Vec<u8>>();
-        let b_s = bb.next().unwrap().iter().copied().collect::<Vec<u8>>();
+        let b_f = bb.next().unwrap().to_vec();
+        let b_s = bb.next().unwrap().to_vec();
         if convert(b_f) >= convert(b_s) {
             GenMethod::FullyInformed
         } else {
@@ -155,8 +155,8 @@ pub fn gen_type(bits: Vec<u8>) -> GenMethod {
         }
     } else {
         let mut bb = bits_second.chunks(bits_first.len() / 2);
-        let b_f = bb.next().unwrap().iter().copied().collect::<Vec<u8>>();
-        let b_s = bb.next().unwrap().iter().copied().collect::<Vec<u8>>();
+        let b_f = bb.next().unwrap().to_vec();
+        let b_s = bb.next().unwrap().to_vec();
         if convert(b_f) >= convert(b_s) {
             GenMethod::RandomInformed
         } else {

@@ -33,9 +33,9 @@ async fn main() {
     let mut a = PassiveSwaggerScan::<OAS3_1>::new(swagger_value.clone()).unwrap();
     a.run(PassiveScanType::Full);
     //println!("{:?}",serde_json::to_string(&a).unwrap());
-    //a.print(0);
-    //let t = EpTable::new::<OAS3_1>(serde_json::from_value::<OAS3_1>(swagger_value).unwrap());
-    let t = ParamTable::new::<OAS3_1>(&swagger_value);
+    //a.print(1);
+    let t = EpTable::new::<OAS3_1>(&swagger_value);
+    //let t = ParamTable::new::<OAS3_1>(&swagger_value);
     //println!("{:?}",serde_json::to_string(&t).unwrap());
     t.print();
     //print_checks_table(&a);
