@@ -102,7 +102,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             if item.get_ops().len() == 0 {
-                alerts.push(Alert::new(Level::Low, "Path has no operations "
+                alerts.push(Alert::new(Level::Low, "Path has no operations"
                  , format!("swagger path:{} ", path)));
             }
         }

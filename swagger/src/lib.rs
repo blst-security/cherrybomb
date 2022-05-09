@@ -76,7 +76,7 @@ pub struct Link {
     #[serde(rename = "operationRef")]
     pub operation_ref: Option<String>,
     #[serde(rename = "operationId")]
-    pub oeration_id: Option<String>,
+    pub operation_id: Option<String>,
     pub parameters: Option<LinkParameters>,
     //Any
     #[serde(rename = "requestBody")]

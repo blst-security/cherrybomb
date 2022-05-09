@@ -83,7 +83,8 @@ pub fn print_attack_alerts_table(checks: &[ActiveChecks]) {
     for check in checks {
         if check.result() == "FAILED" {
             for alert in check.inner() {
-                println!("{:pad$}|{}", check.name().cyan().bold(), alert, pad = 30)
+                // println!("{:pad$}|{}", check.name().cyan().bold(), alert, pad = 30)
+                println!("{}",serde_json::to_string(&check).unwrap());
             }
         }
     }
