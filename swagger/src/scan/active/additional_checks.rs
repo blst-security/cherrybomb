@@ -41,7 +41,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         // json[get_name_s_ref()] = serde_json::Value::String("string".to_string());
                         println!("{:?}", json);
                         if let Some(s) = m_t.schema {
-                            let req_body = create_test_body(None, m_t);
+                            //let req_body = create_test_body(None, m_t);
                             let s = s.inner(&self.oas_value);
                             for (name, prop) in s.properties.unwrap_or_default() {
                                 let true_name = get_name_s_ref(&prop, &self.oas_value, &Some(name));

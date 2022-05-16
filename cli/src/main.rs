@@ -2,7 +2,7 @@ use clap::{Parser,Subcommand};
 use std::str::FromStr;
 use std::fmt;
 use colored::*;
-use cherrybomb::*;
+use cli::*;
 use attacker::{Authorization, Verbosity};
 use mapper::digest::Header;
 use futures::executor::block_on;
