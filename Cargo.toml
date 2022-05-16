@@ -30,7 +30,7 @@ members = [
 	"swagger",
 ]
 [dependencies]
-cli = {version="0.7",path="cli"}
+cli = {version="0.6",path="cli"}
 mapper = {path="./mapper"}
 attacker = {path="./attacker"}
 decider = {path="./decider"}
