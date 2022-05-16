@@ -60,6 +60,7 @@ pub struct Schema {
     pub max_length: Option<i64>,
     #[serde(rename = "minLength")]
     pub min_length: Option<i64>,
+    //String - STAY AWAY!(regex)
     pub pattern: Option<String>,
     #[serde(rename = "maxItem")]
     pub max_items: Option<i64>,
@@ -71,6 +72,7 @@ pub struct Schema {
     pub max_properties: Option<i64>,
     #[serde(rename = "minProperties")]
     pub min_properties: Option<i64>,
+    //Array
     pub items: Option<Box<SchemaRef>>,
     pub required: Option<Vec<String>>,
     #[serde(rename = "enum")]
@@ -84,6 +86,7 @@ pub struct Schema {
     #[serde(rename = "anyOf")]
     pub any_of: Option<Vec<SchemaRef>>,
     pub not: Option<Box<SchemaRef>>,
+    //object
     pub properties: Option<HashMap<String, SchemaRef>>,
     #[serde(rename = "additionalProperties")]
     pub additional_properties: Option<AddProps>,
