@@ -89,9 +89,5 @@ impl_passive_checks![
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definion of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes"),
     (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONS", "Checks for correct permission configuration for GET/PUT/POST requests"),
-    (CheckContainsOparation, check_contains_operation, "CONTAINS OPERATION", "Checks that each path contains at least one operation")
+    (CheckContainsOperation, check_contains_operation, "CONTAINS OPERATION", "Checks that each path contains at least one operation")
 ];
-
-impl_active_checks![
-     // (CheckMethodPermissions, check_default, "METHOD PERMISSIONS", "Checks for correct permission configuration for GET/PUT/POST requests"),
-    (CheckRaz, check_raz, "CHECK RAZ", "Checks for correct permission configuration for GET/PUT/POST requests")];
