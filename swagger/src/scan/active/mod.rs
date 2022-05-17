@@ -1,7 +1,7 @@
 use super::*;
 use strum::IntoEnumIterator;
 mod additional_checks;
-//use additional_checks::*;
+use additional_checks::*;
 mod utils;
 use utils::*;
 mod flow;
@@ -69,7 +69,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             }
         };
     }
-    pub fn print(&self, verbosity: u8) {
+    /*pub fn print(&self, verbosity: u8) {
         match verbosity {
             0 => {
                 print_checks_table(&self.checks);
@@ -81,7 +81,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             2 => print_failed_checks_table(&self.checks),
             _ => (),
         }
-    }
+    }*/
     pub fn print_to_file_string(&self) -> String {
         //let mut string = String::new();
         //string

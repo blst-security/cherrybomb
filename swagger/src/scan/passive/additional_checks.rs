@@ -88,4 +88,54 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         }
         alerts
     }
+    pub fn  check_valid_encoding(&self) ->Vec<Alert>{
+        let mut list_contentype: Vec<&str> = vec!["application/json",
+        "application/xml",
+        "application/x-www-form-urlencoded",
+        "multipart/form-data",
+        "text/plain; charset=utf-8",
+        "text/html",
+        "application/pdf",
+        "image/png"];
+
+        let mut alerts: Vec<Alert> = vec![];
+        // for i in list_contentype{
+        //     println!("  {}", &i);
+        // }
+        for (path, item) in &self.swagger.get_paths() {
+            for(m,op) in item.get_ops(){
+                // println!("{:?} /n/r",op.request_body);
+                let req_body = &op.request_body;
+                match &req_body {
+                    Some(ReqRef) => {
+                        for i in &op.request_body{
+                           // println!("{:?}",i);
+                           match (&i) {
+                                ReqRef::Ref(_)=> println!("pop"),
+                                ReqRef::Body(p) => {
+                                    //println!("==> {:?} data: {:?}", i, p.content.get("content"));
+                               //    println!("===> {:?}, {:?}", i, p.content.keys());
+                                   for key in p.content.keys(){
+                                       println!("{:?}",  list_contentype.iter().any(|v| v == &key));
+                                       if  !list_contentype.iter().any(|v| v == &key){
+                                            alerts.push(Alert::new(Level::Low,"Not a valid content-type",format!("swagger path:{} method:{}",path, key)));
+
+                                       }
+
+                                       
+
+                                   }
+                               //   println!("{:?}",  list_contentype.iter().any(|v| v == &p.content.keys()[0].to_string));
+                                }
+                           }
+                        }
+                      
+                    },
+                    None=>(),
+                }
+            }      
+        }
+        alerts
+    
+    }
 }

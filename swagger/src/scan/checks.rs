@@ -40,7 +40,7 @@ impl Check for PassiveChecks {
         }
     }
 }
-/*
+
 impl Check for ActiveChecks {
     fn alerts_text(&self) -> ColoredString {
         match self.inner().len() {
@@ -66,7 +66,10 @@ impl Check for ActiveChecks {
             "PASSED"
         }
     }
-}*/
+}
+impl_active_checks![
+(check_default,check_default,"DEFAULT","CHECK FOR DEFAULT MIS")
+];
 impl_passive_checks![
     //name in enum   check function   check name    check description
     (CheckServerUrl,check_server_url,"SERVER URL","Checks for server url misconfigurations"),
@@ -87,5 +90,6 @@ impl_passive_checks![
     (CheckArrAttrs,check_arr_attrs,"ARRAY ATTRIBUTES","Checks for the definion of array type attributes - max_items, min_items"),
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definion of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes"),
-    (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONS", "Checks for correct permission cofiguration for GET/PUT/POST requests")
-];
+    (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONS", "Checks for correct permission cofiguration for GET/PUT/POST requests"),
+    (CheckValidEncoding, check_valid_encoding, "VALID ENCODING", "Checks for valid content-type ")
+    ];
