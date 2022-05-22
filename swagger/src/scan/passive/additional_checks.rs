@@ -89,40 +89,40 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         alerts
     }
     pub fn  check_valid_encoding(&self) ->Vec<Alert>{
-        let mut list_contentype: Vec<&str> = vec!["application/json",
-        "application/xml",
-        "application/x-www-form-urlencoded",
-        "multipart/form-data",
-        "text/plain; charset=utf-8",
-        "text/html",
-        "application/pdf",
-        "image/png"];
+        let list_contentype: Vec<&str> = vec!["application/java-archive", "application/json", "application/xml", 
+        "multipart/form-data", "application/EDI-X12", "application/EDIFACT", "application/javascript", 
+        "application/octet-stream", "application/ogg", "application/pdf", "application/pdf", "application/xhtml+xml", 
+        "application/x-shockwave-flash", "application/json", "application/ld+json", "application/xml", "application/zip",
+         "application/x-www-form-urlencoded", "image/gif", "image/jpeg", "image/png", "image/tiff", "image/vnd.microsoft.icon", 
+         "image/x-icon", "image/vnd.djvu", "image/svg+xml", "text/css", "text/csv", "text/html", "text/plain", "text/xml", 
+         "multipart/mixed", "multipart/alternative", "multipart/related", "multipart/form-data"];
 
         let mut alerts: Vec<Alert> = vec![];
-        // for i in list_contentype{
-        //     println!("  {}", &i);
-        // }
         for (path, item) in &self.swagger.get_paths() {
             for(m,op) in item.get_ops(){
+                println!("{:?}", op);
+                let res_body  = &op.responses;
+                match &res_body{
+                    Some(response )=>
+                    {
+                        for content in response.values(){
+                            for content_type in  content.inner(&self.swagger_value).content.unwrap_or_default().keys(){
+                                if  !list_contentype.iter().any(|v| v == &content_type){
+                                    alerts.push(Alert::new(Level::Info,"Not a valid content-type",format!("swagger path:{} method:{}",path, content_type)));
+                               }  
+                            }
+                        }
+                    }
+                    None => (),
+                }
                 let req_body = &op.request_body;
                 match &req_body {
-                    Some(ReqRef) => {
-                        for i in &op.request_body{
-                           match (&i) {
-                                ReqRef::Ref(_)=> println!("pop"),
-                                ReqRef::Body(p) => {
-                               
-                                   for key in p.content.keys(){
-                                       println!("{:?}",  list_contentype.iter().any(|v| v == &key));
-                                       if  !list_contentype.iter().any(|v| v == &key){
-                                            alerts.push(Alert::new(Level::Low,"Not a valid content-type",format!("swagger path:{} method:{}",path, key)));
-
+                    Some(req_ref) => {
+                        for media_type in req_ref.inner(&self.swagger_value).content.keys() {                           
+                                       if  !list_contentype.iter().any(|v| v == &media_type){
+                                            alerts.push(Alert::new(Level::Info,"Not a valid content-type",format!("swagger path:{} method:{}",path, media_type)));
                                        }                         
-                                   }
-                                }
-                           }
                         }
-                      
                     },
                     None=>(),
                 }
