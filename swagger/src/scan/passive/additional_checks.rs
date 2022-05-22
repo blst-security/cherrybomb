@@ -89,7 +89,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         alerts
     }
     pub fn  check_valid_encoding(&self) ->Vec<Alert>{
-        let list_contentype: Vec<&str> = vec!["application/java-archive", "application/json", "application/xml", 
+        const  list_contentype: [&str;35] = ["application/java-archive", "application/json", "application/xml", 
         "multipart/form-data", "application/EDI-X12", "application/EDIFACT", "application/javascript", 
         "application/octet-stream", "application/ogg", "application/pdf", "application/pdf", "application/xhtml+xml", 
         "application/x-shockwave-flash", "application/json", "application/ld+json", "application/xml", "application/zip",
@@ -104,7 +104,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                 let res_body  = &op.responses;
                 match &res_body{
                     Some(response )=>
-                    {
+                        {
                         for content in response.values(){
                             for content_type in  content.inner(&self.swagger_value).content.unwrap_or_default().keys(){
                                 if  !list_contentype.iter().any(|v| v == &content_type){
@@ -119,9 +119,9 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                 match &req_body {
                     Some(req_ref) => {
                         for media_type in req_ref.inner(&self.swagger_value).content.keys() {                           
-                                       if  !list_contentype.iter().any(|v| v == &media_type){
-                                            alerts.push(Alert::new(Level::Info,"Not a valid content-type",format!("swagger path:{} method:{}",path, media_type)));
-                                       }                         
+                            if  !list_contentype.iter().any(|v| v == &media_type){
+                                alerts.push(Alert::new(Level::Info,"Not a valid content-type",format!("swagger path:{} method:{}",path, media_type)));
+                            }                         
                         }
                     },
                     None=>(),
