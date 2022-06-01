@@ -138,7 +138,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                          let hash =refer.inner({&Value::Null}).content;
                          for i in hash.values(){
                              if i.examples.as_ref() == None {
-                                alerts.push(Alert::new(Level::Info,"This req_body or res has not example!",format!("swagger path:{} method:{}",path, m)));
+                                alerts.push(Alert::new(Level::Info,"This request body or this response has not example!",format!("swagger path:{} method:{}",path, m)));
                             }
                          }
                     }
@@ -151,7 +151,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                            for x in val.values() {
                                println!("{:?}", x.examples);
                                if x.examples== None {
-                                   println!("NOT CONFIGURED   ");
+                                alerts.push(Alert::new(Level::Info,"This request body or this response has not example!",format!("swagger path:{} method:{}",path, m)));
                                }
                            }
                         }
