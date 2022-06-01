@@ -91,5 +91,6 @@ impl_passive_checks![
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definion of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes"),
     (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONS", "Checks for correct permission cofiguration for GET/PUT/POST requests"),
-    (CheckValidEncoding, check_valid_encoding, "CONTENT_TYPE ", "Checks for valid and common value for content-type header")
+    (CheckValidEncoding, check_valid_encoding, "CONTENT_TYPE ", "Checks for valid and common value for content-type header"),
+    (CheckExample, check_example,"EXAMPLE","Check if there is an example for request body and resppnse")
     ];

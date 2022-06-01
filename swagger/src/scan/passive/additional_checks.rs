@@ -96,8 +96,6 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         alerts
     }
     pub fn  check_valid_encoding(&self) ->Vec<Alert>{
-   
-
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             for(m,op) in item.get_ops(){
@@ -131,4 +129,37 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         alerts
     
     }
+    pub fn  check_example(&self) ->Vec<Alert>{
+        let mut alerts: Vec<Alert> = vec![];
+        for (path, item) in &self.swagger.get_paths() {
+            for(m,op) in item.get_ops(){
+                match &op.request_body {
+                    Some(refer) => {
+                         let hash =refer.inner({&Value::Null}).content;
+                         for i in hash.values(){
+                             if i.examples.as_ref() == None {
+                                alerts.push(Alert::new(Level::Info,"This req_body or res has not example!",format!("swagger path:{} method:{}",path, m)));
+                            }
+                         }
+                    }
+                    None => {}
+                }
+                if let Some(content) = &op.responses.as_ref()
+                {
+                    for i in content.values(){
+                        if let  Some(val) = i.inner({&Value::Null}).content{
+                           for x in val.values() {
+                               println!("{:?}", x.examples);
+                               if x.examples== None {
+                                   println!("NOT CONFIGURED   ");
+                               }
+                           }
+                        }
+                    }
+                }   
+            }
+        }
+        alerts
+    }
+
 }
