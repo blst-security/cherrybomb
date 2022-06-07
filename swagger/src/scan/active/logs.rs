@@ -1,9 +1,9 @@
 use super::*;
-use regex::Regex;
 use mapper::digest::{ReqRes,Session};
 use std::fs::OpenOptions;
 use std::io::Write;
 use uuid::Uuid;
+// use regex::Regex;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct AttackLog{

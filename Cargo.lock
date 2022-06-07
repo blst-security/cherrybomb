@@ -81,7 +81,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cherrybomb"
-version = "0.7.0"
+version = "0.6.1"
 dependencies = [
  "attacker",
  "base64",
@@ -151,7 +151,7 @@ dependencies = [
 
 [[package]]
 name = "cli"
-version = "0.7.0"
+version = "0.6.1"
 dependencies = [
  "attacker",
  "clap",
@@ -164,6 +164,7 @@ dependencies = [
  "hyper",
  "hyper-rustls 0.23.0 (git+https://github.com/rustls/hyper-rustls)",
  "mapper",
+ "reqwest",
  "serde",
  "serde_json",
  "serde_yaml",

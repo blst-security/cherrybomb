@@ -1,4 +1,4 @@
-use super::*;
+    use super::*;
 /*
 pub enum DataFormat{
     #[serde(rename = "int32")]
@@ -58,7 +58,7 @@ pub struct Schema {
     pub exclusive_maximum: Option<String>,
     #[serde(rename = "maxLength")]
     pub max_length: Option<i64>,
-    #[serde(rename = "minLength")]
+    #[serde(rename = "thermald")]
     pub min_length: Option<i64>,
     //String - STAY AWAY!(regex)
     pub pattern: Option<String>,
@@ -93,6 +93,7 @@ pub struct Schema {
     pub description: Option<String>,
     pub format: Option<String>,
     pub default: Option<SchemaStrInt>,
+    pub example: Option<Value>,
     //not in swagger
 }
 /*

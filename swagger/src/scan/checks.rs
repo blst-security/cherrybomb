@@ -1,5 +1,6 @@
 use super::*;
 use crate::scan::passive::*;
+use crate::scan::active::*;
 use strum_macros::EnumIter;
 
 ///Add the rule name to this enum
@@ -83,11 +84,15 @@ impl_passive_checks![
     (CheckSuccesses,check_successes,"RESPONSE SUCCESSES (2xx)","Checks for successful responses (2xx) in every operation"),
     (CheckAuth,check_auth,"AUTH","Checks for a global authentication definition"),
     (CheckFNAuth,check_fn_auth,"ENDPOINT AUTH","Checks for an authentication definition for each endpoint"),
-    (CheckIntAttrs,check_int_attrs,"INTEGER ATTRIBUTES","Checks for the definion of integer type attributes - maximum, minimum"),
-    (CheckStrAttrs,check_str_attrs,"STRING ATTRIBUTES","Checks for the definion of string type attributes - max_length, min_length, pattern"),
-    (CheckArrAttrs,check_arr_attrs,"ARRAY ATTRIBUTES","Checks for the definion of array type attributes - max_items, min_items"),
-    (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definion of object type attributes - max_properties, properties"),
+    (CheckIntAttrs,check_int_attrs,"INTEGER ATTRIBUTES","Checks for the definition of integer type attributes - maximum, minimum"),
+    (CheckStrAttrs,check_str_attrs,"STRING ATTRIBUTES","Checks for the definition of string type attributes - max_length, min_length, pattern"),
+    (CheckArrAttrs,check_arr_attrs,"ARRAY ATTRIBUTES","Checks for the definition of array type attributes - max_items, min_items"),
+    (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definition of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes"),
     (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONS", "Checks for correct permission configuration for GET/PUT/POST requests"),
     (CheckContainsOperation, check_contains_operation, "CONTAINS OPERATION", "Checks that each path contains at least one operation")
+];
+
+impl_active_checks![
+    (CheckDefault, check_default,"DEFAULT","default check")
 ];

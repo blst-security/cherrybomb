@@ -1,4 +1,4 @@
-use colored::*;
+// use colored::*;
 use hyper::{body, Body, Client, Method, Request};
 use hyper_rustls::HttpsConnectorBuilder;
 use std::fs::File;
@@ -24,7 +24,7 @@ async fn sign_up(filename:&Path,dir:&Path)->bool{
                     match File::create(filename) {
                         Ok(f)=>f,
                         Err(e)=>{
-                            //println!("{:?}",e);
+                            println!("{:?}",e);
                             //panic!("Could not generate a CLI token, please contact BLST at support@blstsecurity.com");
                             return false;
                         }
@@ -49,7 +49,7 @@ async fn sign_up(filename:&Path,dir:&Path)->bool{
             }
         },
         Err(e)=>{
-            //println!("{:?}",e);
+            println!("{:?}",e);
             //panic!("Could not generate a CLI token, please contact BLST at support@blstsecurity.com");
             return false;
         }

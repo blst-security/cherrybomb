@@ -43,7 +43,7 @@ where
         if let Some(responses) = &components.responses {
             ret.push((
                 responses.clone(),
-                "swagger root components reponses".to_string(),
+                "swagger root components responses".to_string(),
             ));
         }
     }

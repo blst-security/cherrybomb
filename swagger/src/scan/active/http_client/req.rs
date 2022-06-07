@@ -9,6 +9,7 @@ pub struct AttackRequestBuilder {
     auth: Authorization,
     method: Method,
     headers: Vec<MHeader>,
+    payload:String,
 }
 impl AttackRequestBuilder {
     pub fn uri(&mut self,base_url:&str,path:&str)->&mut Self{
@@ -31,6 +32,10 @@ impl AttackRequestBuilder {
         self.parameters = parameters;
         self
     }
+    pub fn payload(&mut self, payload: &str) -> &mut Self{
+        self.payload = payload.to_string();
+        self
+    }
     pub fn build(&self)->AttackRequest{
         AttackRequest {
             path:self.path.clone(),
@@ -38,6 +43,7 @@ impl AttackRequestBuilder {
             auth:self.auth.clone(),
             method:self.method.clone(),
             headers:self.headers.clone(),
+            payload:self.payload.clone(),
         }
     }
 }
@@ -55,15 +61,14 @@ impl AttackRequest {
         AttackRequestBuilder::default()
     }
     pub fn params_to_payload(&self) -> (String, String, String, Vec<MHeader>) {
-        let mut payload = String::from('{');
         let mut query = String::from('?');
         let mut path_ext = self.path.to_string();
         let mut headers = vec![];
         for param in self.parameters.iter() {
             match param.dm {
-                QuePay::Payload => {
-                    payload.push_str(&format!("\"{}\":{},", param.name, param.value))
-                }
+                // QuePay::Payload => {
+                //     payload.push_str(&format!("\"{}\":{},", param.name, param.value))
+                // }
                 QuePay::Query => query.push_str(&format!("{}={}&", param.name, param.value)),
                 QuePay::Path => {
                     path_ext =
@@ -79,13 +84,7 @@ impl AttackRequest {
             }
         }
         query.pop();
-        if payload.trim() == "{" {
-            payload = String::new();
-        } else {
-            payload.pop();
-            payload.push('}');
-        }
-        (payload, query, path_ext, headers)
+        (self.payload.clone(), query, path_ext, headers)
     }
     pub fn get_headers(&self,payload_headers: &[MHeader]) -> HashMap<String, String> {
         let mut new: Vec<MHeader> = self.headers

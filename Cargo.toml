@@ -20,6 +20,11 @@ name = "cherrybomb"
 path = "cli/src/main.rs"
 test = false
 
+[[bin]]
+name = "oas"
+path = "swagger/src/main.rs"
+test = false
+
 [workspace]
 
 members = [

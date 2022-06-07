@@ -1,5 +1,4 @@
 use super::*;
-use futures::executor;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct Reference {
@@ -24,30 +23,8 @@ impl Reference {
                 val = &val[s];
             }
             serde_json::from_value(val.clone()).unwrap()
-        } else {
-            match executor::block_on(self.get_external::<T>()) {
-                Ok(v) => v,
-                Err(e) => panic!("{:?}", e),
-            }
-        }
-    }
-    pub async fn get_external<T>(&self) -> Result<T, &'static str>
-    where
-        T: Clone + Serialize + PartialEq + Eq + Default + for<'de> serde::Deserialize<'de>,
-    {
-        match reqwest::get(&self.param_ref).await {
-            Ok(res) => {
-                if res.status() == 200 {
-                    if let Ok(json) = serde_json::from_str::<T>(&res.text().await.unwrap()) {
-                        Ok(json)
-                    } else {
-                        Err("Unable to deserialize external reference")
-                    }
-                } else {
-                    Err("Fetching external refernece did not return OK status code")
-                }
-            }
-            Err(_) => Err("Could not fetch external reference"),
+        } else{
+            panic!("external ref")
         }
     }
 }
