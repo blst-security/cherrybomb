@@ -1,5 +1,7 @@
+use std::sync::Arc;
+
 use super::*;
-const  LIST_CONTENT_TYPE: [&str;35] = ["application/java-archive", "application/json", "application/xml", 
+const  LIST_CONTENT_TYPE: [&str;35] = ["application/java-archive", &"application/json", "application/xml", 
 "multipart/form-data", "application/EDI-X12", "application/EDIFACT", "application/javascript", 
 "application/octet-stream", "application/ogg", "application/pdf", "application/pdf", "application/xhtml+xml", 
 "application/x-shockwave-flash", "application/json", "application/ld+json", "application/xml", "application/zip",
@@ -147,9 +149,8 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                 if let Some(content) = &op.responses.as_ref()
                 {
                     for i in content.values(){
-                        if let  Some(val) = i.inner({&Value::Null}).content{
+                        if let  Some(val) = i.inner(&self.swagger_value).content{
                            for x in val.values() {
-                               println!("{:?}", x.examples);
                                if x.examples== None {
                                 alerts.push(Alert::new(Level::Info,"This request body or this response has not example!",format!("swagger path:{} method:{}",path, m)));
                                }
@@ -161,5 +162,57 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         }
         alerts
     }
-
+    pub fn check_descriptions (&self) -> Vec<Alert> {
+        let mut alerts: Vec<Alert> = vec![];
+        for (path, item) in &self.swagger.get_paths() {
+            for(m,op) in item.get_ops(){
+               match &op.description {
+                Some(value) => {
+                    if value.to_string() == "" || value.to_string() == " " {
+                        alerts.push(Alert::new(Level::Info,"This endpoint has not description!",format!("swagger path:{} method:{}",path, m)));
+                    }
+                },
+                None =>   alerts.push(Alert::new(Level::Info,"This endpoint has not description!",format!("swagger path:{} method:{}",path, m))),
+            }
+               if m.to_string() == "POST" || m.to_string() =="PUT" {
+                 match &op.request_body {
+                     Some(value)=> {
+                         if value.inner(&self.swagger_value).description.unwrap_or_default().trim() == "" {
+                            alerts.push(Alert::new(Level::Info,"This request body  for this ",format!("swagger path:{} method:{} has not description",path, m)))
+                          }
+                     },
+                     None=> alerts.push(Alert::new(Level::Info,"No description for for this ",format!("method:{} swagger path:{} has not description",m, path)))
+                     ,
+                 }
+               }
+               
+               match &op.responses {
+                Some(value) => {
+                    for i in value.values() {
+                        let resp_body_descrip = i.inner(&Value::Null).description;
+                        if resp_body_descrip == "" && resp_body_descrip == " " {
+                            alerts.push(Alert::new(Level::Info,"This response for this ",format!("swagger path:{} method:{} has not description",path, m)))
+                        }
+            }
+                },
+                None =>  alerts.push(Alert::new(Level::Info,"This response for this ",format!("swagger path:{} method:{} has not description",path, m))),
+            }
+                           }
+        }
+    alerts
+    }
+    pub fn check_body_request (&self) -> Vec<Alert> {
+        let mut alerts: Vec<Alert> = vec![];
+        for (path, item) in &self.swagger.get_paths() {
+            for(m,op) in item.get_ops(){
+                if m.to_string() == "POST" || m.to_string() =="PUT" {
+                    match &op.request_body {
+                        Some(value)=> (),
+                        None=> alerts.push(Alert::new(Level::Info,"No request body for this ",format!("method:{} swagger path:{}.",m, path))),
+                    }
+                  }
+                }
+            }
+        alerts
+    }
 }
