@@ -1,7 +1,7 @@
 use super::*;
 use std::fmt;
 pub const LEFT_PAD: usize = 40;
-pub const TBL_LEN: usize = 250;
+pub const TBL_LEN: usize = 190;
 pub const URL_LEN: usize = 75;
 
 pub fn print_checks_table<T>(checks: &[T]) 
@@ -32,10 +32,30 @@ where T:fmt::Display+Check{
         }
     }
 }
-
+fn split_text_to_lines(string:&str)->Vec<String>{
+    let mut new_vec = vec![];
+    let mut new_str = String::new(); 
+    let line_len = 75;
+    let mut c = 0;
+    for t in string.split(' '){
+        if !t.trim().is_empty(){
+            c+=t.len()+1;
+            if c>line_len{
+                c = t.len();
+                new_str.pop();
+                new_vec.push(new_str);
+                new_str = format!(" {}",t);
+            }else{
+                new_str.push_str(&format!("{} ",t.trim()));
+            }
+        }
+    }
+    new_vec.push(new_str);
+    new_vec
+}
 pub fn print_alerts_table(checks: &[PassiveChecks]) {
     println!(
-        "{:pad$}| LEVEL   |{:150}|DESCRIPTION\n{:-<table_len$}",
+        "{:pad$}| LEVEL   |{:75}|DESCRIPTION\n{:-<table_len$}",
         "CHECK",
         "LOCATION",
         pad = 30,
@@ -49,6 +69,7 @@ pub fn print_alerts_table(checks: &[PassiveChecks]) {
         }
     }
 }
+
 pub fn print_attack_alerts_table(checks: &[ActiveChecks]) {
     println!(
         "{:pad$}| SEVERITY | CERTAINTY |{:thing$}|DESCRIPTION\n{:-<table_len$}",
@@ -57,12 +78,13 @@ pub fn print_attack_alerts_table(checks: &[ActiveChecks]) {
         "",
         table_len = TBL_LEN,
         pad = 30,
-        thing=URL_LEN
+        thing = URL_LEN
     );
     for check in checks {
         if check.result() == "FAILED" {
             for alert in check.inner() {
-                println!("{:pad$}|{}", check.name().cyan().bold(), alert, pad = 30)
+                // println!("{:pad$}|{}", check.name().cyan().bold(), alert, pad = 30)
+                println!("{}",serde_json::to_string(&check).unwrap());
             }
         }
     }
@@ -101,6 +123,7 @@ impl fmt::Display for PassiveChecks {
         }
     }
 }
+
 impl fmt::Display for ActiveChecks {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.result() == "PASSED" {
@@ -144,17 +167,27 @@ impl fmt::Display for Alert {
                 .replace("swagger", "")
                 .replace("media type:application/json", "")
                 .replace("response status", "status");
-            write!(
-                f,
-                " {}|{:150}|  {:}\n{:-<table_len$}",
+            let mut string = String::new();
+            let location = split_text_to_lines(&location);
+            string.push_str(&format!(
+                " {:10}|{:75}|  {}\n",
                 self.level,
-                location.bright_magenta().bold(),
+                location[0].bright_magenta().bold(),
                 self.description.bright_red().bold(),
-                "",
-                table_len = TBL_LEN
-            )
+            ));
+            for loc in location.iter().skip(1){
+                string.push_str(&format!(
+                    "{:30}|{:9}|{:75}|  {}\n",
+                    "",
+                    "",
+                    loc.bright_magenta().bold(),
+                    ""
+                ));
+            }
+            string.push_str(&format!("\n{:-<190}",""));
+            write!(f,"{}",string)
         }else{
-            write!(
+            /*write!(
                 f,
                 "  {}| {}  |{:thing$}|  {:}\n{:-<table_len$}",
                 self.level,
@@ -164,7 +197,8 @@ impl fmt::Display for Alert {
                 "",
                 thing=URL_LEN,
                 table_len = TBL_LEN
-            )
+            )*/
+            write!(f,"")
         }
     }
 }

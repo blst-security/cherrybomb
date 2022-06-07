@@ -72,11 +72,11 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
     pub fn print(&self, verbosity: u8) {
         match verbosity {
             0 => {
-                print_checks_table(&self.checks);
+                //print_checks_table(&self.checks);
                 print_attack_alerts_table(&self.checks);
             },
             1 => {
-                print_checks_table(&self.checks);
+                //print_checks_table(&self.checks);
             },
             2 => print_failed_checks_table(&self.checks),
             _ => (),

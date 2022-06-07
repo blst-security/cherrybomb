@@ -1,3 +1,25 @@
+[package]
+name = "cherrybomb"
+version = "0.6.1"
+authors = ["BLST Security"]
+description = """
+Cherrybomb is a CLI tool that helps you avoid undefined user behavior by validating your API specifications.
+"""
+documentation = "https://github.com/blst-security/cherrybomb"
+homepage = "https://blstsecurity.com/"
+repository = "https://github.com/blst-security/cherrybomb"
+keywords = ["API","security","OAS","Open API Specefication", "specifications", "CLI", "OpenAPI", "OAS", "business logic", "scanning"]
+categories = ["command-line-utilities","web-programming"]
+license = "Apache-2.0"
+edition = "2021"
+
+
+
+[[bin]]
+name = "cherrybomb"
+path = "cli/src/main.rs"
+test = false
+
 [workspace]
 
 members = [
@@ -7,6 +29,32 @@ members = [
 	"attacker",
 	"swagger",
 ]
+[dependencies]
+cli = {version="0.6",path="cli"}
+mapper = {path="./mapper"}
+attacker = {path="./attacker"}
+decider = {path="./decider"}
+                                                                                                      swagger = {path="./swagger"}
+clap = { version = "^3", features = ["derive"] }
+uuid = { version = "0.8", features = ["v4","serde"] }
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "^1.0", features = ["full"] }
+futures = "0.3"
+futures-util = { version = "^0.3", default-features = false, features = ["alloc"] }
+colored = "2.0.0"
+url = { version = "2" }
+hyper = { version = "^0.14", features = ["http2"] }
+hyper-rustls = { git = "https://github.com/rustls/hyper-rustls", features = ["http2"] }
+httparse = "1.5.1"
+dirs="^4"
+serde_yaml="^0.8"
+reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls"] }
+strum = "0.23"
+strum_macros = "0.23"
+base64 = "0.13.0"
+regex = "1"
+serde_with = "1.11.0"
 
 [profile.release]
 opt-level = 3

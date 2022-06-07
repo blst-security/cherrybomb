@@ -33,13 +33,15 @@ impl Check for PassiveChecks {
         top
     }
     fn result(&self) -> &'static str {
-        if !self.inner().is_empty() {
-            "FAILED"
-        } else {
+        //let failed = self.inner().iter().map(|a| if a.level != Level::Info {1}else{0}).sum::<u64>();
+        if self.inner().is_empty() {
             "PASSED"
+        } else {
+            "FAILED"
         }
     }
 }
+
 impl Check for ActiveChecks {
     fn alerts_text(&self) -> ColoredString {
         match self.inner().len() {
@@ -74,7 +76,7 @@ impl_passive_checks![
     (CheckResponseBodySchema,check_response_body_schema,"RESPONSE BODY SCHEMA","Checks the response body schema, and alerts when there is none"),
     (CheckDefaultType,check_default_type,"DEFAULT TYPE","Checks that the default type is the same as the parameter type"),
     (CheckEnumType,check_enum_type,"ENUM TYPE","Checks that the Enum type is the same as the parameter type"),
-    (CheckRequiredUndefined,check_required_undefined,"REQUIRED UNDEFINED","Checks for any required parameters that are undefined"),
+    //(CheckRequiredUndefined,check_required_undefined,"REQUIRED UNDEFINED","Checks for any required parameters that are undefined"),
     (CheckUnusedSchema,check_unused_schema,"UNUSED SCHEMA","Checks for unused schemas"),
     (Check401,check_401,"401","Checks for a 401 response if there is authentication necessary"),
     (Check403,check_403,"403","Checks for a 403 response if there is authentication necessary"),
@@ -86,13 +88,6 @@ impl_passive_checks![
     (CheckArrAttrs,check_arr_attrs,"ARRAY ATTRIBUTES","Checks for the definion of array type attributes - max_items, min_items"),
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definion of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes"),
-    (CheckGetPermissions, check_get_permissions, "GET PERMISSIONS", "Checks for correct permissions for get requests"),
-    (CheckPutPermissions, check_put_permissions, "PUT_PERMISSIONS","Checks for correct permissions for put requests"),
-    (CheckPostPermissions, check_post_permissions, "POST_PERMISSIONS","Checks for correct permissions for post requests")
+    (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONS", "Checks for correct permission configuration for GET/PUT/POST requests"),
+    (CheckContainsOperation, check_contains_operation, "CONTAINS OPERATION", "Checks that each path contains at least one operation")
 ];
-impl_active_checks![(
-    CheckDefault,
-    check_default,
-    "CHECK DEFAULT",
-    "check default"
-)];

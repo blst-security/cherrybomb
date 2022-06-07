@@ -1,16 +1,16 @@
 [package]
-name = "cherrybomb"
-version = "0.4.2"
+name = "cli"
+version = "0.6.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "2.34.0"
+clap = { version = "^3", features = ["derive"] }
 uuid = { version = "0.8", features = ["v4","serde"] }
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "1.0"
-tokio = { version = "^1.0", features = ["full"] }
+tokio = { version = "^1.13", features = ["full"] }
 futures = "0.3"
 futures-util = { version = "^0.3", default-features = false, features = ["alloc"] }
 mapper = { path = "../mapper" }
@@ -22,4 +22,5 @@ url = { version = "2" }
 hyper = { version = "^0.14", features = ["http2"] }
 hyper-rustls = { git = "https://github.com/rustls/hyper-rustls", features = ["http2"] }
 httparse = "1.5.1"
-
+dirs="^4"
+serde_yaml="^0.8"

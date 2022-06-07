@@ -1,361 +1,328 @@
-use attacker::{Authorization, Verbosity};
-use swagger::{ActiveScanType,Authorization as SAuthorization};
-use clap::{App, Arg, Error};
+use clap::{Parser,Subcommand};
+use std::str::FromStr;
+use std::fmt;
 use colored::*;
-use cherrybomb::*;
+use cli::*;
+use attacker::{Authorization, Verbosity};
 use mapper::digest::Header;
+use futures::executor::block_on;
 
-const VERSION: &str = "0.5.0";
 const MAP_FILE: &str = "map";
-const DECIDE_FILE: &str = "decide";
 const SWAGGER_OUTPUT_FILE: &str = "results.txt";
+const CONFIG_DEFAULT_FILE: &str = ".cherrybomb/config.json";
+const DECIDE_FILE: &str = "decide";
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
-    let matches = App::new("CHERRYBOMB")
-        .version(VERSION)
-        .author("<support@blstsecurity.com>")
-        .about("Blst cli app")
-        .subcommand(App::new("add_token")
-            .about("Creates a client token file with the given token")
-            .arg(Arg::with_name("TOKEN")
-                .short("t")
-                .long("token")
-                .value_name("Client Token Name")
-                .help("The client token you got from firecracker's webpage")
-                .required(true)
-                .takes_value(true)))
-        .subcommand(App::new("swagger")
-            .about("Runs a set of passive checks on a given swagger file")
-            .arg(Arg::with_name("FILE")
-                .short("f")
-                .long("file")
-                .value_name("Swagger file")
-                .help("The swagger file")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("VERBOSITIY")
-                .short("v")
-                .long("verbosity")
-                .value_name("Output verbosity")
-                .help("The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)")
-                .takes_value(true)
-                .default_value("1"))
-            .arg(Arg::with_name("ACTIVE")
-                .short("aaa")
-                .long("active")
-                .value_name("Active flag")
-                .help("A flag to dictate whether or not an active scan will be preformed")
-                .takes_value(false))
-            .arg(Arg::with_name("PTABLE")
-                .short("pt")
-                .long("param-table")
-                .value_name("Parameter table flag")
-                .help("A flag to dictate whether or not it should print the parameter table")
-                .takes_value(false))
-            .arg(Arg::with_name("OUTPUT")
-                .short("o")
-                .long("output")
-                .value_name("Output file")
-                .help("The output file, for the alerts and checks")
-                .takes_value(true)
-                .default_value(SWAGGER_OUTPUT_FILE))
-            .arg(Arg::with_name("SCAN")
-                .short("s")
-                .long("scan-type")
-                .value_name("Scan type")
-                .help("Sets the scan type - 0 - Full scan, 1 - Partial, 2 - Non-Invasive, 3 - Only tests")
-                .takes_value(true)
-                .default_value("0"))
-            .subcommand(App::new("auth")                                   
-                .about("Adds an auth token to the Attacker's requests, for auth based apps")
-                .arg(Arg::with_name("TYPE")
-                    //.short("tp")
-                    .long("type")
-                    .value_name("authorization type")
-                    .help("Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key")
-                    .required(true)
-                    .takes_value(true))
-                .arg(Arg::with_name("TOKEN")
-                    //.short("tkn")
-                    .long("token")
-                    .value_name("authorization token value")
-                    .help("Sets the authorization token(if it's of type basic then username:password)")
-                    .required(true)
-                    .takes_value(true))
-            ))
-        .subcommand(App::new("map")
-            .about("Creates a new map from a given log file, outputs a digest file to the local directory")
-            .arg(Arg::with_name("LOGS_FILE")
-                .short("f")
-                .long("file")
-                .value_name("Logs File Name")
-                .help("Indicate the file to set the map from")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("OUTPUT")
-                .short("o")
-                .long("output")
-                .value_name("Map File Name")
-                .default_value("map")
-                .help("Sets the output map file's name")
-                .takes_value(true)))
-
-        .subcommand(App::new("prepare")
-            .about("Prepare the attacker for the attack")
-            .arg(Arg::with_name("URL")
-                .short("u")
-                .long("url")
-                .value_name("URL Address")
-                .help("The attacked domain's URL")
-                .required(true)
-                .takes_value(true))
-            .about("Prepare the attacker for the attack")
-            .arg(Arg::with_name("MAP")
-                .short("m")
-                .long("map")
-                .value_name("Map File Name")
-                .default_value("map")
-                .help("The map file that the attack will be based on")
-                .takes_value(true)))
-
-        .subcommand(App::new("attack")
-            .about("Attacks your domain based on an existing map")
-            .arg(Arg::with_name("MAP")
-                .short("m")
-                .long("map")
-                .value_name("Map File Name")
-                .default_value("map")
-                .help("The map file that the attack will be based on")
-                .takes_value(true))
-            .arg(Arg::with_name("DECIDE_FILE")
-                .short("o")
-                .long("output")
-                .value_name("Decide File Name")
-                .default_value("decide")
-                .help("Sets the output decide file's name")
-                .takes_value(true))
-            .arg(Arg::with_name("POP")
-                .short("p")
-                .long("population")
-                .value_name("Population Number")
-                .default_value("0")
-                .help("Sets the population number")
-                .takes_value(true))
-            .arg(Arg::with_name("GEN")
-                .short("g")
-                .long("generations")
-                .value_name("Generations Number")
-                .default_value("1")
-                .help("Sets the max generations number")
-                .takes_value(true))
-            .arg(Arg::with_name("HEADER")
-                .short("h")
-                .long("header")
-                .value_name("header")
-                .help("Adds the header to the default request headers of the attacker")
-                .takes_value(true))
-            .arg(Arg::with_name("VERBOSITY")
-                .short("v")
-                .long("verbosity")
-                .value_name("Verboseity level")
-                .default_value("1")
-                .help("Sets the level of verbosity, 0 - Max, 1 - Default, 2 - Basic, 3 - None")
-                .takes_value(true))
-            .subcommand(App::new("auth")                                   
-                .about("Adds an auth token to the Attacker's requests, for auth based apps")
-                .arg(Arg::with_name("TYPE")
-                    //.short("t")
-                    .long("type")
-                    .value_name("authorization type")
-                    .help("Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key")
-                    .required(true)
-                    .takes_value(true))
-                .arg(Arg::with_name("TOKEN")
-                    //.short("tkn")
-                    .long("token")
-                    .value_name("authorization token value")
-                    .help("Sets the authorization token(if it's of type basic then username:password)")
-                    .required(true)
-                    .takes_value(true))
-                ))
-        .subcommand(App::new("decide")
-            .about("Decide whether or not a log file contains anomalies")
-            .arg(Arg::with_name("LOG_FILE")
-                .short("f")
-                .long("file")
-                .value_name("Log File Name")
-                .help("Sets the source logs file")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("MAP")
-                .short("m")
-                .long("map")
-                .value_name("Map File Name")
-                .default_value("map")
-                .help("Sets the source map file")
-                .takes_value(true)))
-
-        .subcommand(App::new("load")
-            .about("Load logs to an existing map")
-            .arg(Arg::with_name("LOGS_FILE")
-                .short("f")
-                .long("file")
-                .value_name("Logs File Name")
-                .help("Sets the source logs file")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("MAP")
-                .short("m")
-                .long("map")
-                .value_name("Map File Name")
-                .default_value("map")
-                .help("Sets the map file that you want to update")
-                .takes_value(true)))
-        .get_matches();
-
-    if let Some(vars) = matches.subcommand_matches("add_token") {
-        if let Some(t) = vars.value_of("TOKEN") {
-            add_token(t.to_string());
+#[derive(Copy,Clone,Debug)]
+pub enum OutputFormat{
+    Json,
+    Txt,
+    Cli,
+    Web
+}
+impl FromStr for OutputFormat {
+    type Err = &'static str;
+    fn from_str(input: &str) -> Result<OutputFormat, Self::Err> {
+        match input.to_lowercase().as_str() {
+            "json"  => Ok(OutputFormat::Json),
+            "txt"  => Ok(OutputFormat::Txt),
+            "cli"  => Ok(OutputFormat::Cli),
+            "web"  => Ok(OutputFormat::Web),
+            _      => Err("None"),
         }
-    } else if let Some(vars) = matches.subcommand_matches("swagger"){
-        if let Some(file) = vars.value_of("FILE"){
-            let output = if let Some(o) = vars.value_of("OUTPUT"){ o } else { SWAGGER_OUTPUT_FILE };
-            let verbosity = if let Some(v) = vars.value_of("VERBOSITY"){ v.parse::<u8>().unwrap() } else { 1 } ;
-            let active = vars.is_present("ACTIVE");
-            let param_table = vars.is_present("PTABLE");
-            let scan_type = match vars.value_of("SCAN") {
-                Some(r) => {
-                    match r {
-                        "0" => ActiveScanType::Full,
-                        "1" => ActiveScanType::Partial(vec![]),
-                        "2" => ActiveScanType::NonInvasive,
-                        "3" => ActiveScanType::OnlyTests,
-                        _   => ActiveScanType::Partial(vec![]),
-                    }
-                },
-                None => ActiveScanType::Partial(vec![]),
-            };
-            let a = match vars.subcommand_matches("auth") {
-                Some(vars) => match vars.value_of("TYPE") {
-                    Some(v) => match vars.value_of("TOKEN") {
-                        Some(v2) => SAuthorization::from_parts(v, v2.to_string()),
-                        None => SAuthorization::None,
-                    },
-                    None => SAuthorization::None,
-                },
-                None => SAuthorization::None,
-            };
-            run_swagger(file,verbosity,output,&a,active,param_table,scan_type);
+    }
+}
+impl fmt::Display for OutputFormat{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self{
+            Self::Json=>write!(f, "JSON"),
+            Self::Txt=>write!(f, "TXT"),
+            Self::Cli=>write!(f, "CLI"),
+            Self::Web=>write!(f, "WEB"),
         }
-    }else if let Some(vars) = matches.subcommand_matches("map") {
-        if let Some(l) = vars.value_of("LOGS_FILE") {
-            if let Some(o) = vars.value_of("OUTPUT") {
-                map(l.to_string(), o.to_string());
+    }
+}
+#[derive(Parser, Debug,Clone)]
+#[clap(name = "oas")]
+pub struct OASOpt {
+    ///The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)
+    #[clap(short = 'v', long)]
+    verbosity: Option<u8>,
+    ///The output's format type -> cli/txt/json
+    #[clap(long,default_value_t=OutputFormat::Cli)]
+    format: OutputFormat,
+    ///The output file, for the alerts and checks
+    #[clap(short, long)]
+    output: Option<String>,
+    ///The OAS file path
+    #[clap(long,short)]
+    file: String,
+    ///The config file path
+    #[clap(short,long)]
+    config: Option<String>,
+}
+#[derive(Parser, Debug,Clone)]
+#[clap(name = "swagger")]
+pub struct SwaggerOpt {
+    ///The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)
+    #[clap(short = 'v', long)]
+    verbosity: Option<u8>,
+    ///The output's format type -> cli/txt/json
+    #[clap(long,default_value_t=OutputFormat::Cli)]
+    format: OutputFormat,
+    ///The output file, for the alerts and checks
+    #[clap(short, long)]
+    output: Option<String>,
+    ///The OAS file path
+    #[clap(long,short)]
+    file: String,
+    ///The config file path
+    #[clap(short,long)]
+    config: Option<String>,
+}
+impl SwaggerOpt{
+    pub fn to_oas_opt(&self)->OASOpt{
+        OASOpt{
+            verbosity:self.verbosity,
+            format:self.format,
+            output:self.output.clone(),
+            file:self.file.clone(),
+            config:self.config.clone(),
+        }
+    }
+}
+#[derive(Parser, Debug,Clone)]
+#[clap(name = "param-table")]
+pub struct ParamTableOpt {
+    ///An option to present a single parameter with that name.
+    #[clap(short, long)]
+    name:Option<String>,
+    ///The output file
+    #[clap(short, long)]
+    output: Option<String>,
+    ///The OAS file
+    #[clap(long,short)]
+    file: String,
+}
+#[derive(Parser, Debug,Clone)]
+#[clap(name = "ep-table")]
+pub struct EpTableOpt {
+    ///An option to present a single endpoint with that path
+    #[clap(short, long)]
+    path:Option<String>,
+    ///The output file
+    #[clap(short, long)]
+    output: Option<String>,
+    ///The OAS file
+    #[clap(long,short)]
+    file: String,
+}
+
+#[derive(Parser, Debug,Clone)]
+#[clap(name = "mapper")]
+pub struct MapperOpt {
+    ///The output map's file name
+    #[clap(short, long)]
+    output: Option<String>,
+    ///The input log's file name
+    #[clap(long,short)]
+    file: String,
+    ///OpenAPI specification given as a hint to the mapper
+    #[clap(long,short)]
+    hint: Option<String>
+}
+#[derive(Parser, Debug,Clone)]
+#[clap(name = "mapper")]
+pub struct LoadOpt {
+    ///The map the logs get loaded to
+    #[clap(long,short)]
+    map:Option<String>,
+    ///The input's log file name
+    #[clap(long,short)]
+    file: String,
+}
+#[derive(Parser, Debug,Clone)]
+#[clap(name = "prepare")]
+pub struct PrepareOpt {
+    ///The map file that serves as the attacker's scope
+    #[clap(long,short,default_value_t=MAP_FILE.to_string())]
+    map:String,
+    ///The url to attack
+    #[clap(long,short)]
+    url: String,
+}
+#[derive(Parser,Debug,Clone)]
+#[clap(name = "auth")]
+pub struct AuthOpt {
+    ///Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key
+    #[clap(short,long="type")]
+    tp:String,
+    ///Sets the authorization token(if it's of type basic then username:password)
+    #[clap(long)]
+    token:String,
+}
+#[derive(Subcommand,Debug,Clone)]
+pub enum AuthCmd{
+    Auth(AuthOpt),
+}
+#[derive(Parser, Debug,Clone)]
+#[clap(name = "attack")]
+pub struct AttackOpt {
+    ///The map file that the attack will be based on
+    #[clap(long,short,default_value_t=MAP_FILE.to_string())]
+    map:String,
+    ///Sets the output decide file's name
+    #[clap(long,short,default_value_t=DECIDE_FILE.to_string())]
+    decide_file:String,
+    ///Sets the population number
+    #[clap(long,short,default_value_t=0)]
+    population:u8,
+    ///Sets the max generations number
+    #[clap(long,short,default_value_t=1)]
+    generations:u8,
+    ///Adds the header to the default request headers of the attacker
+    #[clap(long,short)]
+    header:Option<String>,
+    ///Sets the level of verbosity, 0 - Max, 1 - Default, 2 - Basic, 3 - None
+    #[clap(long,short,default_value_t=1)]
+    verbosity:u8,
+    ///Adds an auth token to the Attacker's requests, for auth based apps
+    #[clap(subcommand)]
+    auth:Option<AuthCmd>,
+}
+#[derive(Subcommand,Debug,Clone)]
+enum Commands{
+    ///Runs a set of passive checks on a given OpenAPI specification file
+    Oas(OASOpt),
+    ///Runs a set of passive checks on a given OpenAPI specification file
+    Swagger(SwaggerOpt),
+    ///Prints out a param table given an OpenAPI specification file
+    ParamTable(ParamTableOpt),
+    ///Prints out an endpoint table given an OpenAPI specification file
+    EpTable(EpTableOpt),
+    ///Creates a new map from a given log file, outputs a digest file to the local directory
+    Mapper(MapperOpt),
+    ///Load more logs to an existing map
+    Load(LoadOpt),
+    ///Prepare the attacker for the attack
+    Prepare(PrepareOpt),
+    ///Attacks your domain based on an existing map
+    Attack(AttackOpt),
+}
+#[derive(Parser,Debug,Clone)]
+#[clap(author, version, about, long_about = None)]
+#[clap(propagate_version = true)]
+struct Cli {
+    #[clap(subcommand)]
+    command: Commands,
+}
+pub fn parse_oas(oas:OASOpt){
+    let res = match oas.format{
+        OutputFormat::Cli=>{
+            let f = run_swagger(&oas.file,oas.verbosity.unwrap_or(1),oas.output,&oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),false);
+            println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
+            f 
+        },
+        OutputFormat::Web=>{
+            0
+        },
+        OutputFormat::Txt=>{
+            let f = run_swagger(&oas.file,oas.verbosity.unwrap_or(1),
+            Some(oas.output.unwrap_or_else(|| SWAGGER_OUTPUT_FILE.to_string())),
+            &oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),
+            false
+            );
+            println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
+            f 
+        },
+        OutputFormat::Json=>{
+            run_swagger(&oas.file,oas.verbosity.unwrap_or(1),oas.output,&oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),true)
+        },
+    };
+    std::process::exit(res.into());
+}
+pub fn parse_param_table(p_table:ParamTableOpt){
+    param_table(&p_table.file,p_table.name); 
+    println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
+}
+pub fn parse_ep_table(e_table:EpTableOpt){
+    ep_table(&e_table.file,e_table.path);
+    println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
+}
+pub fn parse_mapper(mapper:MapperOpt){
+    map(mapper.file,mapper.output.unwrap_or_else(|| MAP_FILE.to_string()),mapper.hint);
+    println!("\n\nFor better map visualization you can go and sign up at {} and get access to our dashboards!\n","https://www.blstsecurity.com".bold().underline());
+}
+pub fn parse_load(load1:LoadOpt){
+    load(load1.file,load1.map.unwrap_or_else(|| MAP_FILE.to_string()));
+    println!("\n\nFor better map visualization you can go and sign up at {} and get access to our dashboards!\n","https://www.blstsecurity.com".bold().underline());
+}
+pub fn parse_prepare(prep:PrepareOpt){
+    prepare_attacker(prep.url,prep.map);
+}
+pub fn parse_attack(attack:AttackOpt){
+    let verbosity = match attack.verbosity{
+        0 => {
+            println!("Verbosity level is Max");
+            Verbosity::Verbose
+        }
+        1 => {
+            println!("Verbosity level is Default");
+            Verbosity::Default
+        }
+        2 => {
+            println!("Verbosity level is Basic");
+            Verbosity::Basic
+        }
+        3 => {
+            println!("Verbosity level is None");
+            Verbosity::None
+        }
+        _ => {
+            println!("Verbosity level is Default");
+            Verbosity::Default
+        }
+    };
+    let auth = if let Some(AuthCmd::Auth(opt)) = attack.auth{
+        Authorization::from_parts(&opt.tp,opt.token) 
+    }else{
+        Authorization::None
+    };
+    let header = match attack.header{
+        Some(h)=>{
+            if !h.trim().is_empty() {
+                let split1 = h.split(':').collect::<Vec<&str>>();
+                vec![Header::from(split1[0], split1[1])]
             } else {
-                map(l.to_string(), MAP_FILE.to_string());
+                vec![]
             }
-        }
-    } else if let Some(vars) = matches.subcommand_matches("prepare") {
-        if let Some(u) = vars.value_of("URL") {
-            if let Some(m) = vars.value_of("MAP") {
-                prepare_attacker(u.to_string(), m.to_string());
-            } else {
-                prepare_attacker(u.to_string(), MAP_FILE.to_string());
-            }
-        }
-    } else if let Some(vars) = matches.subcommand_matches("attack") {
-        let m = match vars.value_of("MAP") {
-            Some(r) => r.to_string(),
-            None => MAP_FILE.to_string(),
-        };
-        let o = match vars.value_of("DECIDE_FILE") {
-            Some(r) => r.to_string(),
-            None => DECIDE_FILE.to_string(),
-        };
-        let p = match vars.value_of("POP") {
-            Some(r) => r.parse::<usize>().unwrap(),
-            None => 0usize,
-        };
-        let g = match vars.value_of("GEN") {
-            Some(r) => r.parse::<usize>().unwrap(),
-            None => 1usize,
-        };
-        let v = match vars.value_of("VERBOSITY") {
-            Some(r) => match r {
-                "0" => {
-                    println!("Verbosity level is Max");
-                    Verbosity::Verbose
-                }
-                "1" => {
-                    println!("Verbosity level is Default");
-                    Verbosity::Default
-                }
-                "2" => {
-                    println!("Verbosity level is Basic");
-                    Verbosity::Basic
-                }
-                "3" => {
-                    println!("Verbosity level is None");
-                    Verbosity::None
-                }
-                _ => {
-                    println!("Verbosity level is Default");
-                    Verbosity::Default
-                }
-            },
-            None => Verbosity::Default,
-        };
-        let h = match vars.value_of("HEADER") {
-            Some(h) => {
-                if !h.trim().is_empty() {
-                    let split1 = h.split(':').collect::<Vec<&str>>();
-                    vec![Header::from(split1[0], split1[1])]
-                } else {
-                    vec![]
-                }
-            }
-            None => vec![],
-        };
-        let a = match vars.subcommand_matches("auth") {
-            Some(vars) => match vars.value_of("TYPE") {
-                Some(v) => match vars.value_of("TOKEN") {
-                    Some(v2) => Authorization::from_parts(v, v2.to_string()),
-                    None => Authorization::None,
-                },
-                None => Authorization::None,
-            },
-            None => Authorization::None,
-        };
-        attack_domain(m, o, p, g, v, h, a).await;
-    } else if let Some(vars) = matches.subcommand_matches("decide") {
-        if let Some(d) = vars.value_of("LOG_FILE") {
-            if let Some(m) = vars.value_of("MAP") {
-                decide_sessions(d.to_string(), m.to_string());
-            } else {
-                decide_sessions(d.to_string(), MAP_FILE.to_string());
-            }
-        }
-    } else if let Some(vars) = matches.subcommand_matches("load") {
-        if let Some(l) = vars.value_of("LOGS_FILE") {
-            if let Some(m) = vars.value_of("MAP") {
-                load(l.to_string(), m.to_string());
-            } else {
-                load(l.to_string(), MAP_FILE.to_string());
-            }
-        }
-    } else {
-        //println!("\n\n\n######  #        #####  #######\n#     # #       #     #    #\n#     # #       #          #\n######  #        #####     #\n#     # #             #    #\n#     # #       #     #    #\n######  #######  #####     #\n\n");
-        println!(
+        },
+        None=>vec![],
+    };
+    block_on(attack_domain(attack.map,attack.decide_file,attack.population.into(),attack.generations.into(),verbosity,header,auth));
+}
+fn main() {
+    let opt = Cli::parse();
+    match opt.command{
+        Commands::Oas(opt)=>parse_oas(opt),
+        Commands::Swagger(opt)=>parse_oas(opt.to_oas_opt()),
+        Commands::ParamTable(opt)=>parse_param_table(opt),
+        Commands::EpTable(opt)=>parse_ep_table(opt),
+        Commands::Mapper(opt)=>parse_mapper(opt),
+        Commands::Load(opt)=>parse_load(opt),
+        Commands::Prepare(opt)=>parse_prepare(opt),
+        Commands::Attack(opt)=>parse_attack(opt),
+/*        _=>{
+            println!(
             "\n\n\n  __ ._______   .____      ._______________________.  __
  / /\\/      /\\  /   /\\     /   _______             /\\/ /\\
 /_/ /    ----/\\/   /_/__  /_____     /___.    ____/ /_/ /
 \\ \\/    __  / /        /\\/   /_/    / / /     /\\__\\/\\_\\/
   /________/ /________/ /__________/ / /_____/ /
-  \\.   .___\\/\\.   .___\\/\\.   ._____\\/  \\. .__\\/\n\n"
-        );
-        println!("\nFIRECRACKER v{}", VERSION);
-        println!("\nFor more information try {}", "--help".green());
+  \\.   .___\\/\\.   .___\\/\\.   ._____\\/  \\. .__\\/\n"
+            );
+            println!("\nCHERRYBOMB v{}", VERSION);
+            println!("\nFor more information try {}", "--help".green());
+        }*/
     }
-    Ok(())
 }
+
