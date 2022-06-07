@@ -41,7 +41,7 @@ impl Check for PassiveChecks {
         }
     }
 }
-
+/*
 impl Check for ActiveChecks {
     fn alerts_text(&self) -> ColoredString {
         match self.inner().len() {
@@ -67,7 +67,7 @@ impl Check for ActiveChecks {
             "PASSED"
         }
     }
-}
+}*/
 impl_passive_checks![
     //name in enum   check function   check name    check description
     (CheckServerUrl,check_server_url,"SERVER URL","Checks for server url misconfigurations"),

@@ -70,7 +70,7 @@ pub fn print_alerts_table(checks: &[PassiveChecks]) {
     }
 }
 
-pub fn print_attack_alerts_table(checks: &[ActiveChecks]) {
+/*pub fn print_attack_alerts_table(checks: &[ActiveChecks]) {
     println!(
         "{:pad$}| SEVERITY | CERTAINTY |{:thing$}|DESCRIPTION\n{:-<table_len$}",
         "CHECK",
@@ -89,7 +89,7 @@ pub fn print_attack_alerts_table(checks: &[ActiveChecks]) {
         }
     }
 }
-
+*/
 impl fmt::Display for PassiveChecks {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.result() == "PASSED" {
@@ -123,7 +123,7 @@ impl fmt::Display for PassiveChecks {
         }
     }
 }
-
+/*
 impl fmt::Display for ActiveChecks {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.result() == "PASSED" {
@@ -156,7 +156,7 @@ impl fmt::Display for ActiveChecks {
             write!(f, "")
         }
     }
-}
+}*/
 impl fmt::Display for Alert {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.certainty==Certainty::Passive{
