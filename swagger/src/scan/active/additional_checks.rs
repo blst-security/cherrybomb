@@ -59,10 +59,7 @@ fn unwind_scheme(reference: &SchemaRef, oas: &Value ) -> Value{
                     unwind_scheme(&schema, &oas)
                 }
                 SchemaRef::Schema(schema) => {
-                    if let Some(len) = schema.min_length{
-
-                    }
-                    else if let Some(example) = schema.example {
+                     if let Some(example) = schema.example {
                          example
                     }
                     else{

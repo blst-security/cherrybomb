@@ -19,6 +19,6 @@ async fn main() {
     use futures::executor;
     executor::block_on(a.run(ActiveScanType::Full,&Authorization::None));
 
-    a.print(0);
+    // a.print(0);
 
 }
