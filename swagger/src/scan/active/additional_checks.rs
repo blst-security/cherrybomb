@@ -1,6 +1,8 @@
 use super::*;
 use serde_json::json;
 
+
+
 impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_default(&self, auth: &Authorization) -> Vec<Alert> {
         let mut alerts = vec![];
