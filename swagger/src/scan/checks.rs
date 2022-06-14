@@ -93,7 +93,7 @@ impl_passive_checks![
     (CheckValidEncoding, check_valid_encoding, "CONTENT_TYPE ", "Checks for valid and common value for content-type header"),
     (CheckExample, check_example,"EXAMPLE","Check if there is an example for request body and response"),
     (CheckDescription, check_descriptions, "DESCRIPTION", "Check if there is a description for the current endpoint Response or Request"),
-    (CheckBodyRequest, check_body_request, "VALID BODY", "Check if there is a body request for POST and PUT method")
+    (CheckBodyRequest, check_body_request, "VALID BODY", "Check if there is a body request for POST and PUT method"),
 ];
 
 impl_active_checks![
