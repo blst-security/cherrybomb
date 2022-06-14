@@ -227,24 +227,8 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                 }
             }
         }
-        //             match &op.request_body {
-        //                 Some(value)=> (),
-        //                 None=> alerts.push(Alert::new(Level::Info,"No request body for this ",format!("method:{} swagger path:{}.",m, path))),
-        //             }
-        //         }
-        //     }
-        // }
-        alerts
-    }
-    pub fn check_test(&self) -> Vec<Alert>{
-        let mut alerts: Vec<Alert> = vec![];
-        for (path, item) in &self.swagger.get_paths(){
-         //
-            println!("{:?}",path);
-          //  dbg!(item);
-         //   println!("PATH::{:?}",item );
-        }
         alerts
     }
 
 }
+
