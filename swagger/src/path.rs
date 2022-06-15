@@ -81,7 +81,7 @@ pub struct PathItem {
     #[serde(rename = "$ref")]
     pub item_ref: Option<String>,
     pub summary: Option<String>,
-    pub descrition: Option<String>,
+    pub description: Option<String>,
     pub get: Option<Operation>,
     pub put: Option<Operation>,
     pub post: Option<Operation>,
