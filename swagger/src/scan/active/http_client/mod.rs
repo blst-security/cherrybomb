@@ -22,7 +22,7 @@ pub struct AttackResponse {
 pub struct AttackRequest {
     pub path: String,
     pub parameters: Vec<RequestParameter>,
-    pub payload:String,
+    pub payload: String,
     pub auth: Authorization,
     pub method: Method,
     pub headers: Vec<MHeader>,

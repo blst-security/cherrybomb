@@ -7,8 +7,8 @@ use utils::*;
 mod flow;
 //use flow::*;
 mod http_client;
-use http_client::*;
 pub use http_client::Authorization;
+use http_client::*;
 mod logs;
 use logs::*;
 
@@ -44,27 +44,27 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             }
         }
     }
-    pub async fn run(&mut self, tp: ActiveScanType,auth:&Authorization) {
+    pub async fn run(&mut self, tp: ActiveScanType, auth: &Authorization) {
         //->Vec<PassiveChecks>{
         match tp {
             ActiveScanType::Full => {
                 for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check,auth).await);
+                    self.checks.push(self.run_check(check, auth).await);
                 }
             }
             ActiveScanType::NonInvasive => {
                 for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check,auth).await);
+                    self.checks.push(self.run_check(check, auth).await);
                 }
-            } 
+            }
             ActiveScanType::OnlyTests => {
                 for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check,auth).await);
+                    self.checks.push(self.run_check(check, auth).await);
                 }
-            } 
+            }
             ActiveScanType::Partial(checks) => {
                 for check in checks {
-                    self.checks.push(self.run_check(check,auth).await);
+                    self.checks.push(self.run_check(check, auth).await);
                 }
             }
         };
@@ -74,10 +74,10 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             0 => {
                 //print_checks_table(&self.checks);
                 print_attack_alerts_table(&self.checks);
-            },
+            }
             1 => {
                 //print_checks_table(&self.checks);
-            },
+            }
             2 => print_failed_checks_table(&self.checks),
             _ => (),
         }

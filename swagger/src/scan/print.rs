@@ -4,8 +4,10 @@ pub const LEFT_PAD: usize = 40;
 pub const TBL_LEN: usize = 190;
 pub const URL_LEN: usize = 75;
 
-pub fn print_checks_table<T>(checks: &[T]) 
-where T:fmt::Display+Check{
+pub fn print_checks_table<T>(checks: &[T])
+where
+    T: fmt::Display + Check,
+{
     println!(
         "{:pad$}| RESULT | TOP SEVERITY | ALERTS  |DESCRIPTION\n{:-<table_len$}",
         "CHECK",
@@ -17,8 +19,10 @@ where T:fmt::Display+Check{
         println!("{}", check);
     }
 }
-pub fn print_failed_checks_table<T>(checks: &[T]) 
-where T:fmt::Display+Check{
+pub fn print_failed_checks_table<T>(checks: &[T])
+where
+    T: fmt::Display + Check,
+{
     println!(
         "{:pad$}| RESULT | TOP SEVERITY | ALERTS  |DESCRIPTION\n{:-<table_len$}",
         "CHECK",
@@ -32,21 +36,21 @@ where T:fmt::Display+Check{
         }
     }
 }
-fn split_text_to_lines(string:&str)->Vec<String>{
+fn split_text_to_lines(string: &str) -> Vec<String> {
     let mut new_vec = vec![];
-    let mut new_str = String::new(); 
+    let mut new_str = String::new();
     let line_len = 75;
     let mut c = 0;
-    for t in string.split(' '){
-        if !t.trim().is_empty(){
-            c+=t.len()+1;
-            if c>line_len{
+    for t in string.split(' ') {
+        if !t.trim().is_empty() {
+            c += t.len() + 1;
+            if c > line_len {
                 c = t.len();
                 new_str.pop();
                 new_vec.push(new_str);
-                new_str = format!(" {}",t);
-            }else{
-                new_str.push_str(&format!("{} ",t.trim()));
+                new_str = format!(" {}", t);
+            } else {
+                new_str.push_str(&format!("{} ", t.trim()));
             }
         }
     }
@@ -84,7 +88,7 @@ pub fn print_attack_alerts_table(checks: &[ActiveChecks]) {
         if check.result() == "FAILED" {
             for _ in check.inner() {
                 // println!("{:pad$}|{}", check.name().cyan().bold(), alert, pad = 30)
-                println!("{}",serde_json::to_string(&check).unwrap());
+                println!("{}", serde_json::to_string(&check).unwrap());
             }
         }
     }
@@ -159,7 +163,7 @@ impl fmt::Display for ActiveChecks {
 }
 impl fmt::Display for Alert {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.certainty==Certainty::Passive{
+        if self.certainty == Certainty::Passive {
             let location = self
                 .location
                 .replace("swagger root", "")
@@ -175,7 +179,7 @@ impl fmt::Display for Alert {
                 location[0].bright_magenta().bold(),
                 self.description.bright_red().bold(),
             ));
-            for loc in location.iter().skip(1){
+            for loc in location.iter().skip(1) {
                 string.push_str(&format!(
                     "{:30}|{:9}|{:75}|  {}\n",
                     "",
@@ -184,9 +188,9 @@ impl fmt::Display for Alert {
                     ""
                 ));
             }
-            string.push_str(&format!("\n{:-<190}",""));
-            write!(f,"{}",string)
-        }else{
+            string.push_str(&format!("\n{:-<190}", ""));
+            write!(f, "{}", string)
+        } else {
             /*write!(
                 f,
                 "  {}| {}  |{:thing$}|  {:}\n{:-<table_len$}",
@@ -198,7 +202,7 @@ impl fmt::Display for Alert {
                 thing=URL_LEN,
                 table_len = TBL_LEN
             )*/
-            write!(f,"")
+            write!(f, "")
         }
     }
 }
@@ -217,10 +221,16 @@ impl fmt::Display for Certainty {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Low => write!(f, "{:8}", "LOW".bright_black().bold()),
-            Self::Medium => write!(f, "{:8}", "MEDIUM".bright_black()/*.truecolor(255, 167, 38)*/.bold()),
+            Self::Medium => write!(
+                f,
+                "{:8}",
+                "MEDIUM"
+                    .bright_black() /*.truecolor(255, 167, 38)*/
+                    .bold()
+            ),
             Self::High => write!(f, "{:8}", "HIGH".bright_black().bold()),
             Self::Certain => write!(f, "{:8}", "CERTAIN".bright_black().bold()),
-            Self::Passive=> write!(f, ""),
+            Self::Passive => write!(f, ""),
         }
     }
 }

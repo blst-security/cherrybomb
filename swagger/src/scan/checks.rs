@@ -1,6 +1,6 @@
 use super::*;
-use crate::scan::passive::*;
 use crate::scan::active::*;
+use crate::scan::passive::*;
 use strum_macros::EnumIter;
 
 ///Add the rule name to this enum
@@ -10,7 +10,7 @@ impl Default for PassiveChecks {
         Self::CheckServerUrl(vec![])
     }
 }
-pub trait Check{
+pub trait Check {
     fn alerts_text(&self) -> ColoredString;
     fn top_severity(&self) -> Level;
     fn result(&self) -> &'static str;
@@ -94,8 +94,9 @@ impl_passive_checks![
     (CheckExample, check_example,"EXAMPLE","Check if there is an example for request body and response"),
     (CheckDescription, check_descriptions, "DESCRIPTION", "Check if there is a description for the current endpoint Response or Request"),
     (CheckBodyRequest, check_body_request, "VALID BODY", "Check if there is a body request for POST and PUT method"),
+    (CheckOperation, check_contains_operation, "OPERATION", "Check if there is an operation"),
+    (CheckResponse, check_contains_response, "RESPONSE", "Check if there is a response"),
+    (CheckParameterName, check_param_name, "PARAMETERS", "Check if the parameter name is correct")
 ];
 
-impl_active_checks![
-    (CheckDefault, check_default,"DEFAULT","default check")
-];
+impl_active_checks![(CheckDefault, check_default, "DEFAULT", "default check")];

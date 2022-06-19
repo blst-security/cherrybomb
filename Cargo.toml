@@ -39,7 +39,7 @@ cli = {version="0.6",path="cli"}
 mapper = {path="./mapper"}
 attacker = {path="./attacker"}
 decider = {path="./decider"}
-                                                                                                      swagger = {path="./swagger"}
+swagger = {path="./swagger"}
 clap = { version = "^3", features = ["derive"] }
 uuid = { version = "0.8", features = ["v4","serde"] }
 serde = { version = "^1.0", features = ["derive"] }
