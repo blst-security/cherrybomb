@@ -8,9 +8,30 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+
+  cargo-fmt:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build
+      - uses: actions/checkout@v3
+      - name: Format
+        run: cargo fmt 
+  
+  cargo-clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Clippy
+        env:
+          RUSTFLAGS: "-D warnings"
+        run: cargo clippy --verbose
+  
+  cargo-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        env:
+          RUSTFLAGS: "-Awarnings"
+        run: cargo build
+  
+      
