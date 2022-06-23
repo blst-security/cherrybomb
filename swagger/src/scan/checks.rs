@@ -96,7 +96,8 @@ impl_passive_checks![
     (CheckBodyRequest, check_body_request, "VALID BODY", "Check if there is a body request for POST and PUT method"),
     (CheckOperation, check_contains_operation, "OPERATION", "Check if there is an operation"),
     (CheckResponse, check_contains_response, "RESPONSE", "Check if there is a response"),
-    (CheckParameterName, check_param_name, "PARAMETERS", "Check if the parameter name is correct")
+   // (CheckParameterName, check_param_name, "PARAMETERS", "Check if the parameter name is correct"),
+  (CheckParameterName, check_param_object, "PARAMETERS", "Check if the parameter name is correct")
 ];
 
 impl_active_checks![(CheckDefault, check_default, "DEFAULT", "default check")];

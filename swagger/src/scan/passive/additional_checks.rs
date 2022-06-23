@@ -51,7 +51,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
 
                 for status in statuses {
                     if let Ok(res) = status.parse::<u16>() {
-                        if res < 100 || res > 599 {
+                        if !(100..=599).contains(&res) {
                             alerts.push(Alert::new(
                                 Level::Low,
                                 "Responses have an invalid or unrecognized status code",
@@ -151,7 +151,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
     pub fn check_contains_operation(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
-            if item.get_ops().len() == 0 {
+            if item.get_ops().is_empty() {
                 alerts.push(Alert::new(
                     Level::Low,
                     "Path has no operations",
@@ -165,7 +165,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
     pub fn check_valid_encoding(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
-            for (m, op) in item.get_ops() {
+            for (_m, op) in item.get_ops() {
                 if let Some(responses) = &op.responses {
                     for res_ref in responses.values() {
                         if let Some(content) = res_ref.inner(&self.swagger_value).content {
@@ -202,7 +202,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {
                 if let Some(refer) = &op.request_body {
-                    let hash = refer.inner({ &Value::Null }).content;
+                    let hash = refer.inner(&Value::Null).content;
                     for i in hash.values() {
                         if i.examples.as_ref() == None {
                             alerts.push(Alert::new(
@@ -272,7 +272,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                 if let Some(value) = &op.responses {
                     for i in value.values() {
                         let resp_body_descrip = i.inner(&Value::Null).description;
-                        if resp_body_descrip == "" && resp_body_descrip == " " {
+                        if resp_body_descrip.is_empty() && resp_body_descrip.is_empty() {
                             alerts.push(Alert::new(
                                 Level::Info,
                                 "This response for this ",
@@ -298,11 +298,11 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
             for (m, op) in item.get_ops() {
                 if m.to_string() == "POST" || m.to_string() == "PUT" {
                     match &op.request_body {
-                        Some(value) => (),
+                        Some(_value) => (),
                         None => alerts.push(Alert::new(
                             Level::Info,
                             "No request body for this ",
-                            format!("method:{} swagger path:{}.", m, path),
+                            format!("swagger path:{}.", path),
                         )),
                     }
                 }
@@ -314,7 +314,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {
-                if let Some(value) = &op.responses {
+                if let Some(_value) = &op.responses {
                 } else {
                     alerts.push(Alert::new(
                         Level::Low,
@@ -326,22 +326,72 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         }
         alerts
     }
-    pub fn check_param_name(&self) -> Vec<Alert> {
+    // pub fn check_param_name(&self) -> Vec<Alert> {
+    //     let mut alerts: Vec<Alert> = vec![];
+    //     for (path, item) in &self.swagger.get_paths() {
+    //         for (m, op) in item.get_ops() {
+    //             let text = path.to_string();
+
+    //             if let Some(captures) = PATH_REGEX.captures(&text) {
+
+    //                 for i in op.params().iter_mut(){
+    //                     let parameter = i.inner(&Value::Null);
+
+    //                     if  !parameter.name.to_string().eq(&captures[1].to_string()) && String::from("path").eq(&parameter.param_in.to_string()){
+    //                         alerts.push(Alert::new(Level::Medium,"The path parameter has not a valid name ",format!("method:{} swagger path:{}.", m, path)));
+    //                     }
+    //                  }
+
+    //             }
+    //         }
+    //     }
+    //     alerts
+    // }
+    pub fn check_param_name_path(param: Parameter , path_str: String) -> Vec<Alert> {
+        let mut alerts: Vec<Alert> = vec![];
+        let item = param.param_in.to_string();
+        let param_name = param.name.to_string();
+        let in_var = param.required;
+        if let Some(captures) = PATH_REGEX.captures(&path_str) {
+            if !item.eq(&captures[1].to_string()) {
+                alerts.push(Alert::new(
+                    Level::Medium,
+                    "The path parameter has not a valid name ",
+                    format!("swagger path:{}.", path_str),
+                ));
+            }
+        }
+        if let Some(flag)= in_var {
+            if !flag{ alerts.push(Alert::new(
+                Level::Medium,
+                "The field name \"required\" must to be true, for param path .",
+                format!("swagger path:{}.", path_str),
+            )); }
+        }
+
+        alerts
+    }
+
+    pub fn check_param_object(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {
                 let text = path.to_string();
-
-                if let Some(captures) = PATH_REGEX.captures(&text) {
-
-                    for i in op.params().iter_mut(){
-                        let parameter = i.inner(&Value::Null);
-
-                        if  !parameter.name.to_string().eq(&captures[1].to_string()) && String::from("path").eq(&parameter.param_in.to_string()){
-                            alerts.push(Alert::new(Level::Medium,"The path parameter has not a valid name ",format!("method:{} swagger path:{}.", m, path)));
-                        }
-                     }
-
+                for i in op.params().iter_mut() {
+                    let parameter = i.inner(&Value::Null);
+                    let in_var = parameter.param_in.to_string();
+                    let param_name = parameter.name.to_string();
+                    match in_var.as_str() {
+                       "header" => {},
+                       "query" => {},
+                       "path" => alerts.extend(Self::check_param_name_path(parameter, path.to_string())),
+                       "cookie" => {},
+                        _ => alerts.push(Alert::new(
+                            Level::Medium,
+                            "The \"in\"field is not correct",
+                            format!("method:{} swagger path:{}.", m, path),
+                        )),
+                    };
                 }
             }
         }
