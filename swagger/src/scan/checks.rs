@@ -94,5 +94,5 @@ impl_passive_checks![
 ];
 
 impl_active_checks![
-    (CheckDefault, check_default,"DEFAULT","default check")
+    (CheckDefault, check_min_max,not_2xx,"NUMBER LIMITS ENFORCED","checks that the api enforces the number limits in the OAS")
 ];

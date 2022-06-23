@@ -53,10 +53,10 @@ impl Alert {
             certainty: Certainty::Passive,
         }
     }
-    pub fn with_certainty(level: Level, description: &'static str, location: String,certainty:Certainty) -> Alert {
+    pub fn with_certainty(level: Level, description: String, location: String,certainty:Certainty) -> Alert {
         Alert {
             level,
-            description: description.to_string(),
+            description,
             location,
             certainty,
         }
