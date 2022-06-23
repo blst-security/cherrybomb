@@ -1,6 +1,6 @@
 use super::*;
-use crate::scan::passive::*;
 use crate::scan::active::*;
+use crate::scan::passive::*;
 use strum_macros::EnumIter;
 
 ///Add the rule name to this enum
@@ -10,7 +10,7 @@ impl Default for PassiveChecks {
         Self::CheckServerUrl(vec![])
     }
 }
-pub trait Check{
+pub trait Check {
     fn alerts_text(&self) -> ColoredString;
     fn top_severity(&self) -> Level;
     fn result(&self) -> &'static str;
@@ -77,7 +77,7 @@ impl_passive_checks![
     (CheckResponseBodySchema,check_response_body_schema,"RESPONSE BODY SCHEMA","Checks the response body schema, and alerts when there is none"),
     (CheckDefaultType,check_default_type,"DEFAULT TYPE","Checks that the default type is the same as the parameter type"),
     (CheckEnumType,check_enum_type,"ENUM TYPE","Checks that the Enum type is the same as the parameter type"),
-    //(CheckRequiredUndefined,check_required_undefined,"REQUIRED UNDEFINED","Checks for any required parameters that are undefined"),
+    (CheckRequiredUndefined,check_required_undefined,"REQUIRED UNDEFINED","Checks for any required parameters that are undefined"),
     (CheckUnusedSchema,check_unused_schema,"UNUSED SCHEMA","Checks for unused schemas"),
     (Check401,check_401,"401","Checks for a 401 response if there is authentication necessary"),
     (Check403,check_403,"403","Checks for a 403 response if there is authentication necessary"),
@@ -90,9 +90,14 @@ impl_passive_checks![
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definition of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes"),
     (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONS", "Checks for correct permission configuration for GET/PUT/POST requests"),
-    (CheckContainsOperation, check_contains_operation, "CONTAINS OPERATION", "Checks that each path contains at least one operation")
+    (CheckValidEncoding, check_valid_encoding, "CONTENT_TYPE ", "Checks for valid and common value for content-type header"),
+    (CheckExample, check_example,"EXAMPLE","Check if there is an example for request body and response"),
+    (CheckDescription, check_descriptions, "DESCRIPTION", "Check if there is a description for the current endpoint Response or Request"),
+    (CheckBodyRequest, check_body_request, "VALID BODY", "Check if there is a body request for POST and PUT method"),
+    (CheckOperation, check_contains_operation, "OPERATION", "Check if there is an operation"),
+    (CheckResponse, check_contains_response, "RESPONSE", "Check if there is a response"),
+   // (CheckParameterName, check_param_name, "PARAMETERS", "Check if the parameter name is correct"),
+  (CheckParameterName, check_param_object, "PARAMETERS", "Check if the parameter name is correct")
 ];
 
-impl_active_checks![
-    (CheckDefault, check_default,"DEFAULT","default check")
-];
+impl_active_checks![(CheckDefault, check_default, "DEFAULT", "default check")];

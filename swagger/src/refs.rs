@@ -23,7 +23,7 @@ impl Reference {
                 val = &val[s];
             }
             serde_json::from_value(val.clone()).unwrap()
-        } else{
+        } else {
             panic!("external ref")
         }
     }
