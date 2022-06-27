@@ -17,7 +17,7 @@ use serde_json::json;
 use std::iter;
 
 
-type CheckRet = (Vec<(ResponseData, AttackResponse)>,AttackLog);
+type CheckRet = (Vec<(ResponseData, AttackResponse)>, AttackLog);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ActiveScanType {
@@ -31,7 +31,7 @@ type OASMap = HashMap<Vec<String>, Schema>;
 type StaticThingy = HashMap<String, (Value, OASMap)>;
 
 #[derive(Default)]
-pub struct ResponseData{
+pub struct ResponseData {
     location: String,
     alert_text: String,
 }
@@ -60,7 +60,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                 return Err("Failed at deserializing swagger value to a swagger struct, please check the swagger definition");
             }
         };
-        let static_props = Self::static_thingy_creator(&oas,&oas_value);
+        let static_props = Self::static_thingy_creator(&oas, &oas_value);
         Ok(ActiveScan {
             oas,
             oas_value,
@@ -98,7 +98,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         match verbosity {
             0 => {
                 //print_checks_table(&self.checks);
-                println!("{:?}",self.checks);
+                println!("{:?}", self.checks);
                 // print_attack_alerts_table(&self.checks);
             }
             1 => {
@@ -112,17 +112,17 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         String::new()
     }
 
-    pub fn static_thingy_creator(oas: &T, oas_value : &Value) -> StaticThingy {
+    pub fn static_thingy_creator(oas: &T, oas_value: &Value) -> StaticThingy {
         let mut ret_val = StaticThingy::new();
         for (path, item) in oas.get_paths() {
             let (map, payload)
-                = Self::build_payload( oas_value, &item);
+                = Self::build_payload(oas_value, &item);
             ret_val.insert(path.clone(), (payload, map));
         }
         ret_val
     }
 
-    pub fn build_payload(oas_value: &Value,path_item: &PathItem) -> (HashMap<Vec<String>, Schema>, Value) {
+    pub fn build_payload(oas_value: &Value, path_item: &PathItem) -> (HashMap<Vec<String>, Schema>, Value) {
         let mut payload = json!({});
         let mut map: HashMap<Vec<String>, Schema> = HashMap::new();
         for (_, op) in path_item.get_ops() {
@@ -131,7 +131,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                     let mut path = Vec::<String>::new();
                     if let Some(s_ref) = &med_t.schema {
                         path.push(Self::get_name_s_ref(s_ref, oas_value, &None));
-                        payload = Self::unwind_scheme(oas_value, s_ref, &mut map, &mut path);
+                        payload = Self::unwind_schema(oas_value, s_ref, &mut map, &mut path);
                     }
                 }
             }
@@ -139,20 +139,19 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         (map, payload)
     }
 
-    pub fn unwind_scheme( oas_value: &Value, reference: &SchemaRef,
+    pub fn unwind_schema(oas_value: &Value, reference: &SchemaRef,
                          map: &mut HashMap<Vec<String>, Schema>,
                          path: &mut Vec<String>) -> Value {
         let mut payload = json!({});
         let reference = reference.inner(oas_value);
         if let Some(example) = reference.example {
-            todo!();
-        }
-        if let Some(prop_map) = reference.properties {
+            payload = example;
+        } else if let Some(prop_map) = reference.properties {
             for (name, schema) in prop_map {
                 path.push(name.clone());
                 payload[&name] = match schema {
                     SchemaRef::Ref(_) => {
-                        Self::unwind_scheme(oas_value, &schema, map, path)
+                        Self::unwind_schema(oas_value, &schema, map, path)
                     }
                     SchemaRef::Schema(schema) => {
                         map.insert(
@@ -168,8 +167,25 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                     }
                 };
             }
-        } else if let Some(item_map) = reference.items {
-            // todo!();
+        } else if let Some(item_ref) = reference.items { // dup code from properties, probably could be improved aesthetically
+            payload = json!([
+                match *item_ref {
+                    SchemaRef::Ref(_)=>{
+                        Self::unwind_schema(oas_value, &item_ref, map, path)
+                    }
+                    SchemaRef::Schema(schema) => {
+                        map.insert(
+                            path.clone(),
+                            *schema.clone(),
+                        );
+                        path.pop();
+                        if let Some(example) = schema.example {
+                            example
+                        } else {
+                            Self::gen_default_value(schema)
+                        }
+                    }
+                }]);
         }
         payload
     }

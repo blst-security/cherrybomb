@@ -18,7 +18,7 @@ impl AttackLog {
         self.log_vec.push(NetInteraction {
             req: req_in.clone(),
             res: res_in.clone(),
-            description: des_in.clone(),
+            description: des_in,
         })
     }
 }
