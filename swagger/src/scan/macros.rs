@@ -1,3 +1,4 @@
+
 #[macro_export]
 macro_rules! impl_passive_checks{
     ( $( ($check:ident,$check_func:ident,$name:literal,$desc:literal )),* ) => {
@@ -56,7 +57,7 @@ macro_rules! impl_active_checks{
         #[derive(Debug, Clone, Serialize, Deserialize, PartialEq,Eq, EnumIter)]
         pub enum ActiveChecks{
             $(
-                $check(Vec<Alert>),
+                $check((Vec<Alert>,AttackLog)),
             )*
         }
         impl ActiveChecks{
@@ -77,7 +78,7 @@ macro_rules! impl_active_checks{
             pub fn inner(&self)->Vec<Alert>{
                 match &self{
                     $(
-                        ActiveChecks::$check(i)=>i.to_vec(),
+                        ActiveChecks::$check(i)=>i.0.to_vec(),
                     )*
                 }
             }
@@ -86,7 +87,7 @@ macro_rules! impl_active_checks{
             pub async fn run_check(&self,check:ActiveChecks,auth:&Authorization)->ActiveChecks{
                 match check{
                     $(
-                        ActiveChecks::$check(_)=>ActiveChecks::$check(self.$response_func(self.$check_func(auth).await)),
+                        ActiveChecks::$check(_)=>ActiveChecks::$check(Self::$response_func(self.$check_func(auth).await)),
                     )*
                 }
             }

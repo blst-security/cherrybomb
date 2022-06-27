@@ -12,10 +12,12 @@ mod logs;
 use http_client::*;
 pub use http_client::Authorization;
 use utils::*;
-use logs::*;
+pub use logs::*;
 use serde_json::json;
 use std::iter;
 
+
+type CheckRet = (Vec<(ResponseData, AttackResponse)>,AttackLog);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ActiveScanType {
@@ -27,6 +29,12 @@ pub enum ActiveScanType {
 
 type OASMap = HashMap<Vec<String>, Schema>;
 type StaticThingy = HashMap<String, (Value, OASMap)>;
+
+#[derive(Default)]
+pub struct ResponseData{
+    location: String,
+    alert_text: String,
+}
 
 #[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
 pub struct ActiveScan<T>
@@ -101,8 +109,6 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         }
     }
     pub fn print_to_file_string(&self) -> String {
-        //let mut string = String::new();
-        //string
         String::new()
     }
 
@@ -124,7 +130,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                 for (_, med_t) in req.inner(oas_value).content {
                     let mut path = Vec::<String>::new();
                     if let Some(s_ref) = &med_t.schema {
-                        path.push(Self::get_name_s_ref(&s_ref, oas_value, &None));
+                        path.push(Self::get_name_s_ref(s_ref, oas_value, &None));
                         payload = Self::unwind_scheme(oas_value, s_ref, &mut map, &mut path);
                     }
                 }
