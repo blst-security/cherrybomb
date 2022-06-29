@@ -11,6 +11,6 @@ RUN cargo install --path .
 RUN cargo build --release
 
 # pass on cli file from builder as cherrybomb 
-FROM debian
+FROM debian:stable
 COPY --from=builder /cherrybomb/target/release/cherrybomb .
 ENTRYPOINT ["/cherrybomb"]
