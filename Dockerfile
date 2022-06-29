@@ -1,8 +1,16 @@
-FROM clux/muslrust:1.45.0-stable as builder
-WORKDIR /volume
-COPY . .
+FROM clux/muslrust:1.61.0 as builder
+
+WORKDIR /cherrybomb
+
+COPY . /cherrybomb/
+
+# install rust dependencies
+RUN cargo install --path .
+
+# build release cli executable
 RUN cargo build --release
 
+# pass on cli file from builder as cherrybomb 
 FROM alpine
-COPY --from=builder /volume/target/x86_64-unknown-linux-musl/release/docker-cli-sample .
-ENTRYPOINT [ "/docker-cli-sample" ]
+COPY --from=builder /cherrybomb/target/release/cherrybomb .
+ENTRYPOINT ["/cherrybomb"]
