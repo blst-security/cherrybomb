@@ -1,5 +1,6 @@
+use super::*;
 use base64::encode;
-use mapper::digest::Header as MHeader;
+//use mapper::digest::Header as MHeader;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]

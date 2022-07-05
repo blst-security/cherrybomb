@@ -3,14 +3,14 @@ use std::str::FromStr;
 use std::fmt;
 use colored::*;
 use cli::*;
-use attacker::{Authorization, Verbosity};
-use mapper::digest::Header;
-use futures::executor::block_on;
+//use attacker::{Authorization, Verbosity};
+//use mapper::digest::Header;
+//use futures::executor::block_on;
 
-const MAP_FILE: &str = "map";
+//const MAP_FILE: &str = "map";
 const SWAGGER_OUTPUT_FILE: &str = "results.txt";
 const CONFIG_DEFAULT_FILE: &str = ".cherrybomb/config.json";
-const DECIDE_FILE: &str = "decide";
+//const DECIDE_FILE: &str = "decide";
 
 #[derive(Copy,Clone,Debug)]
 pub enum OutputFormat{
@@ -61,36 +61,6 @@ pub struct OASOpt {
     config: Option<String>,
 }
 #[derive(Parser, Debug,Clone)]
-#[clap(name = "swagger")]
-pub struct SwaggerOpt {
-    ///The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)
-    #[clap(short = 'v', long)]
-    verbosity: Option<u8>,
-    ///The output's format type -> cli/txt/json
-    #[clap(long,default_value_t=OutputFormat::Cli)]
-    format: OutputFormat,
-    ///The output file, for the alerts and checks
-    #[clap(short, long)]
-    output: Option<String>,
-    ///The OAS file path
-    #[clap(long,short)]
-    file: String,
-    ///The config file path
-    #[clap(short,long)]
-    config: Option<String>,
-}
-impl SwaggerOpt{
-    pub fn to_oas_opt(&self)->OASOpt{
-        OASOpt{
-            verbosity:self.verbosity,
-            format:self.format,
-            output:self.output.clone(),
-            file:self.file.clone(),
-            config:self.config.clone(),
-        }
-    }
-}
-#[derive(Parser, Debug,Clone)]
 #[clap(name = "param-table")]
 pub struct ParamTableOpt {
     ///An option to present a single parameter with that name.
@@ -116,7 +86,7 @@ pub struct EpTableOpt {
     #[clap(long,short)]
     file: String,
 }
-
+/*
 #[derive(Parser, Debug,Clone)]
 #[clap(name = "mapper")]
 pub struct MapperOpt {
@@ -128,7 +98,7 @@ pub struct MapperOpt {
     file: String,
     ///OpenAPI specification given as a hint to the mapper
     #[clap(long,short)]
-    hint: Option<String>
+    lhint: Option<String>
 }
 #[derive(Parser, Debug,Clone)]
 #[clap(name = "mapper")]
@@ -188,17 +158,18 @@ pub struct AttackOpt {
     ///Adds an auth token to the Attacker's requests, for auth based apps
     #[clap(subcommand)]
     auth:Option<AuthCmd>,
-}
+}*/
 #[derive(Subcommand,Debug,Clone)]
 enum Commands{
     ///Runs a set of passive checks on a given OpenAPI specification file
     Oas(OASOpt),
     ///Runs a set of passive checks on a given OpenAPI specification file
-    Swagger(SwaggerOpt),
+    Swagger(OASOpt),
     ///Prints out a param table given an OpenAPI specification file
     ParamTable(ParamTableOpt),
     ///Prints out an endpoint table given an OpenAPI specification file
     EpTable(EpTableOpt),
+    /*
     ///Creates a new map from a given log file, outputs a digest file to the local directory
     Mapper(MapperOpt),
     ///Load more logs to an existing map
@@ -206,7 +177,7 @@ enum Commands{
     ///Prepare the attacker for the attack
     Prepare(PrepareOpt),
     ///Attacks your domain based on an existing map
-    Attack(AttackOpt),
+    Attack(AttackOpt),*/
 }
 #[derive(Parser,Debug,Clone)]
 #[clap(author, version, about, long_about = None)]
@@ -248,8 +219,9 @@ pub fn parse_ep_table(e_table:EpTableOpt){
     ep_table(&e_table.file,e_table.path);
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
+/*
 pub fn parse_mapper(mapper:MapperOpt){
-    map(mapper.file,mapper.output.unwrap_or_else(|| MAP_FILE.to_string()),mapper.hint);
+    map(mapper.file,mapper.output.unwrap_or_else(|| MAP_FILE.to_string()),mapper.lhint);
     println!("\n\nFor better map visualization you can go and sign up at {} and get access to our dashboards!\n","https://www.blstsecurity.com".bold().underline());
 }
 pub fn parse_load(load1:LoadOpt){
@@ -299,18 +271,18 @@ pub fn parse_attack(attack:AttackOpt){
         None=>vec![],
     };
     block_on(attack_domain(attack.map,attack.decide_file,attack.population.into(),attack.generations.into(),verbosity,header,auth));
-}
+}*/
 fn main() {
     let opt = Cli::parse();
     match opt.command{
         Commands::Oas(opt)=>parse_oas(opt),
-        Commands::Swagger(opt)=>parse_oas(opt.to_oas_opt()),
+        Commands::Swagger(opt)=>parse_oas(opt),
         Commands::ParamTable(opt)=>parse_param_table(opt),
         Commands::EpTable(opt)=>parse_ep_table(opt),
-        Commands::Mapper(opt)=>parse_mapper(opt),
+        /*Commands::Mapper(opt)=>parse_mapper(opt),
         Commands::Load(opt)=>parse_load(opt),
         Commands::Prepare(opt)=>parse_prepare(opt),
-        Commands::Attack(opt)=>parse_attack(opt),
+        Commands::Attack(opt)=>parse_attack(opt),*/
 /*        _=>{
             println!(
             "\n\n\n  __ ._______   .____      ._______________________.  __

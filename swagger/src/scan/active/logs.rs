@@ -1,10 +1,31 @@
 use super::*;
-use mapper::digest::{ReqRes,Session};
+//use mapper::digest::{ReqRes,Session};
 use std::fs::OpenOptions;
 use std::io::Write;
 use uuid::Uuid;
 // use regex::Regex;
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct ReqRes {
+    pub req_headers: HashMap<String, String>,
+    pub res_headers: HashMap<String, String>,
+    pub path: String,
+    pub method: Method,
+    pub status: u16,
+    pub req_payload: String,
+    pub res_payload: String,
+    pub req_query: String,
+}
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct Session {
+    pub req_res: Vec<ReqRes>,
+    pub token: String,
+}
+impl Session {
+    pub fn new(req_res: Vec<ReqRes>, token: String) -> Session {
+        Session { req_res, token }
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct AttackLog{
     pub requests:Vec<AttackRequest>,

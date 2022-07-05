@@ -1,6 +1,6 @@
 [package]
 name = "cli"
-version = "0.6.1"
+version = "0.7.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -13,9 +13,9 @@ serde_json = "1.0"
 tokio = { version = "^1.0", features = ["full"] }
 futures = "0.3"
 futures-util = { version = "^0.3", default-features = false, features = ["alloc"] }
-mapper = { path = "../mapper" }
-decider = { path = "../decider" }
-attacker = { path = "../attacker" }
+#mapper = { path = "../mapper" }
+#decider = { path = "../decider" }
+#attacker = { path = "../attacker" }
 swagger = { path = "../swagger" }
 reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls"] }
 colored = "2.0.0"

@@ -15,9 +15,11 @@ use ep::*;
 pub mod scan;
 pub mod tables;
 pub use tables::*;
-use mapper::digest::{Method, ParamDescriptor, PayloadDescriptor, QuePay, ValueDescriptor};
-use mapper::path::Path as DPath;
+//use mapper::digest::{Method, ParamDescriptor, PayloadDescriptor, QuePay, ValueDescriptor};
+//use mapper::path::Path as DPath;
 pub use scan::*;
+mod utils;
+pub use utils::*;
 
 //Info Object
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]

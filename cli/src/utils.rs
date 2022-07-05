@@ -1,18 +1,18 @@
 use super::*;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
-use mapper::digest::*;
+//use mapper::digest::*;
 use colored::*;
-use std::collections::HashMap;
-use httparse::Status;
+//use std::collections::HashMap;
+//use httparse::Status;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq,Eq)]
 pub struct ClientReqRes {
     pub request: String,
     pub response: String,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+/*
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq,Eq)]
 pub struct Log {
     pub session: Vec<ClientReqRes>,
 }
@@ -35,7 +35,7 @@ pub struct WebMap {
     pub eps: Vec<Endpoint>,
     pub groups: Vec<WebMapGroup>,
 }
-
+*/
 pub fn print_err(err: &str) {
     println!("Error: {}", err.red());
 }
@@ -75,6 +75,7 @@ pub fn get_oas_value_version(file:&str)->Option<(serde_json::Value,String)>{
     let version = swagger_value["openapi"].to_string().trim().replace('\"',"");
     Some((swagger_value,version))
 }
+/*
 pub fn parse_http(file_data: &str) -> Result<Vec<Session>, String> {
     let mut ret = vec![];
     let mut errors = String::new();
@@ -195,8 +196,7 @@ pub fn vec_sessions_parse(logs: &str) -> Result<Vec<Session>, String> {
         Err(e0) => match serde_json::from_str::<Session>(logs) {
             Ok(r) => Ok(vec![r]),
             Err(e1) => {
-                let mut err: String = format!("{}", e0);
-                err += &format!("\n{}", e1);
+                let err: String = format!("{}\n{}", e0,e1);
                 Err(err)
             }
         },
@@ -270,7 +270,7 @@ pub fn parse_map_file(digest: Digest) -> Result<String, serde_json::Error> {
         groups: new_groups,
     };
     serde_json::to_string(&map)
-}
+}*/
 pub fn write_to_file(file_name: &str, value: String) {
     match OpenOptions::new()
         .write(true)

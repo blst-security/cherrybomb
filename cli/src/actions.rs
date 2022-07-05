@@ -1,10 +1,10 @@
 use super::*;
-use attacker::*;
-use colored::*;
-use decider::*;
-use mapper::digest::*;
-use mapper::*;
-use url::Url;
+//use attacker::*;
+//use colored::*;
+//use decider::*;
+//use mapper::digest::*;
+//use mapper::*;
+//use url::Url;
 use swagger::scan::passive::PassiveSwaggerScan;
 use swagger::scan::Level;
 //use swagger::scan::active::{ActiveScan,ActiveScanType};
@@ -145,7 +145,7 @@ pub fn ep_table(file:&str,path:Option<String>){
         print_err("Unsupported OpenAPI specification version");
     }
 }
-
+/*
 pub fn map(logs_file: String, output: String,hint_file:Option<String>) {
     let logs = match read_file(&logs_file) {
         Some(r) => r,
@@ -434,4 +434,4 @@ pub fn load(logs_file: String, map_file: String) {
     } else {
         print_err("Something went wrong while mapping, check the errors above");
     }
-}
+}*/
