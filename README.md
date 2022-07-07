@@ -145,6 +145,6 @@ If you have any questions, please send us a message to [support@blstsecurity.com
 You are also welcome to open an Issue here on GitHub.
 
 # 🤝 Contributing
-You can find ciontribution options from our open issues, you should look for the "More passive checks" issue(it's a great issue to start from).
+You can find contribution options from our open issues, you should look for the "More passive checks" issue(it's a great issue to start from).
 You can also find info about contributing new checks to Cherrybomb [here](https://github.com/blst-security/cherrybomb/blob/main/CONTRIBUTING.md).</br>
 If you have any question or need any help talk to us over at our [discord server](https://discord.gg/WdHhv4DqwU) to see where and how can you contribute to our project.
