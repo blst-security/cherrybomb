@@ -1,7 +1,7 @@
 use super::*;
 
 impl<T: OAS + Serialize> ActiveScan<T> {
-    pub fn not_2xx(check_ret: CheckRet) -> (Vec<Alert>,AttackLog) {
+    pub fn not_2xx(check_ret: CheckRetVal) -> (Vec<Alert>,AttackLog) {
         let mut ret_val = vec![];
         for (res_data, response) in check_ret.0.into_iter() {
             if (200..300u16).contains(&response.status) {
