@@ -41,7 +41,7 @@ impl AttackRequestBuilder {
             path:self.path.clone(),
             parameters:self.parameters.clone(),
             auth:self.auth.clone(),
-            method:self.method.clone(),
+            method:self.method,
             headers:self.headers.clone(),
             payload:self.payload.clone(),
         }
@@ -50,7 +50,7 @@ impl AttackRequestBuilder {
 impl std::fmt::Display for AttackRequest {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (mut payload,query,path,headers) = self.params_to_payload();  
-        if payload.trim().len() ==0{
+        if payload.trim().is_empty(){
             payload = "NONE".to_string();
         }
         write!(f, "{}: {}{}\t{}: {}\t{}: {}\t{}: {}","Path".green().bold(),path.magenta(),query.magenta(),"Method".green().bold(),self.method.to_string().magenta(),"Payload".green().bold(),payload.magenta(),"Headers".green().bold(),format!("{:?}",headers).magenta())
@@ -123,7 +123,7 @@ impl AttackRequest {
                         .iter()
                         .map(|(n, v)| (n.to_string(), format!("{:?}", v)))
                         .collect(),
-                    payload: res.text().await.unwrap_or(String::new()),
+                    payload: res.text().await.unwrap_or_default(),
                 })
             },
             Err(e)=>{
