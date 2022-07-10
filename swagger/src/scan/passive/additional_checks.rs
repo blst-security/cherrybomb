@@ -12,8 +12,8 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                     .collect::<Vec<String>>();
 
                 for status in statuses {
-                    if let Ok(res) = status.parse::<u16>() {
-                        if res < 100 || res > 599 {
+                    if let Ok(res_code) = status.parse::<u16>() {
+                        if !(100..600).contains(&res_code){
                             alerts.push(Alert::new(
                                 Level::Low,
                                 "Responses have an invalid or unrecognized status code",
@@ -101,7 +101,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
     pub fn check_contains_operation(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
-            if item.get_ops().len() == 0 {
+            if item.get_ops().is_empty() {
                 alerts.push(Alert::new(Level::Low, "Path has no operations"
                  , format!("swagger path:{} ", path)));
             }

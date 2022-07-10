@@ -30,7 +30,7 @@ async fn sign_up(filename:&Path,dir:&Path)->bool{
                         }
                     }
                 }
-                Err(e)=>{
+                Err(_e)=>{
                     //println!("{:?}",e);
                     //panic!("Could not generate a CLI token, please contact BLST at support@blstsecurity.com");
                     return false;
