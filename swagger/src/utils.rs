@@ -122,16 +122,16 @@ impl fmt::Display for QuePay {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
-pub struct Header {
-    pub name: String,
-    pub value: String,
-}
-impl Header{
-    pub fn from(name:&str,value:&str)->Header{
-        Header{name:name.to_string(),value:value.to_string()}
-    }
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+// pub struct Header {
+//     pub name: String,
+//     pub value: String,
+// }
+// impl Header{
+//     pub fn from(name:&str,value:&str)->Header{
+//         Header{name:name.to_string(),value:value.to_string()}
+//     }
+// }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum StrNum{
     String(String),
@@ -158,21 +158,21 @@ pub struct EpHeader{
     pub name:String,
     pub value:EpHeaderValue,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
-pub struct HeaderMap {
-    pub headers: Vec<EpHeader>,
-}
-impl HeaderMap {
-    pub fn new(headers: Vec<EpHeader>) -> HeaderMap {
-        HeaderMap { headers }
-    }
-    pub fn insert(&mut self, header: EpHeader) {
-        //shouldn't exist
-        if !self.headers.contains(&header) {
-            self.headers.push(header);
-        }
-    }
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+// pub struct HeaderMap {
+//     pub headers: Vec<EpHeader>,
+// }
+// impl HeaderMap {
+//     pub fn new(headers: Vec<EpHeader>) -> HeaderMap {
+//         HeaderMap { headers }
+//     }
+//     pub fn insert(&mut self, header: EpHeader) {
+//         //shouldn't exist
+//         if !self.headers.contains(&header) {
+//             self.headers.push(header);
+//         }
+//     }
+// }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Split<T> {
     pub values: Vec<T>,
