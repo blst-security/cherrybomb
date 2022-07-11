@@ -50,7 +50,7 @@ cherrybomb oas --file <PATH> --config <PATH> --verbosity <0/1/2> --format <cli/t
 #### Output example for verbosity level 1:
 ![checks_table](/images/checks_table.png)
 #### Output example for verbosity level 0:
-![alerts_table](/images/checks_table.png)
+![alerts_table](/images/alerts_table.png)
 
 ### Generate Parameter Table
 ```
