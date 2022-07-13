@@ -2,6 +2,93 @@ use super::*;
 use crate::scan::passive::*;
 use crate::scan::active::*;
 use strum_macros::EnumIter;
+ 
+const LIST_PARAM: [&str; 84] = [
+    "page",
+    "url",
+    "ret",
+    "r2",
+    "img",
+    "u",
+    "return",
+    "r",
+    "URL",
+    "next",
+    "redirect",
+    "redirectBack",
+    "AuthState",
+    "referer",
+    "redir",
+    "l",
+    "aspxerrorpath",
+    "image_path",
+    "ActionCodeURL",
+    "return_url",
+    "link",
+    "q",
+    "location",
+    "ReturnUrl",
+    "uri",
+    "referrer",
+    "returnUrl",
+    "forward",
+    "file",
+    "rb",
+    "end_display",
+    "urlact",
+    "from",
+    "goto",
+    "path",
+    "redirect_url",
+    "old",
+    "pathlocation",
+    "successTarget",
+    "returnURL",
+    "urlsito",
+    "newurl",
+    "Url",
+    "back",
+    "retour",
+    "odkazujuca_linka",
+    "r_link",
+    "cur_url",
+    "H_name",
+    "ref",
+    "topic",
+    "resource",
+    "returnTo",
+    "home",
+    "node",
+    "sUrl",
+    "href",
+    "linkurl",
+    "returnto",
+    "redirecturl",
+    "SL",
+    "st",
+    "errorUrl",
+    "media",
+    "destination",
+    "targeturl",
+    "return_to",
+    "cancel_url",
+    "doc",
+    "GO",
+    "ReturnTo",
+    "anything",
+    "FileName",
+    "logoutRedirectURL",
+    "list",
+    "startUrl",
+    "service",
+    "redirect_to",
+    "end_url",
+    "_next",
+    "noSuchEntryRedirect",
+    "context",
+    "returnurl",
+    "ref_url",
+];
 
 ///Add the rule name to this enum
 impl Default for PassiveChecks {
@@ -94,5 +181,33 @@ impl_passive_checks![
 ];
 
 impl_active_checks![
-    (CheckMinMax, check_min_max,not_2xx,"NUMBER LIMITS ENFORCED","checks that the api enforces the number limits in the OAS")
+    (CheckMinMax, check_min_max,not_2xx,"NUMBER LIMITS ENFORCED","checks that the api enforces the number limits in the OAS"),
+    (
+         CheckStringMaxLength,
+       check_string_length_max,
+        not_2xx,
+       "STRING LEN",
+        "check that the api validate the String length"
+    ),
+    (
+        OpenRedirect,
+        check_open_redirect,
+        check_if_3xx,
+        "open redirect",
+        "Check if the API may be vulnerable to openredirect"
+    ),
+    (
+        ParameterPollution,
+        check_parameter_pollution,
+        reflected_and_2xx,
+        "parameter pollution",
+        "Check if the endpoint is vulnerable to http pollution"
+    ),
+    (
+            CheckSSL,
+            check_ssl,
+            not_2xx,
+            "encrypted communication",
+            "Check if the connection is secure"
+        )
 ];
