@@ -6,7 +6,7 @@ use colored::*;
 //use std::collections::HashMap;
 //use httparse::Status;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq,Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct ClientReqRes {
     pub request: String,
     pub response: String,
@@ -58,22 +58,27 @@ pub fn read_file(mut file_name: &str) -> Option<String> {
     };
     Some(file_data)
 }
-pub fn get_oas_value_version(file:&str)->Option<(serde_json::Value,String)>{
-    let swagger_str = match read_file(file){
-        Some(s)=>s,
-        None=>{
+pub fn get_oas_value_version(file: &str) -> Option<(serde_json::Value, String)> {
+    let swagger_str = match read_file(file) {
+        Some(s) => s,
+        None => {
             print_err(&format!("Failed at reading swagger file \"{}\"", file));
             return None;
         }
     };
-    let swagger_value:serde_json::Value = if let Ok(s) = serde_json::from_str(&swagger_str){ s } 
-    else if let Ok(s) = serde_yaml::from_str::<serde_json::Value>(&swagger_str){ s } 
-    else{
-            print_err(&format!("Failed at parsing swagger json file:\"{}\"", file));
-            return None;
+    let swagger_value: serde_json::Value = if let Ok(s) = serde_json::from_str(&swagger_str) {
+        s
+    } else if let Ok(s) = serde_yaml::from_str::<serde_json::Value>(&swagger_str) {
+        s
+    } else {
+        print_err(&format!("Failed at parsing swagger json file:\"{}\"", file));
+        return None;
     };
-    let version = swagger_value["openapi"].to_string().trim().replace('\"',"");
-    Some((swagger_value,version))
+    let version = swagger_value["openapi"]
+        .to_string()
+        .trim()
+        .replace('\"', "");
+    Some((swagger_value, version))
 }
 /*
 pub fn parse_http(file_data: &str) -> Result<Vec<Session>, String> {

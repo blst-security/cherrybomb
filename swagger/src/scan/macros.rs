@@ -1,4 +1,3 @@
-
 #[macro_export]
 macro_rules! impl_passive_checks{
     ( $( ($check:ident,$check_func:ident,$name:literal,$desc:literal )),* ) => {

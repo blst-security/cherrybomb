@@ -2,20 +2,18 @@ use super::*;
 use strum::IntoEnumIterator;
 
 mod additional_checks;
-mod response_checks;
-mod utils;
 mod flow;
 mod http_client;
 mod logs;
+mod response_checks;
+mod utils;
 
-
-use http_client::*;
 pub use http_client::Authorization;
+use http_client::*;
 // use utils::*;
 pub use logs::*;
 use serde_json::json;
-use std::{iter, collections::HashSet};
-
+use std::{collections::HashSet, iter};
 
 type CheckRetVal = (Vec<(ResponseData, AttackResponse)>, AttackLog);
 
@@ -27,8 +25,7 @@ pub enum ActiveScanType {
     OnlyTests,
 }
 
-
-type PayloadMap= HashMap<Vec<String>, Schema>;
+type PayloadMap = HashMap<Vec<String>, Schema>;
 
 #[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
 pub struct Payload {
@@ -36,7 +33,7 @@ pub struct Payload {
     pub map: PayloadMap,
 }
 #[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
-pub struct Path{
+pub struct Path {
     pub path_item: PathItem,
     pub path: String,
 }
@@ -55,8 +52,8 @@ pub struct ResponseData {
 
 #[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
 pub struct ActiveScan<T>
-    where
-        T: Serialize,
+where
+    T: Serialize,
 {
     oas: T,
     oas_value: Value,
@@ -64,7 +61,6 @@ pub struct ActiveScan<T>
     checks: Vec<ActiveChecks>,
     payloads: Vec<OASMap>,
     logs: AttackLog,
-
 }
 
 impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
@@ -128,25 +124,21 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         String::new()
     }
 
-
     fn payloads_generator(oas: &T, oas_value: &Value) -> Vec<OASMap> {
         let mut payloads = vec![];
         for (path, path_item) in oas.get_paths() {
-            payloads.push(
-                OASMap { 
-                    path: (Path{
-                        path_item: path_item.clone(),
-                        path}),
-                    payload: 
-                        Self::build_payload(oas_value, &path_item)
-                    }
-            );
+            payloads.push(OASMap {
+                path: (Path {
+                    path_item: path_item.clone(),
+                    path,
+                }),
+                payload: Self::build_payload(oas_value, &path_item),
+            });
         }
         payloads
     }
 
-
-    pub fn build_payload(oas_value: &Value, path_item: &PathItem) -> Payload{
+    pub fn build_payload(oas_value: &Value, path_item: &PathItem) -> Payload {
         let mut payload = json!({});
         let mut map: PayloadMap = HashMap::new();
         for (_, op) in path_item.get_ops() {
@@ -156,24 +148,27 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                     if let Some(s_ref) = &med_t.schema {
                         let mut visited_schemes = HashSet::new();
                         path.push(Self::get_name_s_ref(s_ref, oas_value, &None));
-                        payload = Self::unwind_schema(oas_value, s_ref, &mut map, &mut path, &mut visited_schemes);
+                        payload = Self::unwind_schema(
+                            oas_value,
+                            s_ref,
+                            &mut map,
+                            &mut path,
+                            &mut visited_schemes,
+                        );
                     }
                 }
             }
         }
-        Payload{
-            payload,
-            map,
-        }
+        Payload { payload, map }
     }
 
-
     pub fn unwind_schema(
-        oas_value: &Value, reference: &SchemaRef,
+        oas_value: &Value,
+        reference: &SchemaRef,
         map: &mut HashMap<Vec<String>, Schema>,
         path: &mut Vec<String>,
         visited_schemes: &mut HashSet<String>,
-        ) -> Value {
+    ) -> Value {
         let mut payload = json!({});
         let reference = reference.inner(oas_value);
         if let Some(example) = reference.example {
@@ -187,15 +182,13 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                             panic!("Circular reference detected");
                         }
                         visited_schemes.insert(r.param_ref.clone());
-                        let ret = Self::unwind_schema(oas_value, &schema, map, path,visited_schemes);
+                        let ret =
+                            Self::unwind_schema(oas_value, &schema, map, path, visited_schemes);
                         visited_schemes.remove(&r.param_ref);
                         ret
                     }
                     SchemaRef::Schema(schema) => {
-                        map.insert(
-                            path.clone(),
-                            *schema.clone(),
-                        );
+                        map.insert(path.clone(), *schema.clone());
                         path.pop();
                         if let Some(example) = schema.example {
                             example
@@ -205,64 +198,62 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                     }
                 };
             }
-        } else if let Some(item_ref) = reference.items { // dup code from properties, probably could be improved
-            payload = json!([
-                match *item_ref {
-                    SchemaRef::Ref(ref r) => {
-                        if visited_schemes.contains(&r.param_ref) {
-                            panic!("Circular reference detected");
-                        }
-                        visited_schemes.insert(r.param_ref.clone());
-                        let ret = Self::unwind_schema(oas_value, &item_ref, map, path,visited_schemes);
-                        visited_schemes.remove(&r.param_ref);
-                        ret
+        } else if let Some(item_ref) = reference.items {
+            // dup code from properties, probably could be improved
+            payload = json!([match *item_ref {
+                SchemaRef::Ref(ref r) => {
+                    if visited_schemes.contains(&r.param_ref) {
+                        panic!("Circular reference detected");
                     }
-                    SchemaRef::Schema(schema) => {
-                        map.insert(
-                            path.clone(),
-                            *schema.clone(),
-                        );
-                        path.pop();
-                        if let Some(example) = schema.example {
-                            example
-                        } else {
-                            Self::gen_default_value(schema)
-                        }
+                    visited_schemes.insert(r.param_ref.clone());
+                    let ret = Self::unwind_schema(oas_value, &item_ref, map, path, visited_schemes);
+                    visited_schemes.remove(&r.param_ref);
+                    ret
+                }
+                SchemaRef::Schema(schema) => {
+                    map.insert(path.clone(), *schema.clone());
+                    path.pop();
+                    if let Some(example) = schema.example {
+                        example
+                    } else {
+                        Self::gen_default_value(schema)
                     }
-                }]);
+                }
+            }]);
         }
         payload
     }
 
     pub fn gen_default_value(schema: Box<Schema>) -> Value {
-        let ret: Value =
-            if let Some(data_type) = schema.schema_type {
-                match data_type.as_str() {
-                    "string" => {
-                        if let Some(num) = schema.min_length {
-                            json!(iter::repeat(['B','L','S','T']).
-                            flatten().
-                            take(num.try_into().unwrap()).
-                            collect::<String>())
-                        } else { json!("BLST") }
-                    }
-                    "integer" => {
-                        if let Some(num) = schema.minimum {
-                            json!(num)
-                        } else {
-                            json!(5usize)
-                        }
-                    }
-                    "boolean" => {
-                        json!(false)
-                    }
-                    _ => {
-                        json!({})
+        let ret: Value = if let Some(data_type) = schema.schema_type {
+            match data_type.as_str() {
+                "string" => {
+                    if let Some(num) = schema.min_length {
+                        json!(iter::repeat(['B', 'L', 'S', 'T'])
+                            .flatten()
+                            .take(num.try_into().unwrap())
+                            .collect::<String>())
+                    } else {
+                        json!("BLST")
                     }
                 }
-            } else {
-                json!({})
-            };
+                "integer" => {
+                    if let Some(num) = schema.minimum {
+                        json!(num)
+                    } else {
+                        json!(5usize)
+                    }
+                }
+                "boolean" => {
+                    json!(false)
+                }
+                _ => {
+                    json!({})
+                }
+            }
+        } else {
+            json!({})
+        };
         ret
     }
 

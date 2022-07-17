@@ -1,8 +1,8 @@
 use super::*;
-use crate::scan::passive::*;
 use crate::scan::active::*;
+use crate::scan::passive::*;
 use strum_macros::EnumIter;
- 
+
 const LIST_PARAM: [&str; 84] = [
     "page",
     "url",
@@ -97,7 +97,7 @@ impl Default for PassiveChecks {
         Self::CheckServerUrl(vec![])
     }
 }
-pub trait Check{
+pub trait Check {
     fn alerts_text(&self) -> ColoredString;
     fn top_severity(&self) -> Level;
     fn result(&self) -> &'static str;
@@ -181,12 +181,18 @@ impl_passive_checks![
 ];
 
 impl_active_checks![
-    (CheckMinMax, check_min_max,not_2xx,"NUMBER LIMITS ENFORCED","checks that the api enforces the number limits in the OAS"),
     (
-         CheckStringMaxLength,
-       check_string_length_max,
+        CheckMinMax,
+        check_min_max,
         not_2xx,
-       "STRING LEN",
+        "NUMBER LIMITS ENFORCED",
+        "checks that the api enforces the number limits in the OAS"
+    ),
+    (
+        CheckStringMaxLength,
+        check_string_length_max,
+        not_2xx,
+        "STRING LEN",
         "check that the api validate the String length"
     ),
     (
@@ -204,10 +210,17 @@ impl_active_checks![
         "Check if the endpoint is vulnerable to http pollution"
     ),
     (
-            CheckSSL,
-            check_ssl,
-            not_2xx,
-            "encrypted communication",
-            "Check if the connection is secure"
-        )
+        CheckSSL,
+        check_ssl,
+        not_2xx,
+        "encrypted communication",
+        "Check if the connection is secure"
+    ),
+    (
+        MethodPermissions,
+        check_method_permissions,
+        not_2xx,
+        "Method  permission  ",
+        "Check if the endpoint is correctly configured"
+    )
 ];

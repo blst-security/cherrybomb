@@ -1,8 +1,8 @@
-use clap::{Parser,Subcommand};
-use std::str::FromStr;
-use std::fmt;
-use colored::*;
+use clap::{Parser, Subcommand};
 use cli::*;
+use colored::*;
+use std::fmt;
+use std::str::FromStr;
 //use attacker::{Authorization, Verbosity};
 //use mapper::digest::Header;
 //use futures::executor::block_on;
@@ -12,36 +12,36 @@ const SWAGGER_OUTPUT_FILE: &str = "results.txt";
 const CONFIG_DEFAULT_FILE: &str = ".cherrybomb/config.json";
 //const DECIDE_FILE: &str = "decide";
 
-#[derive(Copy,Clone,Debug)]
-pub enum OutputFormat{
+#[derive(Copy, Clone, Debug)]
+pub enum OutputFormat {
     Json,
     Txt,
     Cli,
-    Web
+    Web,
 }
 impl FromStr for OutputFormat {
     type Err = &'static str;
     fn from_str(input: &str) -> Result<OutputFormat, Self::Err> {
         match input.to_lowercase().as_str() {
-            "json"  => Ok(OutputFormat::Json),
-            "txt"  => Ok(OutputFormat::Txt),
-            "cli"  => Ok(OutputFormat::Cli),
-            "web"  => Ok(OutputFormat::Web),
-            _      => Err("None"),
+            "json" => Ok(OutputFormat::Json),
+            "txt" => Ok(OutputFormat::Txt),
+            "cli" => Ok(OutputFormat::Cli),
+            "web" => Ok(OutputFormat::Web),
+            _ => Err("None"),
         }
     }
 }
-impl fmt::Display for OutputFormat{
+impl fmt::Display for OutputFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self{
-            Self::Json=>write!(f, "JSON"),
-            Self::Txt=>write!(f, "TXT"),
-            Self::Cli=>write!(f, "CLI"),
-            Self::Web=>write!(f, "WEB"),
+        match self {
+            Self::Json => write!(f, "JSON"),
+            Self::Txt => write!(f, "TXT"),
+            Self::Cli => write!(f, "CLI"),
+            Self::Web => write!(f, "WEB"),
         }
     }
 }
-#[derive(Parser, Debug,Clone)]
+#[derive(Parser, Debug, Clone)]
 #[clap(name = "oas")]
 pub struct OASOpt {
     ///The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)
@@ -54,36 +54,36 @@ pub struct OASOpt {
     #[clap(short, long)]
     output: Option<String>,
     ///The OAS file path
-    #[clap(long,short)]
+    #[clap(long, short)]
     file: String,
     ///The config file path
-    #[clap(short,long)]
+    #[clap(short, long)]
     config: Option<String>,
 }
-#[derive(Parser, Debug,Clone)]
+#[derive(Parser, Debug, Clone)]
 #[clap(name = "param-table")]
 pub struct ParamTableOpt {
     ///An option to present a single parameter with that name.
     #[clap(short, long)]
-    name:Option<String>,
+    name: Option<String>,
     ///The output file
     #[clap(short, long)]
     output: Option<String>,
     ///The OAS file
-    #[clap(long,short)]
+    #[clap(long, short)]
     file: String,
 }
-#[derive(Parser, Debug,Clone)]
+#[derive(Parser, Debug, Clone)]
 #[clap(name = "ep-table")]
 pub struct EpTableOpt {
     ///An option to present a single endpoint with that path
     #[clap(short, long)]
-    path:Option<String>,
+    path: Option<String>,
     ///The output file
     #[clap(short, long)]
     output: Option<String>,
     ///The OAS file
-    #[clap(long,short)]
+    #[clap(long, short)]
     file: String,
 }
 /*
@@ -159,8 +159,8 @@ pub struct AttackOpt {
     #[clap(subcommand)]
     auth:Option<AuthCmd>,
 }*/
-#[derive(Subcommand,Debug,Clone)]
-enum Commands{
+#[derive(Subcommand, Debug, Clone)]
+enum Commands {
     ///Runs a set of passive checks on a given OpenAPI specification file
     Oas(OASOpt),
     ///Runs a set of passive checks on a given OpenAPI specification file
@@ -179,44 +179,51 @@ enum Commands{
     ///Attacks your domain based on an existing map
     Attack(AttackOpt),*/
 }
-#[derive(Parser,Debug,Clone)]
+#[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
 #[clap(propagate_version = true)]
 struct Cli {
     #[clap(subcommand)]
     command: Commands,
 }
-pub fn parse_oas(oas:OASOpt){
-    let res = match oas.format{
-        OutputFormat::Cli=>{
+pub fn parse_oas(oas: OASOpt) {
+    let res = match oas.format {
+        OutputFormat::Cli => {
             let f = run_swagger(&oas.file,oas.verbosity.unwrap_or(1),oas.output,&oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),false);
             println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
-            f 
-        },
-        OutputFormat::Web=>{
-            0
-        },
-        OutputFormat::Txt=>{
+            f
+        }
+        OutputFormat::Web => 0,
+        OutputFormat::Txt => {
             let f = run_swagger(&oas.file,oas.verbosity.unwrap_or(1),
             Some(oas.output.unwrap_or_else(|| SWAGGER_OUTPUT_FILE.to_string())),
             &oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),
             false
             );
             println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
-            f 
-        },
-        OutputFormat::Json=>{
-            run_swagger(&oas.file,oas.verbosity.unwrap_or(1),oas.output,&oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),true)
-        },
+            f
+        }
+        OutputFormat::Json => run_swagger(
+            &oas.file,
+            oas.verbosity.unwrap_or(1),
+            oas.output,
+            &oas.config.unwrap_or_else(|| {
+                println!(
+                    "No config file was loaded to the scan, default configuration is being used\n"
+                );
+                CONFIG_DEFAULT_FILE.to_string()
+            }),
+            true,
+        ),
     };
     std::process::exit(res.into());
 }
-pub fn parse_param_table(p_table:ParamTableOpt){
-    param_table(&p_table.file,p_table.name); 
+pub fn parse_param_table(p_table: ParamTableOpt) {
+    param_table(&p_table.file, p_table.name);
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
-pub fn parse_ep_table(e_table:EpTableOpt){
-    ep_table(&e_table.file,e_table.path);
+pub fn parse_ep_table(e_table: EpTableOpt) {
+    ep_table(&e_table.file, e_table.path);
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
 /*
@@ -255,7 +262,7 @@ pub fn parse_attack(attack:AttackOpt){
         }
     };
     let auth = if let Some(AuthCmd::Auth(opt)) = attack.auth{
-        Authorization::from_parts(&opt.tp,opt.token) 
+        Authorization::from_parts(&opt.tp,opt.token)
     }else{
         Authorization::None
     };
@@ -274,27 +281,26 @@ pub fn parse_attack(attack:AttackOpt){
 }*/
 fn main() {
     let opt = Cli::parse();
-    match opt.command{
-        Commands::Oas(opt)=>parse_oas(opt),
-        Commands::Swagger(opt)=>parse_oas(opt),
-        Commands::ParamTable(opt)=>parse_param_table(opt),
-        Commands::EpTable(opt)=>parse_ep_table(opt),
+    match opt.command {
+        Commands::Oas(opt) => parse_oas(opt),
+        Commands::Swagger(opt) => parse_oas(opt),
+        Commands::ParamTable(opt) => parse_param_table(opt),
+        Commands::EpTable(opt) => parse_ep_table(opt),
         /*Commands::Mapper(opt)=>parse_mapper(opt),
-        Commands::Load(opt)=>parse_load(opt),
-        Commands::Prepare(opt)=>parse_prepare(opt),
-        Commands::Attack(opt)=>parse_attack(opt),*/
-/*        _=>{
-            println!(
-            "\n\n\n  __ ._______   .____      ._______________________.  __
- / /\\/      /\\  /   /\\     /   _______             /\\/ /\\
-/_/ /    ----/\\/   /_/__  /_____     /___.    ____/ /_/ /
-\\ \\/    __  / /        /\\/   /_/    / / /     /\\__\\/\\_\\/
-  /________/ /________/ /__________/ / /_____/ /
-  \\.   .___\\/\\.   .___\\/\\.   ._____\\/  \\. .__\\/\n"
-            );
-            println!("\nCHERRYBOMB v{}", VERSION);
-            println!("\nFor more information try {}", "--help".green());
-        }*/
+                Commands::Load(opt)=>parse_load(opt),
+                Commands::Prepare(opt)=>parse_prepare(opt),
+                Commands::Attack(opt)=>parse_attack(opt),*/
+        /*        _=>{
+                    println!(
+                    "\n\n\n  __ ._______   .____      ._______________________.  __
+         / /\\/      /\\  /   /\\     /   _______             /\\/ /\\
+        /_/ /    ----/\\/   /_/__  /_____     /___.    ____/ /_/ /
+        \\ \\/    __  / /        /\\/   /_/    / / /     /\\__\\/\\_\\/
+          /________/ /________/ /__________/ / /_____/ /
+          \\.   .___\\/\\.   .___\\/\\.   ._____\\/  \\. .__\\/\n"
+                    );
+                    println!("\nCHERRYBOMB v{}", VERSION);
+                    println!("\nFor more information try {}", "--help".green());
+                }*/
     }
 }
-

@@ -14,12 +14,10 @@ async fn main() {
     // a.run(PassiveScanType::Full);
     // a.print(1);
 
-
     let mut a = ActiveScan::<OAS3_1>::new(swagger_value).unwrap();
     use futures::executor;
-    executor::block_on(a.run(ActiveScanType::Full,&Authorization::None));
-  //  a.print(0);
+    executor::block_on(a.run(ActiveScanType::Full, &Authorization::None));
+    //  a.print(0);
 
     // a.print(0);
-
 }

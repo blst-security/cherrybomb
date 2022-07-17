@@ -46,7 +46,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
             }
         }
     }
-    pub fn run(&mut self, tp:PassiveScanType) {
+    pub fn run(&mut self, tp: PassiveScanType) {
         //->Vec<PassiveChecks>{
         match tp {
             PassiveScanType::Full => {

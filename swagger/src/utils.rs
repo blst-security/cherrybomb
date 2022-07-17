@@ -1,7 +1,7 @@
 use super::*;
 use std::fmt;
-use uuid::Uuid;
 use std::hash::Hash;
+use uuid::Uuid;
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct ParamPayload {
     pub param: String,
@@ -78,10 +78,10 @@ pub struct ParamDescriptor {
 pub struct PayloadDescriptor {
     pub params: Vec<ParamDescriptor>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default,PartialEq,Eq,Hash)]
-pub struct DPath{
-    pub path_ext:String,
-    pub params:PayloadDescriptor,
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+pub struct DPath {
+    pub path_ext: String,
+    pub params: PayloadDescriptor,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum ValueDescriptor {
@@ -102,7 +102,7 @@ pub enum QuePay {
     Query,
     Payload,
     Response,
-    None
+    None,
 }
 impl Default for QuePay {
     fn default() -> Self {
@@ -112,13 +112,17 @@ impl Default for QuePay {
 impl fmt::Display for QuePay {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use colored::*;
-        match self{
-            Self::Headers=>write!(f,"{:16}","Headers".bold().truecolor(253,186,116)),
-            Self::Path=>write!(f,"{:16}","Path".bold().truecolor(147,197,253)),
-            Self::Query=>write!(f,"{:16}","Query".bold().truecolor(134,239,172)),
-            Self::Payload=>write!(f,"{:16}","Request Payload".bold().truecolor(253, 224, 71)),
-            Self::Response=>write!(f,"{:16}","Response Payload".bold().truecolor(165, 180, 252)),
-            Self::None=>write!(f,""),
+        match self {
+            Self::Headers => write!(f, "{:16}", "Headers".bold().truecolor(253, 186, 116)),
+            Self::Path => write!(f, "{:16}", "Path".bold().truecolor(147, 197, 253)),
+            Self::Query => write!(f, "{:16}", "Query".bold().truecolor(134, 239, 172)),
+            Self::Payload => write!(f, "{:16}", "Request Payload".bold().truecolor(253, 224, 71)),
+            Self::Response => write!(
+                f,
+                "{:16}",
+                "Response Payload".bold().truecolor(165, 180, 252)
+            ),
+            Self::None => write!(f, ""),
         }
     }
 }
@@ -133,7 +137,7 @@ impl fmt::Display for QuePay {
 //     }
 // }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum StrNum{
+pub enum StrNum {
     String(String),
     Number(u32),
 }
@@ -143,7 +147,7 @@ impl Default for StrNum {
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum EpHeaderValue{
+pub enum EpHeaderValue {
     Payload(ParamDescriptor),
     Const(StrNum),
     AuthToken,
@@ -154,9 +158,9 @@ impl Default for EpHeaderValue {
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
-pub struct EpHeader{
-    pub name:String,
-    pub value:EpHeaderValue,
+pub struct EpHeader {
+    pub name: String,
+    pub value: EpHeaderValue,
 }
 // #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
 // pub struct HeaderMap {
@@ -236,7 +240,10 @@ where
         self.percentages = new_pers;
     }
     pub fn get(&self, val: &T) -> Option<u8> {
-        self.values.iter().position(|v| v == val).map(|pos| self.percentages[pos])
+        self.values
+            .iter()
+            .position(|v| v == val)
+            .map(|pos| self.percentages[pos])
     }
 }
 //pub type Split= HashMap<String,u8>;
@@ -255,36 +262,36 @@ pub enum Method {
 }
 impl Default for Method {
     fn default() -> Self {
-            Method::GET
+        Method::GET
     }
 }
 impl Method {
     pub fn method_from_str(s: &str) -> Self {
-        match s{
-            "GET"=>Method::GET,
-            "POST"=>Method::POST,
-            "PUT"=>Method::PUT,
-            "PATCH"=>Method::PATCH,
-            "DELETE"=>Method::DELETE,
-            "OPTIONS"=>Method::OPTIONS,
-            "HEAD"=>Method::HEAD,
-            "TRACE"=>Method::TRACE,
-            _=>Method::Other,
+        match s {
+            "GET" => Method::GET,
+            "POST" => Method::POST,
+            "PUT" => Method::PUT,
+            "PATCH" => Method::PATCH,
+            "DELETE" => Method::DELETE,
+            "OPTIONS" => Method::OPTIONS,
+            "HEAD" => Method::HEAD,
+            "TRACE" => Method::TRACE,
+            _ => Method::Other,
         }
     }
 }
 impl std::fmt::Display for Method {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self{
-            Self::GET=>write!(f, "GET"),
-            Self::POST=>write!(f, "POST"),
-            Self::PUT=>write!(f, "PUT"),
-            Self::OPTIONS=>write!(f, "OPTIONS"),
-            Self::PATCH=>write!(f, "PATCH"),
-            Self::DELETE=>write!(f, "DELETE"),
-            Self::HEAD=>write!(f, "HEAD"),
-            Self::TRACE=>write!(f, "TRACE"),
-            Self::Other=>write!(f, "other"),
+        match self {
+            Self::GET => write!(f, "GET"),
+            Self::POST => write!(f, "POST"),
+            Self::PUT => write!(f, "PUT"),
+            Self::OPTIONS => write!(f, "OPTIONS"),
+            Self::PATCH => write!(f, "PATCH"),
+            Self::DELETE => write!(f, "DELETE"),
+            Self::HEAD => write!(f, "HEAD"),
+            Self::TRACE => write!(f, "TRACE"),
+            Self::Other => write!(f, "other"),
         }
     }
 }
@@ -315,22 +322,25 @@ pub fn conv_json_pairs(s: &str) -> Vec<ParamPayload> {
     //if let Ok(json) = serde_json::from_str::<HashMap<String, String>>(s) {
     if let Ok(serde_json::Value::Object(json)) = serde_json::from_str::<serde_json::Value>(s) {
         let mut ret = vec![];
-        for (param,payload) in json{
+        for (param, payload) in json {
             ret.push(ParamPayload {
                 param,
-                payload:payload.to_string(),
+                payload: payload.to_string(),
             });
         }
         ret
-    }else if s.trim().starts_with('?'){
-        s[1..].split('&').map(|p|{
-            let mut split = p.split('=');
-            ParamPayload{
-                param:split.next().unwrap().to_string(),
-                payload:split.next().unwrap().to_string(),
-            }
-        }).collect::<Vec<ParamPayload>>()
-    }else{
+    } else if s.trim().starts_with('?') {
+        s[1..]
+            .split('&')
+            .map(|p| {
+                let mut split = p.split('=');
+                ParamPayload {
+                    param: split.next().unwrap().to_string(),
+                    payload: split.next().unwrap().to_string(),
+                }
+            })
+            .collect::<Vec<ParamPayload>>()
+    } else {
         vec![]
     }
 }
