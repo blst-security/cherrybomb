@@ -1,8 +1,10 @@
 use super::{utils::create_string, *};
-use std::collections::HashSet;
+use futures::stream::Collect;
 use serde_json::json;
 // &use mapper::digest::Method::POST;
 use colored::*;
+const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT];
+const LIST_CONTENT_TYPE: [&str; 2] = ["application/xml", "application/xml"];
 const LIST_PARAM: [&str; 84] = [
     "page",
     "url",
@@ -257,41 +259,47 @@ impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_open_redirect(&self, auth: &Authorization) -> CheckRetVal {
         //proble with parameter in path to create query
         let mut ret_val = CheckRetVal::default();
-        for base_url in self.oas.servers().unwrap_or_default() {
-            for (path, item) in &self.oas.get_paths() {
-                for (m, op) in item.get_ops() {
-                    if m == Method::GET {
-                        for i in op.params().iter() {
-                            let parameter = i.inner(&Value::Null).name.to_string();
-                            if LIST_PARAM.contains(&parameter.as_str()) {
-                                let req = AttackRequest::builder()
-                                    .uri(&base_url.url, path)
-                                    .parameters(vec![RequestParameter {
-                                        name: parameter.to_string(),
-                                        value: "https://blst.security.com".to_string(),
-                                        dm: QuePay::Query,
-                                    }])
-                                    .auth(auth.clone())
-                                    .method(m)
-                                    .headers(vec![])
-                                    .auth(auth.clone())
-                                    .build();
-                                if let Ok(res) = req.send_request(true).await {
-                                    //logging
-                                    //logging request/response/description
-                                    ret_val
-                                        .1
-                                        .push(&req, &res, "Testing open-redirect".to_string());
-                                    ret_val.0.push((
+        let server = self.oas.servers();
+        let base_url = server
+            .unwrap_or_default()
+            .iter()
+            .next()
+            .unwrap()
+            .url
+            .clone();
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item.get_ops() {
+                if m == Method::GET {
+                    for i in op.params().iter() {
+                        let parameter = i.inner(&Value::Null).name.to_string();
+                        if LIST_PARAM.contains(&parameter.as_str()) {
+                            let req = AttackRequest::builder()
+                                .uri(&base_url, path)
+                                .parameters(vec![RequestParameter {
+                                    name: parameter.to_string(),
+                                    value: "https://blst.security.com".to_string(),
+                                    dm: QuePay::Query,
+                                }])
+                                .auth(auth.clone())
+                                .method(m)
+                                .headers(vec![])
+                                .auth(auth.clone())
+                                .build();
+                            if let Ok(res) = req.send_request(true).await {
+                                //logging
+                                //logging request/response/description
+                                ret_val
+                                    .1
+                                    .push(&req, &res, "Testing open-redirect".to_string());
+                                ret_val.0.push((
                                     ResponseData{
                                         location: path.clone(),
                                         alert_text: format!("The parameter {} seems to be vulerable to open-redirect on the {} endpoint",parameter,path)
                                     },
-                                       res.clone(),
+                                res.clone(),
                                 ));
-                                } else {
-                                    println!("REQUEST FAILED");
-                                }
+                            } else {
+                                println!("REQUEST FAILED");
                             }
                         }
                     }
@@ -308,9 +316,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let mut ret_val = CheckRetVal::default();
         let server = self.oas.servers();
         //    let mut new_url:(String , String);
-        let mut vec_polluted = vec!["blstparamtopollute".to_string()];
-       let base_url = server.unwrap().iter().next().unwrap().clone();
-       //let base_url = server.unwrap().get(0);
+        let vec_polluted = vec!["blstparamtopollute".to_string()];
+        let base_url = server.unwrap().iter().next().unwrap().clone();
+        //let base_url = server.unwrap().get(0);
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
                 let _text = path.to_string();
@@ -358,7 +366,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                             location: path.clone(),
                                             alert_text: format!("The endpoint {} seems to be vulerable to parameter pollution on the {} parameter",path,&param_name)
                                         },
-                                           res.clone(),
+                                        res.clone(),
                                     ));
                                 } else {
                                     println!("REQUEST FAILED");
@@ -391,7 +399,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 let mut new_url = i.url;
                 // let format_u  = &new_url[..5];
                 //  &new_url[..5]="http";
-                if let _= new_url.contains("https") {
+                if new_url.contains("https") {
                     new_url.replace_range(0..5, "http");
                 }
 
@@ -423,59 +431,77 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
         ret_val
     }
-    pub async fn  check_method_permissions(&self, auth: &Authorization) -> CheckRetVal{
+    pub async fn check_method_permissions(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-        
-        for (path, item) in &self.oas.get_paths(){
-            
+        let mut vec_method: Vec<Method> = Vec::new();
+        for (path, item) in &self.oas.get_paths() {
+            for (m, _op) in item.get_ops() {
+                vec_method.push(m);
+            }
 
+            // let mut requesst_map = HashMap::new();
+            // request_map.insert(Method::GET, false);
+            // request_map.insert(Method::POST, false);
+            // //   request_map.insert(Method::DELETE, false);
+            // request_map.insert(Method::PUT, false);
+            // match m {
+            //     Method::GET => {
+            //         let mut a = request_map.get_mut(&Method::GET).unwrap_or(&mut true);
+            //         a = &mut true;
+            //     }
+            //     Method::PUT => {
+            //         let mut a = request_map.get_mut(&Method::PUT).unwrap_or(&mut true);
+            //         a = &mut true;
+            //     }
+            //     Method::POST => {
+            //         let mut a = request_map.get_mut(&Method::POST).unwrap_or(&mut true);
+            //         a = &mut true
+            //     }
+            //     _ => (),
+            // };
 
-            for (m ,op) in item.get_ops(){
-                let mut request_map = HashMap::new();
-                request_map.insert(Method::GET, false);
-                request_map.insert(Method::POST, false);
-          //   request_map.insert(Method::DELETE, false);
-                request_map.insert(Method::PUT, false);
-                match m {
-                    Method::GET => {
-                        let mut a = request_map.get_mut(&Method::GET).unwrap_or(&mut true);
-                        a = &mut true;
-                    },
-                    Method::PUT => {
-                        let mut a = request_map.get_mut(&Method::PUT).unwrap_or(&mut true);
-                        a = &mut true;
-                },
-                Method::POST => {
-                    let mut a = request_map.get_mut(&Method::POST).unwrap_or(&mut true);
-                    a = &mut true
-                },
-                _=>(),
-            };
-        
-            let iter = request_map.iter().filter(|&(_, v)| v != &true);
-            
-            for i in iter{
-                let value_to_add = Self::send_request_to_test(&self,*i.0, (&path).to_string(),&auth).await;
-             //   for x in value_to_add{
-                println!("Method permissions");
-                    ret_val.0 = value_to_add.0;
-                    ret_val.1 = value_to_add.1;
-                    
-            //    }
-             }
-                
+            // let iter = request_map.iter().filter(|&(_, v)| v != &true);
+            let methodes = LIST_METHOD
+                .iter()
+                .filter_map(|s| {
+                    if !vec_method.contains(&s) {
+                        Some(*s)
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<Method>>();
+            for i in methodes {
+                println!("Method permissions:{:?}", i);
+                let value_to_add =
+                    Self::send_request_to_test(&self, i, (&path).to_string(), &auth).await;
+
+                for i in value_to_add.0 {
+                    ret_val.0.push(i);
+                }
+                ret_val.1 = value_to_add.1;
+            }
         }
+        ret_val
     }
-    
-    ret_val
 
-}
-pub async  fn send_request_to_test( swagger : &ActiveScan<T> , m: Method, p: String ,auth: &Authorization)-> CheckRetVal{
-    let mut ret_val = CheckRetVal::default();
-    let base_url = swagger.oas.servers().unwrap().iter().next().unwrap().clone();
+    pub async fn send_request_to_test(
+        swagger: &ActiveScan<T>,
+        m: Method,
+        p: String,
+        auth: &Authorization,
+    ) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        let base_url = swagger
+            .oas
+            .servers()
+            .unwrap()
+            .iter()
+            .next()
+            .unwrap()
+            .clone();
 
-
-    let req = AttackRequest::builder()
+        let req = AttackRequest::builder()
             .uri(&base_url.url, &p)
             .auth(auth.clone())
             .method(m)
@@ -486,7 +512,9 @@ pub async  fn send_request_to_test( swagger : &ActiveScan<T> , m: Method, p: Str
         if let Ok(res) = req.send_request(true).await {
             //logging
             //logging request/response/description
-            ret_val.1.push(&req, &res, "Test method permission".to_string());
+            ret_val
+                .1
+                .push(&req, &res, "Test method permission".to_string());
             ret_val.0.push((
                 ResponseData {
                     location: p.clone(),
@@ -496,14 +524,88 @@ pub async  fn send_request_to_test( swagger : &ActiveScan<T> , m: Method, p: Str
                 },
                 res.clone(),
             ));
-        println!( "{}:{}","Status".green().bold(),    res.status.to_string().magenta()  );
+            println!(
+                "{}:{}",
+                "Status".green().bold(),
+                res.status.to_string().magenta()
+            );
         } else {
             println!("REQUEST FAILED");
         }
         ret_val
     }
 
+    pub async fn check_method_encoding(&self, auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        let base_url = self
+            .oas
+            .servers()
+            .unwrap()
+            .iter()
+            .next()
+            .unwrap()
+            .url
+            .clone();
 
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item.get_ops() {
+                if m == Method::POST {
+                    if let Some(value_encod) = op.request_body.clone() {
+                        let encoding = value_encod.inner(&self.oas_value).content;
+                        // let encoding = op
+                        //     .request_body
+                        //     .clone()
+                        //     .unwrap()
+                        //     .inner(&self.oas_value)
+                        //     .content;
+                        /// THIS IS GUY - I USED THE * THINGY BECAUSE I needed an &str and it was only &&str because of the iter
+                        let encoding = LIST_CONTENT_TYPE
+                            .iter()
+                            .filter_map(|t| {
+                                if !encoding.contains_key(*t) {
+                                    Some(*t)
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect::<Vec<&str>>();
 
+                        for i in encoding {
+                            println!("PAth: {} , encoding : {:?}", path, i);
+                            let h = MHeader {
+                                name: "Content-type".to_string(),
+                                value: i.to_string(),
+                            };
+                            let req = AttackRequest::builder()
+                                .uri(&base_url, &path)
+                                .auth(auth.clone())
+                                .headers(vec![h])
+                                .build();
+                            print!("this is the req{:?}", req.headers);
+                            if let Ok(res) = req.send_request(true).await {
+                                println!("{:?}", res.status);
+                                //logging request/response/description
+                                ret_val
+                                    .1
+                                    .push(&req, &res, "Testing uncrypted traffic".to_string());
+                                ret_val.0.push((
+                                    ResponseData {
+                                        location: path.clone(),
+                                        alert_text: format!(
+                                            "The endpoint: {} is not correctly configured for {} ",
+                                            &path, i
+                                        ),
+                                    },
+                                    res.clone(),
+                                ));
+                            } else {
+                                println!("REQUEST FAILED");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ret_val;
+    }
 }
-

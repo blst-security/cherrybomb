@@ -176,7 +176,18 @@ impl_passive_checks![
     (CheckArrAttrs,check_arr_attrs,"ARRAY ATTRIBUTES","Checks for the definition of array type attributes - max_items, min_items"),
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definition of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes"),
-    (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONS", "Checks for correct permission configuration for GET/PUT/POST requests"),
+    (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONSwarning: `swagger` (lib) generated 3 warnings
+    Finished dev [unoptimized + debuginfo] target(s) in 0.17s
+     Running `/home/nathan/Documents/Programming/Cherry/cherrybomb/target/debug/swagger`
+Method permissions:GET
+Request: Path: http://localhost:8080/api/v3/user        Method: GET     Payload: NONE   Headers: []
+Status:405
+Method permissions:PUT
+Request: Path: http://localhost:8080/api/v3/user        Method: PUT     Payload: NONE   Headers: []
+Status:405
+Method permissions:GET
+Request: Path: http://localhost:8080/api/v3/pet Method: GET     Payload: NONE   Headers: []
+Status:405", "Checks for correct permission configuration for GET/PUT/POST requests"),
     (CheckContainsOperation, check_contains_operation, "CONTAINS OPERATION", "Checks that each path contains at least one operation")
 ];
 
@@ -220,7 +231,14 @@ impl_active_checks![
         MethodPermissions,
         check_method_permissions,
         not_2xx,
-        "Method  permission  ",
+        "Method  permission ",
         "Check if the endpoint is correctly configured"
+    ),
+    (
+        CheckMethodEncoding,
+        check_method_encoding,
+        not_2xx,
+        "Accept Encoding",
+        "Check if the endpoint can be send with other content type"
     )
 ];

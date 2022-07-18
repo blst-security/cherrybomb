@@ -21,7 +21,7 @@
 //     }
 //     urls
 // }
-pub  fn create_string(num: i64) -> String {
+pub fn create_string(num: i64) -> String {
     let mut str = String::from("");
     for n in 0..num + 1 {
         println!("{:?}", n);
