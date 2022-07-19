@@ -85,6 +85,7 @@ Please note that each check is a tuple that consists of:
 Now, navigate to 
 - swagger/src/scan/passive/additional_checks.rs (Passive)
 - swagger/src/scan/active/additional_checks.rs (Active)
+
 and scroll down until you see the following implementation:
 
 Passive:
@@ -95,7 +96,8 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
 ```
 
 Active:
-```impl<T: OAS + Serialize> ActiveScan<T> {
+```
+impl<T: OAS + Serialize> ActiveScan<T> {
    ...
 }
 ```
