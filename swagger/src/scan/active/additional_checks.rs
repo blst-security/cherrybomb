@@ -1,11 +1,12 @@
-use super::{utils::create_string, *};
+use super::{utils::create_payload_for_get, utils::create_string, *};
 use futures::stream::Collect;
 use serde_json::json;
-// &use mapper::digest::Method::POST;
+// &use mapper::digest::Method::POST&;
 use colored::*;
 const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT];
 const LIST_CONTENT_TYPE: [&str; 2] = ["application/xml", "application/xml"];
-const LIST_PARAM: [&str; 84] = [
+const LIST_PARAM: [&str; 85] = [
+    "photoUrls",
     "page",
     "url",
     "ret",
@@ -257,6 +258,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
     pub async fn check_open_redirect(&self, auth: &Authorization) -> CheckRetVal {
+        //// reformat get with path parameter
         //proble with parameter in path to create query
         let mut ret_val = CheckRetVal::default();
         let server = self.oas.servers();
@@ -270,16 +272,23 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
                 if m == Method::GET {
-                    for i in op.params().iter() {
-                        let parameter = i.inner(&Value::Null).name.to_string();
-                        if LIST_PARAM.contains(&parameter.as_str()) {
+                    let mut vec_param = vec![];
+                    let mut flag = false;
+                    let mut param_to_redirect = "".to_string();
+                    vec_param = create_payload_for_get(
+                        &self.oas_value,
+                        op,
+                        "https://blst.security.com".to_string(),
+                    );
+                    for x in &vec_param {
+                        if x.dm == QuePay::Query && LIST_PARAM.contains(&x.name.as_str()) {
+                            param_to_redirect = x.name.to_owned();
+                            flag = true;
+                        }
+                        if flag {
                             let req = AttackRequest::builder()
                                 .uri(&base_url, path)
-                                .parameters(vec![RequestParameter {
-                                    name: parameter.to_string(),
-                                    value: "https://blst.security.com".to_string(),
-                                    dm: QuePay::Query,
-                                }])
+                                .parameters(vec_param.clone())
                                 .auth(auth.clone())
                                 .method(m)
                                 .headers(vec![])
@@ -294,7 +303,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 ret_val.0.push((
                                     ResponseData{
                                         location: path.clone(),
-                                        alert_text: format!("The parameter {} seems to be vulerable to open-redirect on the {} endpoint",parameter,path)
+                                        alert_text: format!("The parameter {} seems to be vulerable to open-redirect on the {} endpoint",param_to_redirect,path)
                                     },
                                 res.clone(),
                                 ));
@@ -310,6 +319,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
     }
 
     pub async fn check_parameter_pollution(
+        //// reformat get with path parameter
         &self,
         auth: &Authorization,
     ) -> (CheckRetVal, Vec<String>) {
@@ -432,6 +442,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
     pub async fn check_method_permissions(&self, auth: &Authorization) -> CheckRetVal {
+        //// reformat get with path parameter
         let mut ret_val = CheckRetVal::default();
         let mut vec_method: Vec<Method> = Vec::new();
         for (path, item) in &self.oas.get_paths() {
@@ -439,28 +450,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 vec_method.push(m);
             }
 
-            // let mut requesst_map = HashMap::new();
-            // request_map.insert(Method::GET, false);
-            // request_map.insert(Method::POST, false);
-            // //   request_map.insert(Method::DELETE, false);
-            // request_map.insert(Method::PUT, false);
-            // match m {
-            //     Method::GET => {
-            //         let mut a = request_map.get_mut(&Method::GET).unwrap_or(&mut true);
-            //         a = &mut true;
-            //     }
-            //     Method::PUT => {
-            //         let mut a = request_map.get_mut(&Method::PUT).unwrap_or(&mut true);
-            //         a = &mut true;
-            //     }
-            //     Method::POST => {
-            //         let mut a = request_map.get_mut(&Method::POST).unwrap_or(&mut true);
-            //         a = &mut true
-            //     }
-            //     _ => (),
-            // };
-
-            // let iter = request_map.iter().filter(|&(_, v)| v != &true);
             let methodes = LIST_METHOD
                 .iter()
                 .filter_map(|s| {
@@ -536,6 +525,22 @@ impl<T: OAS + Serialize> ActiveScan<T> {
     }
 
     pub async fn check_method_encoding(&self, auth: &Authorization) -> CheckRetVal {
+        //roblem with order ouput
+        //TODO FIX BUG ABOUT OUTPUT
+        if let Some(compo) = &self.oas.components().unwrap().parameters {
+            println!("pooooo");
+
+            println!("{:?}", compo);
+
+            for (i, y) in compo {
+                println!(
+                    "parameter i:{:?} ,y{:?}",
+                    i,
+                    y.inner(&self.oas_value).examples
+                );
+            }
+        }
+
         let mut ret_val = CheckRetVal::default();
         let base_url = self
             .oas
@@ -607,5 +612,178 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             }
         }
         return ret_val;
+    }
+    pub async fn check_for_ssrf(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+        let mut ret_val = CheckRetVal::default();
+        let mut provider = vec![];
+        let provider_hash = HashMap::from([
+            ("Amazon", "http://169.254.169.254/"),
+            ("Google", "http://169.254.169.254/computeMetadata/v1/"),
+            ("Digital", "http://169.254.169.254/metadata/v1.json"),
+            ("Azure", "http://169.254.169.254/metadata/v1/maintenance"),
+        ]);
+        let base_url = self
+            .oas
+            .servers()
+            .unwrap()
+            .iter()
+            .next()
+            .unwrap()
+            .url
+            .clone();
+
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item.get_ops() {
+                /*
+                 for  operations in  op.params()
+                .iter_mut()
+                .inner(&Value::Null)
+                .filter_map(|s| {
+                    if LIST_PARAM.contains(&s) { //contains from the list
+                        Some(*s)
+                    } else {
+                        None
+                    }
+                })
+                .param_in
+                .filter_map(|e |
+                {
+                    if e == "query" ||
+                })
+                .collect::<Vec<Method>>();*/
+                match m {
+                    Method::GET => {
+                        for (provider_item, value_to_test) in &provider_hash {
+                            let mut params_vec = vec![];
+                            params_vec.push(create_payload_for_get(
+                                &self.oas_value,
+                                op,
+                                value_to_test.to_string(),
+                            ));
+
+                            let mut flag = false;
+                            let mut param_to_ssrf = "".to_string();
+
+                            for x in &params_vec {
+                                for i in x {
+                                    if i.dm == QuePay::Query
+                                        && LIST_PARAM.contains(&i.name.as_str())
+                                    {
+                                        param_to_ssrf = i.name.to_owned();
+                                        flag = true;
+                                    }
+                                }
+                                if flag {
+                                    provider.push(provider_item.to_string());
+                                    let req = AttackRequest::builder()
+                                        .uri(&base_url, path)
+                                        .parameters(x.clone())
+                                        .auth(auth.clone())
+                                        .method(m)
+                                        .headers(vec![])
+                                        .auth(auth.clone())
+                                        .build();
+
+                                    if let Ok(res) = req.send_request(true).await {
+                                        //logging
+                                        //logging request/response/description
+                                        ret_val.1.push(
+                                            &req,
+                                            &res,
+                                            "Testing ssrf for get ".to_string(),
+                                        );
+                                        ret_val.0.push((
+                                    ResponseData{
+                                        location: path.clone(),
+                                        alert_text: format!("The parameter {} seems to be vulerable to open-redirect on the {} endpoint",&param_to_ssrf,path)
+                                    },
+                                res.clone(),
+                                ));
+                                    } else {
+                                        println!("REQUEST FAILED");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    _ => (),
+                };
+            }
+        }
+        (ret_val, provider)
+    }
+    pub async fn check_ssrf_post(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+        println!("-------------------------POST SSRF-----------------------");
+        let mut ret_val = CheckRetVal::default();
+        let mut provider = vec![];
+        let provider_hash = HashMap::from([
+            ("Amazon", "http://169.254.169.254/"),
+            ("Google", "http://169.254.169.254/computeMetadata/v1/"),
+            ("Digital", "http://169.254.169.254/metadata/v1.json"),
+            ("Azure", "http://169.254.169.254/metadata/v1/maintenance"),
+        ]);
+        for oas_map in self.payloads.iter() {
+            for (json_path, schema) in &oas_map.payload.map {
+                for (m, _) in oas_map
+                    .path
+                    .path_item
+                    //.filter(|| path_item==p)
+                    .get_ops()
+                    .iter()
+                    .filter(|(m, _)| m == &Method::POST)
+                //947
+                {
+                    let elem = &json_path.last().unwrap_or(&"empty".to_string()).to_owned()[..];
+                    if LIST_PARAM.contains(&elem) {
+                        for (provider_item, val) in &provider_hash {
+                            let base_url =
+                                self.oas.servers().unwrap().iter().next().unwrap().clone();
+                            provider.push(provider_item.to_string());
+                            let req = AttackRequest::builder()
+                                .uri(&base_url.url, &oas_map.path.path)
+                                .method(*m)
+                                .headers(vec![])
+                                .parameters(vec![])
+                                .auth(auth.clone())
+                                .payload(
+                                    &change_payload(
+                                        &oas_map.payload.payload,
+                                        json_path,
+                                        json!(val),
+                                    )
+                                    .to_string(),
+                                )
+                                .build();
+
+                            print!("POST SSRF : ");
+
+                            if let Ok(res) = req.send_request(true).await {
+                                //logging request/response/description
+                                ret_val
+                                    .1
+                                    .push(&req, &res, "Testing SSRF VALUES".to_string());
+                                ret_val.0.push((
+                                    ResponseData {
+                                        location: oas_map.path.path.clone(),
+                                        alert_text: format!(
+                                            "The  seems to be vuln" // json_path[json_path.len() - 1]
+                                        ),
+                                    },
+                                    res.clone(),
+                                ));
+                                println!(
+                                    "{}:{}",
+                                    "Status".green().bold(),
+                                    res.status.to_string().magenta()
+                                );
+                            } else {
+                                println!("REQUEST FAILED");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        (ret_val, provider)
     }
 }

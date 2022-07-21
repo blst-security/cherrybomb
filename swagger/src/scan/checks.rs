@@ -176,36 +176,25 @@ impl_passive_checks![
     (CheckArrAttrs,check_arr_attrs,"ARRAY ATTRIBUTES","Checks for the definition of array type attributes - max_items, min_items"),
     (CheckObjAttrs,check_obj_attrs,"OBJECT ATTRIBUTES","Checks for the definition of object type attributes - max_properties, properties"),
     (CheckValidResponses,check_valid_responses,"VALID RESPONSES","Checks for valid responses codes"),
-    (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONSwarning: `swagger` (lib) generated 3 warnings
-    Finished dev [unoptimized + debuginfo] target(s) in 0.17s
-     Running `/home/nathan/Documents/Programming/Cherry/cherrybomb/target/debug/swagger`
-Method permissions:GET
-Request: Path: http://localhost:8080/api/v3/user        Method: GET     Payload: NONE   Headers: []
-Status:405
-Method permissions:PUT
-Request: Path: http://localhost:8080/api/v3/user        Method: PUT     Payload: NONE   Headers: []
-Status:405
-Method permissions:GET
-Request: Path: http://localhost:8080/api/v3/pet Method: GET     Payload: NONE   Headers: []
-Status:405", "Checks for correct permission configuration for GET/PUT/POST requests"),
+    (CheckMethodPermissions, check_method_permissions, "METHOD PERMISSIONS", "Checks for correct permission configuration for GET/PUT/POST requests"),
     (CheckContainsOperation, check_contains_operation, "CONTAINS OPERATION", "Checks that each path contains at least one operation")
 ];
 
 impl_active_checks![
-    (
-        CheckMinMax,
-        check_min_max,
-        not_2xx,
-        "NUMBER LIMITS ENFORCED",
-        "checks that the api enforces the number limits in the OAS"
-    ),
-    (
-        CheckStringMaxLength,
-        check_string_length_max,
-        not_2xx,
-        "STRING LEN",
-        "check that the api validate the String length"
-    ),
+    // (
+    //     CheckMinMax,
+    //     check_min_max,
+    //     not_2xx,
+    //     "NUMBER LIMITS ENFORCED",
+    //     "checks that the api enforces the number limits in the OAS"
+    // ),
+    // (
+    //     CheckStringMaxLength,
+    //     check_string_length_max,
+    //     not_2xx,
+    //     "STRING LEN",
+    //     "check that the api validate the String length"
+    // ),
     (
         OpenRedirect,
         check_open_redirect,
@@ -213,32 +202,46 @@ impl_active_checks![
         "open redirect",
         "Check if the API may be vulnerable to openredirect"
     ),
+    // (
+    //     ParameterPollution,
+    //     check_parameter_pollution,
+    //     reflected_and_2xx,
+    //     "parameter pollution",
+    //     "Check if the endpoint is vulnerable to http pollution"
+    // ),
+    // (
+    //     CheckSSL,
+    //     check_ssl,
+    //     not_2xx,
+    //     "encrypted communication",
+    //     "Check if the connection is secure"
+    // ),
+    // (
+    //     MethodPermissions,
+    //     check_method_permissions,
+    //     not_2xx,
+    //     "Method  permission ",
+    //     "Check if the endpoint is correctly configured"
+    // ),
+    // (
+    //     CheckMethodEncoding,
+    //     check_method_encoding,
+    //     not_2xx,
+    //     "Accept Encoding",
+    //     "Check if the endpoint can be send with other content type"
+    // ),
     (
-        ParameterPollution,
-        check_parameter_pollution,
-        reflected_and_2xx,
-        "parameter pollution",
-        "Check if the endpoint is vulnerable to http pollution"
+        CheckforSSRF,
+        check_for_ssrf,
+        ssrf_and_2xx,
+        "Server side request forgery",
+        "Check if the api can be vulerable to SSRF"
     ),
     (
-        CheckSSL,
-        check_ssl,
-        not_2xx,
-        "encrypted communication",
-        "Check if the connection is secure"
-    ),
-    (
-        MethodPermissions,
-        check_method_permissions,
-        not_2xx,
-        "Method  permission ",
-        "Check if the endpoint is correctly configured"
-    ),
-    (
-        CheckMethodEncoding,
-        check_method_encoding,
-        not_2xx,
-        "Accept Encoding",
-        "Check if the endpoint can be send with other content type"
+        CheckforPostSSRF,
+        check_ssrf_post,
+        ssrf_and_2xx,
+        "Server side POST request forgery",
+        "Check if the api can be vulerable to SSRF"
     )
 ];
