@@ -1,5 +1,4 @@
-use super::{utils::create_payload_for_get, utils::create_string, *};
-use futures::stream::Collect;
+use super::{utils::create_string,utils::create_payload_for_get ,*};
 use serde_json::json;
 // &use mapper::digest::Method::POST&;
 use colored::*;
@@ -258,36 +257,27 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
     pub async fn check_open_redirect(&self, auth: &Authorization) -> CheckRetVal {
-        //// reformat get with path parameter
-        //proble with parameter in path to create query
         let mut ret_val = CheckRetVal::default();
         let server = self.oas.servers();
-        let base_url = server
-            .unwrap_or_default()
-            .iter()
-            .next()
-            .unwrap()
-            .url
-            .clone();
+         let base_url = server.unwrap().get(0).unwrap().clone();
+            
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
                 if m == Method::GET {
-                    let mut vec_param = vec![];
-                    let mut flag = false;
-                    let mut param_to_redirect = "".to_string();
-                    vec_param = create_payload_for_get(
-                        &self.oas_value,
-                        op,
-                        "https://blst.security.com".to_string(),
-                    );
-                    for x in &vec_param {
-                        if x.dm == QuePay::Query && LIST_PARAM.contains(&x.name.as_str()) {
-                            param_to_redirect = x.name.to_owned();
-                            flag = true;
-                        }
-                        if flag {
+                        //let mut vec_param = vec![];
+                        let mut flag = false;
+                        let mut param_to_redirect = "".to_string();
+                        let vec_param = create_payload_for_get(&self.oas_value, op, "https://blst.security.com".to_string());
+                        for x in &vec_param {
+                            if x.dm==   QuePay::Query
+                                && LIST_PARAM.contains(&x.name.as_str())
+                            {
+                                param_to_redirect = x.name.to_owned();
+                                flag = true;
+                            }
+                            if flag{
                             let req = AttackRequest::builder()
-                                .uri(&base_url, path)
+                                .uri(&base_url.url, path)
                                 .parameters(vec_param.clone())
                                 .auth(auth.clone())
                                 .method(m)
@@ -311,12 +301,14 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 println!("REQUEST FAILED");
                             }
                         }
+                        }
                     }
                 }
             }
+            ret_val
         }
-        ret_val
-    }
+        
+    
 
     pub async fn check_parameter_pollution(
         //// reformat get with path parameter
@@ -327,8 +319,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let server = self.oas.servers();
         //    let mut new_url:(String , String);
         let vec_polluted = vec!["blstparamtopollute".to_string()];
-        let base_url = server.unwrap().iter().next().unwrap().clone();
-        //let base_url = server.unwrap().get(0);
+        // let base_url;
+        // if let Some(value) = server.unwrap().iter().next(){
+        //     &base_url = value;
+        // }       //let base_url = server.unwrap().get(0);
+        let base_url = server.unwrap().get(0).unwrap().clone();
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
                 let _text = path.to_string();
@@ -340,7 +335,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         let in_var = parameter.param_in.to_string();
                         let param_name = i.inner(&Value::Null).name.to_string();
                         let new_param = param_name.clone();
-                        let _param_example = match in_var.as_str() {
+                         match in_var.as_str() {
                             "query" => {
                                 let req = AttackRequest::builder()
                                     .uri(&base_url.url, path)
@@ -453,7 +448,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             let methodes = LIST_METHOD
                 .iter()
                 .filter_map(|s| {
-                    if !vec_method.contains(&s) {
+                    if !vec_method.contains(s) {
                         Some(*s)
                     } else {
                         None
@@ -463,7 +458,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             for i in methodes {
                 println!("Method permissions:{:?}", i);
                 let value_to_add =
-                    Self::send_request_to_test(&self, i, (&path).to_string(), &auth).await;
+                    Self::send_request_to_test(self, i, (&path).to_string(), auth).await;
 
                 for i in value_to_add.0 {
                     ret_val.0.push(i);
@@ -481,14 +476,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         auth: &Authorization,
     ) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-        let base_url = swagger
-            .oas
-            .servers()
-            .unwrap()
-            .iter()
-            .next()
-            .unwrap()
-            .clone();
+        let base_url = swagger.oas.servers().unwrap().iter().next().unwrap().clone();
+
 
         let req = AttackRequest::builder()
             .uri(&base_url.url, &p)
@@ -542,15 +531,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
 
         let mut ret_val = CheckRetVal::default();
-        let base_url = self
-            .oas
-            .servers()
-            .unwrap()
-            .iter()
-            .next()
-            .unwrap()
-            .url
-            .clone();
+        let base_url = self.oas.servers().unwrap().get(0).unwrap().clone();
+
 
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
@@ -582,7 +564,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 value: i.to_string(),
                             };
                             let req = AttackRequest::builder()
-                                .uri(&base_url, &path)
+                                .uri(&base_url.url, path)
                                 .auth(auth.clone())
                                 .headers(vec![h])
                                 .build();
@@ -598,7 +580,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                         location: path.clone(),
                                         alert_text: format!(
                                             "The endpoint: {} is not correctly configured for {} ",
-                                            &path, i
+                                            path, i
                                         ),
                                     },
                                     res.clone(),
@@ -611,26 +593,19 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 }
             }
         }
-        return ret_val;
+        ret_val
     }
-    pub async fn check_for_ssrf(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+    pub async fn check_for_ssrf(&self, auth: &Authorization) -> (CheckRetVal,Vec<String>) {
         let mut ret_val = CheckRetVal::default();
-        let mut provider = vec![];
+        let mut provider_vec = vec![];
         let provider_hash = HashMap::from([
             ("Amazon", "http://169.254.169.254/"),
             ("Google", "http://169.254.169.254/computeMetadata/v1/"),
             ("Digital", "http://169.254.169.254/metadata/v1.json"),
             ("Azure", "http://169.254.169.254/metadata/v1/maintenance"),
         ]);
-        let base_url = self
-            .oas
-            .servers()
-            .unwrap()
-            .iter()
-            .next()
-            .unwrap()
-            .url
-            .clone();
+        let base_url = self.oas.servers().unwrap().get(0).unwrap().clone();
+
 
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
@@ -651,39 +626,36 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     if e == "query" ||
                 })
                 .collect::<Vec<Method>>();*/
-                match m {
-                    Method::GET => {
-                        for (provider_item, value_to_test) in &provider_hash {
-                            let mut params_vec = vec![];
-                            params_vec.push(create_payload_for_get(
-                                &self.oas_value,
-                                op,
-                                value_to_test.to_string(),
-                            ));
+               if m==Method::GET{
+                        let mut param_is_good_to_send=false;
 
-                            let mut flag = false;
-                            let mut param_to_ssrf = "".to_string();
-
-                            for x in &params_vec {
-                                for i in x {
-                                    if i.dm == QuePay::Query
-                                        && LIST_PARAM.contains(&i.name.as_str())
-                                    {
-                                        param_to_ssrf = i.name.to_owned();
-                                        flag = true;
+                        for (provider_item, value_to_send) in &provider_hash
+                         {
+                        let mut params_vec = vec![];
+                        let payload_get_param = create_payload_for_get(&self.oas_value,op, value_to_send.to_string());
+                            for parameter_item in payload_get_param {
+                                if parameter_item.dm==QuePay::Query {
+                                    if LIST_PARAM.contains(&parameter_item.name.as_str()){
+                                        params_vec.push(parameter_item);
+                                        param_is_good_to_send=true;
                                     }
                                 }
-                                if flag {
-                                    provider.push(provider_item.to_string());
+                                else{
+                                    params_vec.push(parameter_item);
+                                }
+                                }
+                             
+                                if param_is_good_to_send {
+                                     provider_vec.push(provider_item.to_string());
                                     let req = AttackRequest::builder()
-                                        .uri(&base_url, path)
-                                        .parameters(x.clone())
+                                        .uri(&base_url.url, path)
+                                        .parameters(params_vec.clone())
                                         .auth(auth.clone())
                                         .method(m)
                                         .headers(vec![])
                                         .auth(auth.clone())
                                         .build();
-
+                                    
                                     if let Ok(res) = req.send_request(true).await {
                                         //logging
                                         //logging request/response/description
@@ -695,7 +667,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                         ret_val.0.push((
                                     ResponseData{
                                         location: path.clone(),
-                                        alert_text: format!("The parameter {} seems to be vulerable to open-redirect on the {} endpoint",&param_to_ssrf,path)
+                                        alert_text: format!("The parameter {:?} seems to be vulerable to open-redirect on the {} endpoint",&params_vec.last().unwrap(),path)//TODO Chekc if is it the correct parameter
                                     },
                                 res.clone(),
                                 ));
@@ -704,18 +676,21 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     }
                                 }
                             }
-                        }
-                    }
-                    _ => (),
-                };
+               }
+                
+            
+                
             }
-        }
-        (ret_val, provider)
+               
+            }
+            (ret_val,provider_vec)
+        
+      
     }
-    pub async fn check_ssrf_post(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+    pub async fn check_ssrf_post(&self, auth: &Authorization) -> (CheckRetVal,Vec<String>) {
         println!("-------------------------POST SSRF-----------------------");
         let mut ret_val = CheckRetVal::default();
-        let mut provider = vec![];
+        let mut provider_vec = vec![];
         let provider_hash = HashMap::from([
             ("Amazon", "http://169.254.169.254/"),
             ("Google", "http://169.254.169.254/computeMetadata/v1/"),
@@ -723,7 +698,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             ("Azure", "http://169.254.169.254/metadata/v1/maintenance"),
         ]);
         for oas_map in self.payloads.iter() {
-            for (json_path, schema) in &oas_map.payload.map {
+            for (json_path, _schema) in &oas_map.payload.map {
                 for (m, _) in oas_map
                     .path
                     .path_item
@@ -733,12 +708,13 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     .filter(|(m, _)| m == &Method::POST)
                 //947
                 {
-                    let elem = &json_path.last().unwrap_or(&"empty".to_string()).to_owned()[..];
-                    if LIST_PARAM.contains(&elem) {
-                        for (provider_item, val) in &provider_hash {
+                    let param_to_test = &json_path.last().unwrap_or(&"empty".to_string()).to_owned()[..];
+                    if LIST_PARAM.contains(&param_to_test) {
+
+                        for (provider_item , provider_value) in &provider_hash {
                             let base_url =
                                 self.oas.servers().unwrap().iter().next().unwrap().clone();
-                            provider.push(provider_item.to_string());
+                            provider_vec.push(provider_item.to_string());
                             let req = AttackRequest::builder()
                                 .uri(&base_url.url, &oas_map.path.path)
                                 .method(*m)
@@ -748,8 +724,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 .payload(
                                     &change_payload(
                                         &oas_map.payload.payload,
-                                        json_path,
-                                        json!(val),
+                                        &json_path,
+                                        json!(provider_value),
                                     )
                                     .to_string(),
                                 )
@@ -766,7 +742,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     ResponseData {
                                         location: oas_map.path.path.clone(),
                                         alert_text: format!(
-                                            "The  seems to be vuln" // json_path[json_path.len() - 1]
+                                            "This {} parameter on the {} endpoint seems to be vulerable to ssrf.", json_path[json_path.len() - 1],&param_to_test// json_path[json_path.len() - 1]
                                         ),
                                     },
                                     res.clone(),
@@ -784,6 +760,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 }
             }
         }
-        (ret_val, provider)
+        (ret_val,provider_vec)
     }
+
 }

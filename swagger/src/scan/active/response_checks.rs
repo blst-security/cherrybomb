@@ -38,8 +38,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let check_ret = check_ret_only.0;
         for (res_data, response) in &check_ret {
             for polluted in &check_ret_param.1 {
-                if (200..300u16).contains(&response.status) {
-                    if response.payload.contains(&*polluted) {
+                if (200..300u16).contains(&response.status) && response.payload.contains(&*polluted) {
                         ret_val.push(Alert::with_certainty(
                             Level::Medium,
                             res_data.alert_text.to_string(),
@@ -47,7 +46,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             Certainty::Certain,
                         ))
                     }
-                }
+                
             }
         }
         (ret_val, check_ret_only.1)
@@ -59,39 +58,71 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let check_ret_only = check_ret_param.0;
         let check_ret = check_ret_only.0;
         for provider in check_ret_param.1 {
-            match provider.as_str() {
-                "Amazon" => {
-                    for (res_data, response) in &check_ret {
-                        if (200..300u16).contains(&response.status) {
+            for (res_data, response) in &check_ret {
+                if (200..300u16).contains(&response.status) {
+                       match provider.as_str() {
+                        "Amazon" => {
                             if response.payload.contains(&"latest".to_string()) {
                                 ret_val.push(Alert::with_certainty(
-                                    Level::Medium,
-                                    res_data.alert_text.to_string(),
-                                    res_data.location.to_string(),
-                                    Certainty::Certain,
-                                ))
+                                                            Level::Medium,
+                                                            res_data.alert_text.to_string(),
+                                                            res_data.location.to_string(),
+                                                            Certainty::Certain,
+                                                        ))
                             }
-                        }
-                    }
+                        },
+                        "google" => {
+                            if response.payload.contains(&"instance".to_string()) || response.payload.contains(&"project".to_string()){
+                                ret_val.push(Alert::with_certainty(
+                                                            Level::Medium,
+                                                            res_data.alert_text.to_string(),
+                                                            res_data.location.to_string(),
+                                                            Certainty::Certain,
+                                                        ))
+                            }
+                        },
+                        _=>(),
+                
+                
+                      };
+                
                 }
-                "google" => {}
-                _ => (),
-                // for (res_data, response) in &check_ret {
-                //     for polluted in &check_ret_param.1 {
-                //         if (200..300u16).contains(&response.status) {
-                //             if response.payload.contains(&*polluted) {
-                //                 ret_val.push(Alert::with_certainty(
-                //                     Level::Medium,
-                //                     res_data.alert_text.to_string(),
-                //                     res_data.location.to_string(),
-                //                     Certainty::Certain,
-                //                 ))
-                //             }
-                //         }
-                //     }
-                // }
-            };
+            }
         }
+            // match provider.as_str() {
+            //     "Amazon" => {
+            //         for (res_data, response) in &check_ret {
+            //             if (200..300u16).contains(&response.status) {
+            //                 if response.payload.contains(&"latest".to_string()) {
+            //                     ret_val.push(Alert::with_certainty(
+            //                         Level::Medium,
+            //                         res_data.alert_text.to_string(),
+            //                         res_data.location.to_string(),
+            //                         Certainty::Certain,
+            //                     ))
+            //                 }
+            //             }
+            //         }
+            //     }
+            //     "google" => {
+            //         for (res_data, response) in &check_ret {
+            //             if (200..300u16).contains(&response.status) {
+            //                 if response.payload.contains(&"instance".to_string())
+            //                     || response.payload.contains(&"project".to_string())
+            //                 {
+            //                     ret_val.push(Alert::with_certainty(
+            //                         Level::Medium,
+            //                         res_data.alert_text.to_string(),
+            //                         res_data.location.to_string(),
+            //                         Certainty::Certain,
+            //                     ))
+            //                 }
+            //             }
+            //         }
+            //     }
+            //     _ => (),
+            // };
+       // }
         (ret_val, check_ret_only.1)
     }
 }

@@ -1,9 +1,8 @@
-use crate::{path::Operation, ActiveScan, QuePay};
-use serde;
+use crate::{path::Operation, QuePay};
 use serde_json::Value;
 
 use super::http_client::RequestParameter;
-use crate::OAS3_1;
+
 // use super::*;
 // pub fn get_path_urls(path: &PathItem, servers: Option<Vec<Server>>) -> Vec<(Method, String)> {
 //     let mut urls = vec![];
@@ -36,16 +35,18 @@ pub fn create_string(num: i64) -> String {
     str
 }
 pub fn create_payload_for_get(
+    //check if there is an exmaple
+    //if query param and path param can be references
     swagger: &Value,
     op: &Operation,
     value: String,
 ) -> Vec<RequestParameter> {
-    let mut params_vec = vec![];
+    let mut  params_vec = vec![];
     for i in op.params().iter_mut() {
         let parameter = i.inner(&Value::Null);
-        let in_var = parameter.param_in.to_string();
+        let in_var = parameter.param_in;
         let param_name = parameter.name.to_string();
-        let slice = &param_name[..];
+        // let slice = &param_name[..];
 
         match in_var.as_str() {
             "path" => {
@@ -75,7 +76,7 @@ pub fn create_payload_for_get(
                 }
             }
             "query" => params_vec.push(RequestParameter {
-                name: slice.to_string(),
+                name: param_name,
                 dm: QuePay::Query,
                 value: value.to_string(),
             }),
