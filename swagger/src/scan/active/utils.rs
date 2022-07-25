@@ -46,10 +46,7 @@ pub fn create_payload_for_get(
         let parameter = i.inner(&Value::Null);
         let in_var = parameter.param_in;
         let param_name = parameter.name.to_string();
-        let mut value;
-        if let Some(ref v)= option_value{
-            value =v;
-        }
+        
         // let slice = &param_name[..];
 
         match in_var.as_str() {
@@ -109,8 +106,8 @@ pub fn create_payload_for_get(
                 }
             }
             "query" => {
-                let mut final_value="blstpollution".to_string();
-                if option_value.is_none(){
+                let mut final_value="blstpollute".to_string() ;
+                if option_value.as_ref().is_none(){
                    // let mut example_value = "randomString".to_string();
                     //let mut  option_example_value= None  ;
                     if let Some(values)   = parameter.examples{
@@ -119,8 +116,16 @@ pub fn create_payload_for_get(
                           break;
                         }
                     }
+                    
+                    
                 }
+                else{
+                    final_value = option_value.as_ref().unwrap().to_string();
 
+                }
+                // if let Some(ref v)= option_value{
+                //     final_value= v.to_string();
+                // }
                 params_vec.push(RequestParameter {
                 name: param_name,
                 dm: QuePay::Query,

@@ -359,56 +359,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 vec_param.remove(vec_param.len()-1);
                             }
                 }
-                    // for i in op.params().iter_mut() {
-                    //     let parameter = i.inner(&Value::Null);
-                    //     let in_var = parameter.param_in;
-                    //     let param_name = i.inner(&Value::Null).name.to_string();
-                    //     let new_param = param_name.clone();
-                    //     match in_var.as_str() {
-                    //         "query" => {
-                    //             let req = AttackRequest::builder()
-                    //                 .uri(&base_url.url, path)
-                    //                 .auth(auth.clone())
-                    //                 .parameters(vec![
-                    //                     RequestParameter {
-                    //                         name: param_name.clone(),
-                    //                         value: "blstparamtopollute".to_string(), 
-                    //                         dm: QuePay::Query,
-                    //                     },
-                    //                     RequestParameter {
-                    //                         name: new_param,
-                    //                         value: "blstparamtopollute".to_string(),
-                    //                         dm: QuePay::Query,
-                    //                     },
-                    //                 ])
-                    //                 .method(m)
-                    //                 .headers(vec![])
-                    //                 .auth(auth.clone())
-                    //                 .build();
-                    //             println!("Pollution ");
-                    //             if let Ok(res) = req.send_request(true).await {
-                    //                 //logging request/response/description
-                    //                 ret_val.1.push(
-                    //                     &req,
-                    //                     &res,
-                    //                     " Testing get parameter pollution ".to_string(),
-                    //                 );
-                    //                 ret_val.0.push((
-                    //                     ResponseData{
-                    //                         location: path.clone(),
-                    //                         alert_text: format!("The endpoint {} seems to be vulerable to parameter pollution on the {} parameter",path,&param_name)
-                    //                     },
-                    //                     res.clone(),
-                    //                 ));
-                    //             } else {
-                    //                 println!("REQUEST FAILED");
-                    //             }
-                    //         }
-                    //         "path" => {}
-                    //         _ => (),
-                          
-                    //     };
-                  //  }
+                  
                 
             }
            
@@ -614,6 +565,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
     pub async fn check_for_ssrf(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+        println!("-------------------------GET SSRF-----------------------");
+
         let mut ret_val = CheckRetVal::default();
         let mut provider_vec = vec![];
         let provider_hash = HashMap::from([
@@ -663,6 +616,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
                         if param_is_good_to_send {
                             provider_vec.push(provider_item.to_string());
+                            println!("SSRF GET: ----");
                             let req = AttackRequest::builder()
                                 .uri(&base_url.url, path)
                                 .parameters(params_vec.clone())

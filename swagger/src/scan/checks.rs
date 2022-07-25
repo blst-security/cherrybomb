@@ -203,6 +203,13 @@ impl_active_checks![
     //     "Check if the API may be vulnerable to openredirect"
     // ),
     (
+        CheckforSSRF,
+       check_for_ssrf,
+       ssrf_and_2xx,
+       "Server side request forgery",
+        "Check if the api can be vulerable to SSRF"
+    ),
+    (
         ParameterPollution,
         check_parameter_pollution,
         reflected_and_2xx,
@@ -230,13 +237,7 @@ impl_active_checks![
     //     "Accept Encoding",
     //     "Check if the endpoint can be send with other content type"
     // ),
-    // (
-    //     CheckforSSRF,
-    //     check_for_ssrf,
-    //     ssrf_and_2xx,
-    //     "Server side request forgery",
-    //     "Check if the api can be vulerable to SSRF"
-    // ),
+  
     // (
     //     CheckforPostSSRF,
     //     check_ssrf_post,
