@@ -195,20 +195,20 @@ impl_active_checks![
     //     "STRING LEN",
     //     "check that the api validate the String length"
     // ),
-    (
-        OpenRedirect,
-        check_open_redirect,
-        check_if_3xx,
-        "open redirect",
-        "Check if the API may be vulnerable to openredirect"
-    ),
     // (
-    //     ParameterPollution,
-    //     check_parameter_pollution,
-    //     reflected_and_2xx,
-    //     "parameter pollution",
-    //     "Check if the endpoint is vulnerable to http pollution"
+    //     OpenRedirect,
+    //     check_open_redirect,
+    //     check_if_3xx,
+    //     "open redirect",
+    //     "Check if the API may be vulnerable to openredirect"
     // ),
+    (
+        ParameterPollution,
+        check_parameter_pollution,
+        reflected_and_2xx,
+        "parameter pollution",
+        "Check if the endpoint is vulnerable to http pollution"
+    )
     // (
     //     CheckSSL,
     //     check_ssl,
@@ -230,18 +230,18 @@ impl_active_checks![
     //     "Accept Encoding",
     //     "Check if the endpoint can be send with other content type"
     // ),
-    (
-        CheckforSSRF,
-        check_for_ssrf,
-        ssrf_and_2xx,
-        "Server side request forgery",
-        "Check if the api can be vulerable to SSRF"
-    ),
-    (
-        CheckforPostSSRF,
-        check_ssrf_post,
-        ssrf_and_2xx,
-        "Server side POST request forgery",
-        "Check if the api can be vulerable to SSRF"
-    )
+    // (
+    //     CheckforSSRF,
+    //     check_for_ssrf,
+    //     ssrf_and_2xx,
+    //     "Server side request forgery",
+    //     "Check if the api can be vulerable to SSRF"
+    // ),
+    // (
+    //     CheckforPostSSRF,
+    //     check_ssrf_post,
+    //     ssrf_and_2xx,
+    //     "Server side POST request forgery",
+    //     "Check if the api can be vulerable to SSRF"
+    // )
 ];

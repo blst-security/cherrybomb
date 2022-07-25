@@ -39,48 +39,94 @@ pub fn create_payload_for_get(
     //if query param and path param can be references
     swagger: &Value,
     op: &Operation,
-    value: String,
+    option_value: Option<String>,
 ) -> Vec<RequestParameter> {
-    let mut  params_vec = vec![];
+    let mut params_vec = vec![];
     for i in op.params().iter_mut() {
         let parameter = i.inner(&Value::Null);
         let in_var = parameter.param_in;
         let param_name = parameter.name.to_string();
+        let mut value;
+        if let Some(ref v)= option_value{
+            value =v;
+        }
         // let slice = &param_name[..];
 
         match in_var.as_str() {
             "path" => {
+               
+                let mut  option_example_value= None  ;
+                if let Some(value)   = parameter.examples{
+                    for (_ex,val) in value{
+                      option_example_value = Some(val.value.to_string());
+                      break;
+                    }
+                }
                 if let Some(schema_ref) = parameter.schema {
                     if let Some(schema_type) = schema_ref.inner(swagger).schema_type {
                         // let val_to_path:String;
                         match schema_type.as_str() {
                             "string" => {
-                                let val_to_path = "randString";
+                                let mut example_value= "randomString".to_string();
+                                if let Some(val) = option_example_value{
+                                     example_value= val;
+                                }
+                               
                                 params_vec.push(RequestParameter {
                                     name: param_name,
-                                    value: (&val_to_path).to_string(),
+                                    value: example_value,
                                     dm: QuePay::Path,
                                 });
                             }
                             "integer" => {
-                                let val_to_path = "1";
+                                let mut example_value= "123".to_string();
+                                if let Some(val) = option_example_value{
+                                     example_value = val;
+                                }
+            
                                 params_vec.push(RequestParameter {
                                     name: param_name,
-                                    value: (&val_to_path).to_string(),
+                                    value: example_value,
                                     dm: QuePay::Path,
                                 });
+                            },
+                            "boolean" => {
+                                let mut example_value= "true".to_string();
+                                if let Some(val) = option_example_value{
+                                     example_value = val;
+                                }
+            
+                                params_vec.push(RequestParameter {
+                                    name: param_name,
+                                    value: example_value,
+                                    dm: QuePay::Path,
+                                });
+
                             }
                             _ => (),
                         };
                     }
                 }
             }
-            "query" => params_vec.push(RequestParameter {
+            "query" => {
+                let mut final_value="blstpollution".to_string();
+                if option_value.is_none(){
+                   // let mut example_value = "randomString".to_string();
+                    //let mut  option_example_value= None  ;
+                    if let Some(values)   = parameter.examples{
+                        for (_ex,val) in values{
+                          final_value = val.value.to_string();
+                          break;
+                        }
+                    }
+                }
+
+                params_vec.push(RequestParameter {
                 name: param_name,
                 dm: QuePay::Query,
-                value: value.to_string(),
-            }),
-
+                value: final_value,
+            });
+        },
             _ => (),
         };
     }
