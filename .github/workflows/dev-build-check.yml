@@ -10,28 +10,55 @@ env:
 jobs:
 
   cargo-fmt:
+    name: fmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Format
-        run: cargo fmt 
-  
+      - uses: actions/checkout@v2
+      - name: Install nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt
+      
+      - name: cargo-fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+
   cargo-clippy:
+    name: clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Clippy
+      - uses: actions/checkout@v2
+      - name: Install nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: clippy
+      
+      - name: cargo-clippy
         env:
           RUSTFLAGS: "-D warnings"
-        run: cargo clippy --verbose
-  
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+
   cargo-build:
+    name: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Build
-        env:
-          RUSTFLAGS: "-Awarnings"
-        run: cargo build
-  
+      - uses: actions/checkout@v2
+      - name: Install nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
       
+      - name: cargo-build
+        env:
+          RUSTFLAGS: "-A warnings"
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
