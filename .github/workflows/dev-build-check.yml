@@ -18,32 +18,42 @@ jobs:
         with:
           toolchain: nightly
           override: true
-      - run: cargo fmt 
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+#         run: cargo fmt 
   
   cargo-clippy:
     runs-on: ubuntu-latest
     steps:
       - name: Clippy
       - uses: actions/checkout@v3
+      - env:
+          RUSTFLAGS: "-D warnings"
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
-      - env:
-          RUSTFLAGS: "-D warnings"
-      - run: cargo clippy --verbose
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --verbose
+#       - run: cargo clippy --verbose
   
   cargo-build:
     runs-on: ubuntu-latest
     steps:
       - name: Build
       - uses: actions/checkout@v3
+      - env:
+          RUSTFLAGS: "-A warnings"
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
-      - env:
-          RUSTFLAGS: "-A warnings"
-      - run: cargo build
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+#       - run: cargo build
   
       
