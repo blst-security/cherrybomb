@@ -98,7 +98,7 @@ impl Config{
         if let Ok(conf) = serde_json::from_str::<ConfigStr>(&file_data){
             Some(Config::from_conf_str(conf))
         }else{
-            println!("Config does not match format, go to our docs on github for further explaination");
+            println!("Config does not match format, go to our docs on github for further explanation");
             None
         }
     }

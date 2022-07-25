@@ -20,13 +20,12 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         for oas_map in self.payloads.iter() {
             for (json_path,schema) in &oas_map.payload.map {
                 let test_vals = Vec::from([
-                    schema.minimum.map(|min| ("minimum",min)),
-                    schema.maximum.map(|max| ("maximum",max)),
+                    schema.minimum.map(|min| ("minimum",min-1)),
+                    schema.maximum.map(|max| ("maximum",max+1)),
                 ]);
                 for val in test_vals
                     .into_iter()
                     .flatten(){
-                    // .filter_map(|x| x){
                         for (m,_) in oas_map.
                         path.
                         path_item.
@@ -40,14 +39,13 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 } else {continue};
                             } else {continue};
                             let req = AttackRequest::builder()
-                            .uri(&url, &oas_map.path.path)
-                            .method(*m)
-                            .headers(vec![])
-                            .parameters(vec![])
-                            .auth(auth.clone())
-                            .payload( &change_payload(&oas_map.payload.payload,json_path,json!(val.1)).to_string())
-                            .build();
-                            dbg!(&req);
+                                .uri(&url, &oas_map.path.path)
+                                .method(*m)
+                                .headers(vec![])
+                                .parameters(vec![])
+                                .auth(auth.clone())
+                                .payload( &change_payload(&oas_map.payload.payload,json_path,json!(val.1)).to_string())
+                                .build();
                             if let Ok(res) = req.send_request(true).await {
                                 //logging request/response/description
                                 ret_val.1.push(&req,&res,"Testing min/max values".to_string());

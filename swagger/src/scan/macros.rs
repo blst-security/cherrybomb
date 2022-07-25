@@ -38,6 +38,7 @@ macro_rules! impl_passive_checks{
                     )*
                 }
             }
+            
         }
         impl <T:OAS+Serialize>PassiveSwaggerScan<T>{
             pub fn run_check(&self,check:PassiveChecks)->PassiveChecks{
@@ -66,6 +67,14 @@ macro_rules! impl_active_checks{
                     $(
                         ActiveChecks::$check(_)=>$desc,
                     )*
+                }
+            }
+            pub fn from_string(str1:&str)->Option<Self>{
+                match str1{
+                    $(
+                        $name=>Some(ActiveChecks::$check((vec![],AttackLog::default()))),
+                    )*
+                    _=>None,
                 }
             }
             pub fn name(&self)->&'static str{

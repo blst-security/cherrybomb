@@ -3,7 +3,6 @@ use strum::IntoEnumIterator;
 
 mod additional_checks;
 mod response_checks;
-mod utils;
 mod flow;
 mod http_client;
 mod logs;
@@ -11,7 +10,6 @@ mod logs;
 
 use http_client::*;
 pub use http_client::Authorization;
-// use utils::*;
 pub use logs::*;
 use serde_json::json;
 use std::{iter, collections::HashSet};
@@ -28,7 +26,7 @@ pub enum ActiveScanType {
 }
 
 
-type PayloadMap= HashMap<Vec<String>, Schema>;
+type PayloadMap = HashMap<Vec<String>, Schema>;
 
 #[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
 pub struct Payload {
@@ -61,7 +59,7 @@ pub struct ActiveScan<T>
     oas: T,
     oas_value: Value,
     verbosity: u8,
-    checks: Vec<ActiveChecks>,
+    pub checks: Vec<ActiveChecks>,
     payloads: Vec<OASMap>,
     logs: AttackLog,
 
@@ -111,16 +109,18 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         };
     }
     pub fn print(&self, verbosity: u8) {
-        match verbosity {
+        println!("{:?}", self.checks);
+        match verbosity { //TODO support verbosity
             0 => {
                 //print_checks_table(&self.checks);
-                println!("{:?}", self.checks);
                 // print_attack_alerts_table(&self.checks);
             }
             1 => {
                 //print_checks_table(&self.checks);
             }
-            2 => print_failed_checks_table(&self.checks),
+            2 => {
+                //print_failed_checks_table(&self.checks),
+            }
             _ => (),
         }
     }
@@ -277,5 +277,21 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         } else {
             String::new()
         }
+    }
+}
+
+impl ActiveChecks {
+    pub fn parse_check_list(list: Vec<String>, exclude: bool) -> Vec<ActiveChecks>{
+        let mut checks = Vec::new();
+        for check in list.iter(){
+            let check = Self::from_string(check);
+            if let Some(c) = check {checks.push(c);}
+        }
+        if exclude{
+           let mut ex_checks: Vec<_> = Self::iter().collect();
+           ex_checks.retain(|x| !checks.contains(x));
+           return ex_checks
+        }
+        checks
     }
 }
