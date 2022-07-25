@@ -15,6 +15,10 @@ pub enum PassiveScanType {
     Full,
     Partial(Vec<PassiveChecks>),
 }
+
+impl PassiveScanType{
+    
+}
 impl Default for PassiveScanType {
     fn default() -> Self {
         Self::Full
@@ -46,6 +50,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
             }
         }
     }
+    
     pub fn run(&mut self, tp:PassiveScanType) {
         //->Vec<PassiveChecks>{
         match tp {
@@ -60,8 +65,8 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
                 }
             }
         };
-        //self.passive_checks.clone()
     }
+
     pub fn print(&self, verbosity: u8) {
         match verbosity {
             0 => {
@@ -90,5 +95,20 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
             }
         }
         string
+    }
+}
+impl PassiveChecks{
+    pub fn parse_check_list(list: Vec<String>, exclude: bool) -> Vec<PassiveChecks>{
+        let mut checks = Vec::new();
+        for check in list.iter(){
+            let check = Self::from_string(check);
+            if let Some(c) = check {checks.push(c);}
+        }
+        if exclude{
+           let mut ex_checks: Vec<_> = Self::iter().collect();
+           ex_checks.retain(|x| !checks.contains(x));
+           return ex_checks
+        }
+        checks
     }
 }

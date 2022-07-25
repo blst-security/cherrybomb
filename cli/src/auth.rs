@@ -128,7 +128,7 @@ pub async fn get_access(action: &str) -> bool {
         .body(Body::from(format!(
             "{{\"client_token\":{},\"action\":\"{}\"}}",
             token, action
-        ).replace("\n","")))
+        ).replace('\n',"")))
         .unwrap();
     let r = match client.request(req).await {
         Ok(r) => r,
@@ -150,13 +150,14 @@ pub async fn get_access(action: &str) -> bool {
     };
     match json["opt_in"].as_bool() {
         Some(b) => {
-            if b {
-                true
-            } else {
-                //panic!("Invalid CLI token, please contact BLST at support@blstsecurity.com");
-                //println!("{}", json["msg"].to_string().red());
-                false
-            }
+            b
+            // if b {
+            //     true
+            // } else {
+            //     //panic!("Invalid CLI token, please contact BLST at support@blstsecurity.com");
+            //     //println!("{}", json["msg"].to_string().red());
+            //     false
+            // }
         }
         None => {
             //panic!("Invalid CLI token, please contact BLST at support@blstsecurity.com");

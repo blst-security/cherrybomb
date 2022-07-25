@@ -69,6 +69,10 @@ impl Check for ActiveChecks {
         }
     }
 }
+
+impl ActiveChecks{ 
+}
+
 impl_passive_checks![
     //name in enum   check function   check name    check description
     (CheckServerUrl,check_server_url,"SERVER URL","Checks for server url misconfigurations"),
