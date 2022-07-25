@@ -267,37 +267,36 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         Some("https://blst.security.com".to_string()),
                     );
                     for param_item in &vec_param {
-                        if  param_item.dm == QuePay::Query && LIST_PARAM.contains(&param_item.name.as_str()) {
+                        if param_item.dm == QuePay::Query
+                            && LIST_PARAM.contains(&param_item.name.as_str())
+                        {
                             let param_to_redirect = param_item.name.to_owned();
                             let req = AttackRequest::builder()
-                            .uri(&base_url.url, path)
-                            .parameters(vec_param.clone())
-                            .auth(auth.clone())
-                            .method(m)
-                            .headers(vec![])
-                            .auth(auth.clone())
-                            .build();
-                        if let Ok(res) = req.send_request(true).await {
-                            //logging
-                            //logging request/response/description
-                            ret_val
-                                .1
-                                .push(&req, &res, "Testing open-redirect".to_string());
-                            ret_val.0.push((
+                                .uri(&base_url.url, path)
+                                .parameters(vec_param.clone())
+                                .auth(auth.clone())
+                                .method(m)
+                                .headers(vec![])
+                                .auth(auth.clone())
+                                .build();
+                            if let Ok(res) = req.send_request(true).await {
+                                //logging
+                                //logging request/response/description
+                                ret_val
+                                    .1
+                                    .push(&req, &res, "Testing open-redirect".to_string());
+                                ret_val.0.push((
                                 ResponseData{
                                     location: path.clone(),
                                     alert_text: format!("The parameter {} seems to be vulerable to open-redirect, location: {}  ",param_to_redirect,path)
                                 },
                             res.clone(),
                             ));
-                        } else {
-                            println!("REQUEST FAILED");
+                            } else {
+                                println!("REQUEST FAILED");
+                            }
+                            break;
                         }
-                        break;
-                        }
-                       
-                           
-                        
                     }
                 }
             }
@@ -319,50 +318,48 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 let _text = path.to_string();
                 //   println!("{:?}", text);
                 if m == Method::GET {
-                    let mut vec_param = create_payload_for_get(
-                        &self.oas_value,
-                        op,None
-                    );
+                    let mut vec_param = create_payload_for_get(&self.oas_value, op, None);
                     //let param_to_add =vec_param.iter().find(|&x| x.dm == QuePay::Query ).collect;
-                    let indices = vec_param.iter().enumerate().filter(|(_,x)| x.dm == QuePay::Query).map(|(index, _)| index).collect::<Vec<_>>();
-                    for i in indices{
+                    let indices = vec_param
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, x)| x.dm == QuePay::Query)
+                        .map(|(index, _)| index)
+                        .collect::<Vec<_>>();
+                    for i in indices {
                         let param_query_pollute = vec_param.get(i).unwrap().clone();
                         vec_param.push(param_query_pollute);
-                    let req = AttackRequest::builder()
-                                    .uri(&base_url.url, path)
-                                    .auth(auth.clone())
-                                    .parameters(vec_param.clone()
-                                    )
-                                    .method(m)
-                                    .headers(vec![])
-                                    .auth(auth.clone())
-                                    .build();
-                                println!("Pollution ");
-                                if let Ok(res) = req.send_request(true).await {
-                                    //logging request/response/description
-                                    ret_val.1.push(
-                                        &req,
-                                        &res,
-                                        " Testing get parameter pollution ".to_string(),
-                                    );
-                                    ret_val.0.push((
+                        let req = AttackRequest::builder()
+                            .uri(&base_url.url, path)
+                            .auth(auth.clone())
+                            .parameters(vec_param.clone())
+                            .method(m)
+                            .headers(vec![])
+                            .auth(auth.clone())
+                            .build();
+                        println!("Pollution ");
+                        if let Ok(res) = req.send_request(true).await {
+                            //logging request/response/description
+                            ret_val.1.push(
+                                &req,
+                                &res,
+                                " Testing get parameter pollution ".to_string(),
+                            );
+                            ret_val.0.push((
                                         ResponseData{
                                             location: path.clone(),
                                             alert_text: format!("The endpoint {} seems to be vulerable to parameter pollution on the {} parameter",path,vec_param.last().unwrap().name)
                                         },
                                         res.clone(),
                                     ));
-                                } else {
-                                    println!("REQUEST FAILED");
-                                }
-                            
-                                vec_param.remove(vec_param.len()-1);
-                            }
+                        } else {
+                            println!("REQUEST FAILED");
+                        }
+
+                        vec_param.remove(vec_param.len() - 1);
+                    }
                 }
-                  
-                
             }
-           
         }
         (ret_val, vec_polluted)
     }
@@ -601,8 +598,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
                     for (provider_item, value_to_send) in &provider_hash {
                         let mut params_vec = vec![];
-                        let payload_get_param =
-                            create_payload_for_get(&self.oas_value, op, Some(value_to_send.to_string()));
+                        let payload_get_param = create_payload_for_get(
+                            &self.oas_value,
+                            op,
+                            Some(value_to_send.to_string()),
+                        );
                         for parameter_item in payload_get_param {
                             if parameter_item.dm == QuePay::Query {
                                 if LIST_PARAM.contains(&parameter_item.name.as_str()) {
