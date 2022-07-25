@@ -12,21 +12,23 @@ jobs:
   cargo-fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - name: Format
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          override: true
       - run: cargo fmt 
   
   cargo-clippy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - name: Clippy
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          override: true
       - env:
           RUSTFLAGS: "-D warnings"
       - run: cargo clippy --verbose
@@ -34,13 +36,14 @@ jobs:
   cargo-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - name: Build
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          override: true
       - env:
-          RUSTFLAGS: "-Awarnings"
+          RUSTFLAGS: "-A warnings"
       - run: cargo build
   
       
