@@ -14,24 +14,33 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Format
-        run: cargo fmt 
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+      - run: cargo fmt 
   
   cargo-clippy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Clippy
-        env:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+      - env:
           RUSTFLAGS: "-D warnings"
-        run: cargo clippy --verbose
+      - run: cargo clippy --verbose
   
   cargo-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        env:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+      - env:
           RUSTFLAGS: "-Awarnings"
-        run: cargo build
+      - run: cargo build
   
       
