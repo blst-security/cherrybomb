@@ -43,7 +43,39 @@ pub struct Alert {
     pub location: String,
     pub certainty: Certainty,
 }
-
+use comfy_table::Table;
+pub fn print_alerts(checks:Vec<ActiveChecks>){
+    let mut table = Table::new();
+    table
+        .set_header(vec!["Check", "Top Severity", "Number of Alerts"]);
+    for check in checks{
+        let amount = check.inner().len();
+        let colored_amount = if amount > 0 { amount.to_string().red() } else { "0".green() };
+        table.add_row(vec![
+                      check.name().bold(),
+                      "Info".blue().bold(),
+                      colored_amount
+        ]);
+    }
+    println!("{table}");
+}
+pub fn print_alerts_verbose(checks:Vec<ActiveChecks>){
+    let mut table = Table::new();
+    table
+        .set_header(vec!["Check", "Severity", "Description", "Location", "Certainty"]);
+    for check in checks{
+        for alert in check.inner(){
+            table.add_row(vec![
+                          check.name().bold(),
+                          alert.level.to_string().bold(),
+                          alert.description.bold(),
+                          alert.location.bold(),
+                          alert.certainty.to_string().bold()
+            ]);
+        }
+    }
+    println!("{table}");
+}
 impl Alert {
     pub fn new(level: Level, description: &'static str, location: String) -> Alert {
         Alert {

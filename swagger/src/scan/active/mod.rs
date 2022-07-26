@@ -6,6 +6,7 @@ mod response_checks;
 mod flow;
 mod http_client;
 mod logs;
+mod utils;
 
 
 use http_client::*;
@@ -109,17 +110,14 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         };
     }
     pub fn print(&self, verbosity: u8) {
-        println!("{:?}", self.checks);
+        // println!("{:?}", self.checks);
+        dbg!(&self.checks);
         match verbosity { //TODO support verbosity
             0 => {
-                //print_checks_table(&self.checks);
-                // print_attack_alerts_table(&self.checks);
+                print_alerts(self.checks.clone());
             }
             1 => {
-                //print_checks_table(&self.checks);
-            }
-            2 => {
-                //print_failed_checks_table(&self.checks),
+                print_alerts_verbose(self.checks.clone());
             }
             _ => (),
         }

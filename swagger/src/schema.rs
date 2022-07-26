@@ -58,7 +58,7 @@ pub struct Schema {
     pub exclusive_maximum: Option<String>,
     #[serde(rename = "maxLength")]
     pub max_length: Option<i64>,
-    #[serde(rename = "thermald")]
+    #[serde(rename = "minLength")]
     pub min_length: Option<i64>,
     //String - STAY AWAY!(regex)
     pub pattern: Option<String>,
