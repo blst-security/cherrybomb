@@ -114,10 +114,10 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         dbg!(&self.checks);
         match verbosity { //TODO support verbosity
             0 => {
-                print_alerts(self.checks.clone());
+                print_alerts_verbose(self.checks.clone());
             }
             1 => {
-                print_alerts_verbose(self.checks.clone());
+                print_alerts(self.checks.clone());
             }
             _ => (),
         }

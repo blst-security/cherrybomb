@@ -7,7 +7,7 @@ pub mod active;
 pub use active::*;
 mod macros;
 mod print;
-use colored::*;
+//use colored::*;
 pub use print::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
@@ -43,18 +43,23 @@ pub struct Alert {
     pub location: String,
     pub certainty: Certainty,
 }
-use comfy_table::Table;
+use comfy_table::*;
+
+use comfy_table::presets::UTF8_FULL;
+use comfy_table::modifiers::UTF8_ROUND_CORNERS;
 pub fn print_alerts(checks:Vec<ActiveChecks>){
     let mut table = Table::new();
     table
+        .load_preset(UTF8_FULL)
+        .apply_modifier(UTF8_ROUND_CORNERS)
+        .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec!["Check", "Top Severity", "Number of Alerts"]);
     for check in checks{
         let amount = check.inner().len();
-        let colored_amount = if amount > 0 { amount.to_string().red() } else { "0".green() };
         table.add_row(vec![
-                      check.name().bold(),
-                      "Info".blue().bold(),
-                      colored_amount
+                      Cell::new(check.name()).add_attribute(Attribute::Bold),
+                      Cell::new("Info").fg(Color::Blue),
+                      Cell::new(&amount.to_string()).fg(if amount>0{Color::Red} else{ Color::Green } )
         ]);
     }
     println!("{table}");
@@ -62,15 +67,18 @@ pub fn print_alerts(checks:Vec<ActiveChecks>){
 pub fn print_alerts_verbose(checks:Vec<ActiveChecks>){
     let mut table = Table::new();
     table
+        .load_preset(UTF8_FULL)
+        .apply_modifier(UTF8_ROUND_CORNERS)
+        .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec!["Check", "Severity", "Description", "Location", "Certainty"]);
     for check in checks{
         for alert in check.inner(){
             table.add_row(vec![
-                          check.name().bold(),
-                          alert.level.to_string().bold(),
-                          alert.description.bold(),
-                          alert.location.bold(),
-                          alert.certainty.to_string().bold()
+                          Cell::new(check.name()).add_attribute(Attribute::Bold),
+                          Cell::new(format!("{:?}",alert.level.to_string())),
+                          Cell::new(alert.description).add_attribute(Attribute::Bold),
+                          Cell::new(alert.location).add_attribute(Attribute::Bold),
+                          Cell::new(format!("{:?}",alert.certainty))
             ]);
         }
     }

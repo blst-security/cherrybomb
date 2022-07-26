@@ -1,5 +1,6 @@
 use super::*;
 use std::fmt;
+use colored::*;
 pub const LEFT_PAD: usize = 40;
 pub const TBL_LEN: usize = 190;
 pub const URL_LEN: usize = 75;

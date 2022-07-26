@@ -1,4 +1,5 @@
 use super::*;
+use colored::*;
 use crate::scan::passive::*;
 use crate::scan::active::*;
 use strum_macros::EnumIter;
