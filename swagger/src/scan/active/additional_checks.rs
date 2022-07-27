@@ -20,8 +20,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         for oas_map in self.payloads.iter() {
             for (json_path,schema) in &oas_map.payload.map {
                 let test_vals = Vec::from([
-                    schema.minimum.map(|min| ("minimum",min-1)),
-                    schema.maximum.map(|max| ("maximum",max+1)),
+                    schema.minimum.map(|min| ("minimum",min-1.0)),
+                    schema.maximum.map(|max| ("maximum",max+1.0)),
                 ]);
                 for val in test_vals
                     .into_iter()

@@ -88,7 +88,7 @@ pub struct Link {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct Response {
-    pub description: String,
+    pub description: Option<String>,
     pub headers: Option<HeaderMap>,
     pub content: Option<Content>,
     pub links: Option<Links>,

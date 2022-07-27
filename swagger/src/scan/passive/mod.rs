@@ -70,11 +70,12 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
     pub fn print(&self, verbosity: u8) {
         match verbosity {
             0 => {
-                print_checks_table(&self.passive_checks);
-                print_alerts_table(&self.passive_checks);
+                //print_checks_table(&self.passive_checks);
+                //print_alerts_table(&self.passive_checks);
+                print_passive_alerts_verbose(self.passive_checks.clone());
             }
-            1 => print_checks_table(&self.passive_checks),
-            2 => print_failed_checks_table(&self.passive_checks),
+            1 => print_passive_alerts(self.passive_checks.clone()),
+            2 => (),//print_failed_checks_table(&self.passive_checks),
             _ => (),
         }
     }

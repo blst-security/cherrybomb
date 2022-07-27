@@ -1,8 +1,8 @@
 use super::*;
-use colored::*;
 use crate::scan::passive::*;
 use crate::scan::active::*;
 use strum_macros::EnumIter;
+use comfy_table::*;
 
 ///Add the rule name to this enum
 impl Default for PassiveChecks {
@@ -12,17 +12,17 @@ impl Default for PassiveChecks {
     }
 }
 pub trait Check{
-    fn alerts_text(&self) -> ColoredString;
+    fn alerts_text(&self) -> Cell;
     fn top_severity(&self) -> Level;
     fn result(&self) -> &'static str;
 }
 impl Check for PassiveChecks {
-    fn alerts_text(&self) -> ColoredString {
+    fn alerts_text(&self) -> Cell{
         match self.inner().len() {
-            0 => "0".green().bold(),
-            1..=10 => self.inner().len().to_string().yellow().bold(),
-            11..=99 => self.inner().len().to_string().red().bold(),
-            _ => self.inner().len().to_string().red().bold().blink(),
+            0 => Cell::new(self.inner().len()).fg(Color::Green).add_attribute(Attribute::Bold),
+            1..=10 => Cell::new(self.inner().len()).fg(Color::Yellow).add_attribute(Attribute::Bold),
+            11..=99 => Cell::new(self.inner().len()).fg(Color::Red).add_attribute(Attribute::Bold),
+            _ => Cell::new(self.inner().len()).fg(Color::Red).add_attribute(Attribute::Bold).add_attribute(Attribute::SlowBlink),
         }
     }
     fn top_severity(&self) -> Level {
@@ -45,12 +45,12 @@ impl Check for PassiveChecks {
 }
 
 impl Check for ActiveChecks {
-    fn alerts_text(&self) -> ColoredString {
+    fn alerts_text(&self) -> Cell{
         match self.inner().len() {
-            0 => "0".green().bold(),
-            1..=10 => self.inner().len().to_string().yellow().bold(),
-            11..=99 => self.inner().len().to_string().red().bold(),
-            _ => self.inner().len().to_string().red().bold().blink(),
+            0 => Cell::new(self.inner().len()).fg(Color::Green).add_attribute(Attribute::Bold),
+            1..=10 => Cell::new(self.inner().len()).fg(Color::Yellow).add_attribute(Attribute::Bold),
+            11..=99 => Cell::new(self.inner().len()).fg(Color::Red).add_attribute(Attribute::Bold),
+            _ => Cell::new(self.inner().len()).fg(Color::Red).add_attribute(Attribute::Bold).add_attribute(Attribute::SlowBlink),
         }
     }
     fn top_severity(&self) -> Level {

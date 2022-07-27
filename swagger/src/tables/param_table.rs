@@ -182,6 +182,10 @@ impl ParamTable{
             HashMap::new()
         }
     }
+    /*
+    fn get_min_max_float(schema:&Schema)->(Option<f64>,Option<f64>){
+        (schema.minimum,schema.maximum)
+    }*/
     fn get_min_max(schema:&Schema,tp:&str)->(Option<i64>,Option<i64>){
          match tp.to_lowercase().as_str(){
             "string"=>{
@@ -192,7 +196,12 @@ impl ParamTable{
                 };
                 (min,schema.max_length)
             },
-            "number"|"integer"=>(schema.minimum,schema.maximum),
+            
+            "number"|"integer"=>{
+                let min = if let Some(m) = schema.minimum{ Some(m as i64) } else {Some(i64::MIN)};
+                let max = if let Some(m) = schema.maximum{ Some(m as i64) } else {Some(i64::MAX)};
+                (min,max)
+            }
             "array"=>{
                 let min = if schema.min_items.is_none(){
                     Some(0)

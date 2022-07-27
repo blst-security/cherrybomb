@@ -67,10 +67,10 @@ fn parse_enum_to_int(e:&ParamEnum<String>)->ParamEnum<i64>{
     }
     v
 }*/
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ParamInt {
-    min: Option<i64>,
-    max: Option<i64>,
+    min: Option<f64>,
+    max: Option<f64>,
     multiple_of: i64,
     pub p_enum: Option<ParamEnum>,
     pub default: Option<SchemaStrInt>,
@@ -115,7 +115,7 @@ impl ParamString {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ParamValue {
     Integer(ParamInt),
     String(ParamString),
@@ -150,7 +150,7 @@ impl ParamValue {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Param {
     pub name: String,
     pub p_type: String,
