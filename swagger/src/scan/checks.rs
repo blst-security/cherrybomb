@@ -187,61 +187,74 @@ impl_active_checks![
         not_2xx,
         "NUMBER LIMITS ENFORCED",
         "checks that the api enforces the number limits in the OAS"
-    ),
+    ), // (
+       //     CheckStringMaxLength,
+       //     check_string_length_max,
+       //     not_2xx,
+       //     "STRING LEN",
+       //     "check that the api validate the String length"
+       // ),
+       // (
+       //     OpenRedirect,
+       //     check_open_redirect,
+       //     check_if_3xx,
+       //     "open redirect",
+       //     "Check if the API may be vulnerable to openredirect"
+       // ),
+       // (
+       //     CheckforSSRF,
+       //     check_for_ssrf,
+       //     ssrf_and_2xx,
+       //     "Server side request forgery",
+       //     "Check if the api can be vulerable to SSRF"
+       // ),
+       // (
+       //     ParameterPollution,
+       //     check_parameter_pollution,
+       //     reflected_and_2xx,
+       //     "parameter pollution",
+       //     "Check if the endpoint is vulnerable to http pollution"
+       // ),
+       // (
+       //     CheckSSL,
+       //     check_ssl,
+       //     not_2xx,
+       //     "encrypted communication",
+       //     "Check if the connection is secure"
+       // ),
+       // (
+       //     MethodPermissions,
+       //     check_method_permissions,
+       //     not_2xx,
+       //     "Method  permission ",
+       //     "Check if the endpoint is correctly configured"
+       // ),
+       // (
+       //     CheckMethodEncoding,
+       //     check_method_encoding,
+       //     not_2xx,
+       //     "Accept Encoding",
+       //     "Check if the endpoint can be send with other content type"
+       // ),
+       // (
+       //     CheckforPostSSRF,
+       //     check_ssrf_post,
+       //     ssrf_and_2xx,
+       //     "Server side POST request forgery",
+       //     "Check if the api can be vulerable to SSRF"
+       // ),
+       // (
+       //     CheckForXSS,
+       //     check_xss_reflected,
+       //     reflected_and_2xx,
+       //     "Reflected XSS",
+       //     "Check if the endpoint vulerable to xss."
+       // ),
     (
-        CheckStringMaxLength,
-        check_string_length_max,
-        not_2xx,
-        "STRING LEN",
-        "check that the api validate the String length"
-    ),
-    (
-        OpenRedirect,
-        check_open_redirect,
-        check_if_3xx,
-        "open redirect",
-        "Check if the API may be vulnerable to openredirect"
-    ),
-    (
-        CheckforSSRF,
-        check_for_ssrf,
-        ssrf_and_2xx,
-        "Server side request forgery",
-        "Check if the api can be vulerable to SSRF"
-    ),
-    (
-        ParameterPollution,
-        check_parameter_pollution,
-        reflected_and_2xx,
-        "parameter pollution",
-        "Check if the endpoint is vulnerable to http pollution"
-    ),
-    (
-        CheckSSL,
-        check_ssl,
-        not_2xx,
-        "encrypted communication",
-        "Check if the connection is secure"
-    ),
-    (
-        MethodPermissions,
-        check_method_permissions,
-        not_2xx,
-        "Method  permission ",
-        "Check if the endpoint is correctly configured"
-    ),
-    (
-        CheckMethodEncoding,
-        check_method_encoding,
-        not_2xx,
-        "Accept Encoding",
-        "Check if the endpoint can be send with other content type"
-    ),
-    (
-        CheckforPostSSRF,
-        check_ssrf_post,
-        ssrf_and_2xx,
-        "Server side POST request forgery",
-        "Check if the api can be vulerable to SSRF"
+        CheckForXMLBomb,
+        check_xml_bomb,
+        time_delay,
+        "XML BOMB",
+        "Check if the api has efficient protection against XML Bomb."
     )
 ];

