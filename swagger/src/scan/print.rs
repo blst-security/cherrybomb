@@ -1,115 +1,141 @@
 use super::*;
-use comfy_table::*;
-use comfy_table::presets::UTF8_FULL;
 use comfy_table::modifiers::UTF8_ROUND_CORNERS;
+use comfy_table::presets::UTF8_FULL;
+use comfy_table::*;
 pub const LEFT_PAD: usize = 40;
 pub const TBL_LEN: usize = 190;
 pub const URL_LEN: usize = 75;
-pub fn print_active_alerts(checks:Vec<ActiveChecks>){
+pub fn print_active_alerts(checks: Vec<ActiveChecks>) {
     let mut table = Table::new();
     table
         .load_preset(UTF8_FULL)
         .apply_modifier(UTF8_ROUND_CORNERS)
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec!["Check", "Top Severity", "Alerts"]);
-    for check in checks{
+    for check in checks {
         table.add_row(vec![
-                      Cell::new(check.name()).add_attribute(Attribute::Bold),
-                      check.top_severity().printable(),
-                      check.alerts_text(),
+            Cell::new(check.name()).add_attribute(Attribute::Bold),
+            check.top_severity().printable(),
+            check.alerts_text(),
         ]);
     }
     println!("{table}");
 }
-pub fn print_active_alerts_verbose(checks:Vec<ActiveChecks>){
+pub fn print_active_alerts_verbose(checks: Vec<ActiveChecks>) {
     let mut table = Table::new();
     table
         .load_preset(UTF8_FULL)
         .apply_modifier(UTF8_ROUND_CORNERS)
         .set_content_arrangement(ContentArrangement::Dynamic)
-        .set_header(vec!["Check", "Severity", "Description", "Location", "Certainty"]);
-    for check in checks{
-        for alert in check.inner(){
+        .set_header(vec![
+            "Check",
+            "Severity",
+            "Description",
+            "Location",
+            "Certainty",
+        ]);
+    for check in checks {
+        for alert in check.inner() {
             table.add_row(vec![
-                          Cell::new(check.name()).add_attribute(Attribute::Bold),
-                          alert.level.printable(),
-                          Cell::new(alert.description).add_attribute(Attribute::Bold),
-                          Cell::new(alert.location).add_attribute(Attribute::Bold),
-                          alert.certainty.printable()
+                Cell::new(check.name()).add_attribute(Attribute::Bold),
+                alert.level.printable(),
+                Cell::new(alert.description).add_attribute(Attribute::Bold),
+                Cell::new(alert.location).add_attribute(Attribute::Bold),
+                alert.certainty.printable(),
             ]);
         }
     }
     println!("{table}");
 }
-pub fn print_passive_alerts(checks:Vec<PassiveChecks>){
+pub fn print_passive_alerts(checks: Vec<PassiveChecks>) {
     let mut table = Table::new();
     table
         .load_preset(UTF8_FULL)
         .apply_modifier(UTF8_ROUND_CORNERS)
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec!["Check", "Top Severity", "Alerts", "Description"]);
-    for check in checks{
+    for check in checks {
         table.add_row(vec![
-                      Cell::new(check.name()).add_attribute(Attribute::Bold),
-                      check.top_severity().printable(),
-                      check.alerts_text(),
-                      Cell::new(check.description()).add_attribute(Attribute::Bold)
+            Cell::new(check.name()).add_attribute(Attribute::Bold),
+            check.top_severity().printable(),
+            check.alerts_text(),
+            Cell::new(check.description()).add_attribute(Attribute::Bold),
         ]);
     }
     println!("{table}");
 }
-pub fn print_passive_alerts_verbose(checks:Vec<PassiveChecks>){
+pub fn print_passive_alerts_verbose(checks: Vec<PassiveChecks>) {
     let mut table = Table::new();
     table
         .load_preset(UTF8_FULL)
         .apply_modifier(UTF8_ROUND_CORNERS)
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec!["Check", "Severity", "Description", "Location"]);
-    for check in checks{
-        for alert in check.inner(){
+    for check in checks {
+        for alert in check.inner() {
             table.add_row(vec![
-                          Cell::new(check.name()).add_attribute(Attribute::Bold),
-                          alert.level.printable(),
-                          Cell::new(alert.description).add_attribute(Attribute::Bold),
-                          Cell::new(trim_location(alert.location)).add_attribute(Attribute::Bold),
+                Cell::new(check.name()).add_attribute(Attribute::Bold),
+                alert.level.printable(),
+                Cell::new(alert.description).add_attribute(Attribute::Bold),
+                Cell::new(trim_location(alert.location)).add_attribute(Attribute::Bold),
             ]);
         }
     }
     println!("{table}");
 }
-fn trim_location(loc:String)->String{
-        loc
-            .replace("swagger root", "")
-            .replace("swagger rooot", "")
-            .replace("swagger", "")
-            .replace("media type:application/json", "")
-            .replace("response status", "status")
-
+fn trim_location(loc: String) -> String {
+    loc.replace("swagger root", "")
+        .replace("swagger rooot", "")
+        .replace("swagger", "")
+        .replace("media type:application/json", "")
+        .replace("response status", "status")
 }
-impl Level{
-    pub fn printable(&self)->Cell{
+impl Level {
+    pub fn printable(&self) -> Cell {
         match self {
-            Self::Info => Cell::new("INFO").fg(Color::Blue).add_attribute(Attribute::Bold),
-            Self::Low => Cell::new("LOW").fg(Color::Yellow).add_attribute(Attribute::Bold),
-            Self::Medium =>Cell::new("MEDIUM").fg(Color::Rgb{r:255,g:167,b:38}).add_attribute(Attribute::Bold),
-            Self::High => Cell::new("HIGH").fg(Color::Red).add_attribute(Attribute::Bold),
-            Self::Critical => Cell::new("CRITICAL").fg(Color::Black).add_attribute(Attribute::Bold),
+            Self::Info => Cell::new("INFO")
+                .fg(Color::Blue)
+                .add_attribute(Attribute::Bold),
+            Self::Low => Cell::new("LOW")
+                .fg(Color::Yellow)
+                .add_attribute(Attribute::Bold),
+            Self::Medium => Cell::new("MEDIUM")
+                .fg(Color::Rgb {
+                    r: 255,
+                    g: 167,
+                    b: 38,
+                })
+                .add_attribute(Attribute::Bold),
+            Self::High => Cell::new("HIGH")
+                .fg(Color::Red)
+                .add_attribute(Attribute::Bold),
+            Self::Critical => Cell::new("CRITICAL")
+                .fg(Color::Black)
+                .add_attribute(Attribute::Bold),
         }
     }
 }
-impl Certainty{
-    pub fn printable(&self)->Cell{
+impl Certainty {
+    pub fn printable(&self) -> Cell {
         match self {
-            Self::Low => Cell::new("LOW").fg(Color::DarkGrey).add_attribute(Attribute::Bold),
-            Self::Medium =>Cell::new("MEDIUM").fg(Color::DarkGrey).add_attribute(Attribute::Bold), 
-            Self::High => Cell::new("HIGH").fg(Color::DarkGrey).add_attribute(Attribute::Bold),
-            Self::Certain =>Cell::new("CERTAIN").fg(Color::DarkGrey).add_attribute(Attribute::Bold), 
-            Self::Passive=> Cell::new(""),
+            Self::Low => Cell::new("LOW")
+                .fg(Color::DarkGrey)
+                .add_attribute(Attribute::Bold),
+            Self::Medium => Cell::new("MEDIUM")
+                .fg(Color::DarkGrey)
+                .add_attribute(Attribute::Bold),
+            Self::High => Cell::new("HIGH")
+                .fg(Color::DarkGrey)
+                .add_attribute(Attribute::Bold),
+            Self::Certain => Cell::new("CERTAIN")
+                .fg(Color::DarkGrey)
+                .add_attribute(Attribute::Bold),
+            Self::Passive => Cell::new(""),
         }
     }
 }
 /*
-pub fn print_checks_table<T>(checks: &[T]) 
+pub fn print_checks_table<T>(checks: &[T])
 where T:fmt::Display+Check{
     println!(
         "{:pad$}| RESULT | TOP SEVERITY | ALERTS  |DESCRIPTION\n{:-<table_len$}",
@@ -122,7 +148,7 @@ where T:fmt::Display+Check{
         println!("{}", check);
     }
 }
-pub fn print_failed_checks_table<T>(checks: &[T]) 
+pub fn print_failed_checks_table<T>(checks: &[T])
 where T:fmt::Display+Check{
     println!(
         "{:pad$}| RESULT | TOP SEVERITY | ALERTS  |DESCRIPTION\n{:-<table_len$}",
@@ -139,7 +165,7 @@ where T:fmt::Display+Check{
 }
 fn split_text_to_lines(string:&str)->Vec<String>{
     let mut new_vec = vec![];
-    let mut new_str = String::new(); 
+    let mut new_str = String::new();
     let line_len = 75;
     let mut c = 0;
     for t in string.split(' '){

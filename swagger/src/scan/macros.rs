@@ -1,4 +1,3 @@
-
 #[macro_export]
 macro_rules! impl_passive_checks{
     ( $( ($check:ident,$check_func:ident,$name:literal,$desc:literal )),* ) => {
@@ -38,7 +37,7 @@ macro_rules! impl_passive_checks{
                     )*
                 }
             }
-            
+
         }
         impl <T:OAS+Serialize>PassiveSwaggerScan<T>{
             pub fn run_check(&self,check:PassiveChecks)->PassiveChecks{

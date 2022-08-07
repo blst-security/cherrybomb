@@ -16,9 +16,7 @@ pub enum PassiveScanType {
     Partial(Vec<PassiveChecks>),
 }
 
-impl PassiveScanType{
-    
-}
+impl PassiveScanType {}
 impl Default for PassiveScanType {
     fn default() -> Self {
         Self::Full
@@ -50,8 +48,8 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
             }
         }
     }
-    
-    pub fn run(&mut self, tp:PassiveScanType) {
+
+    pub fn run(&mut self, tp: PassiveScanType) {
         //->Vec<PassiveChecks>{
         match tp {
             PassiveScanType::Full => {
@@ -75,7 +73,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
                 print_passive_alerts_verbose(self.passive_checks.clone());
             }
             1 => print_passive_alerts(self.passive_checks.clone()),
-            2 => (),//print_failed_checks_table(&self.passive_checks),
+            2 => (), //print_failed_checks_table(&self.passive_checks),
             _ => (),
         }
     }
@@ -98,17 +96,19 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
         string
     }
 }
-impl PassiveChecks{
-    pub fn parse_check_list(list: Vec<String>, exclude: bool) -> Vec<PassiveChecks>{
+impl PassiveChecks {
+    pub fn parse_check_list(list: Vec<String>, exclude: bool) -> Vec<PassiveChecks> {
         let mut checks = Vec::new();
-        for check in list.iter(){
+        for check in list.iter() {
             let check = Self::from_string(check);
-            if let Some(c) = check {checks.push(c);}
+            if let Some(c) = check {
+                checks.push(c);
+            }
         }
-        if exclude{
-           let mut ex_checks: Vec<_> = Self::iter().collect();
-           ex_checks.retain(|x| !checks.contains(x));
-           return ex_checks
+        if exclude {
+            let mut ex_checks: Vec<_> = Self::iter().collect();
+            ex_checks.retain(|x| !checks.contains(x));
+            return ex_checks;
         }
         checks
     }

@@ -29,7 +29,7 @@ pub enum Certainty {
     Low,
     Medium,
     High,
-    Certain
+    Certain,
 }
 impl Default for Certainty {
     fn default() -> Self {
@@ -52,7 +52,12 @@ impl Alert {
             certainty: Certainty::Passive,
         }
     }
-    pub fn with_certainty(level: Level, description: String, location: String,certainty:Certainty) -> Alert {
+    pub fn with_certainty(
+        level: Level,
+        description: String,
+        location: String,
+        certainty: Certainty,
+    ) -> Alert {
         Alert {
             level,
             description,

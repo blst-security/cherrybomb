@@ -1,27 +1,15 @@
+use super::http_client::RequestParameter;
 use crate::{path::Operation, QuePay};
 use serde_json::Value;
-use super::http_client::RequestParameter;
-
-
-
-// pub fn create_string(num: i64) -> String {
-//     let mut str = String::from("");
-//     for n in 0..num + 1 {
-//         println!("{:?}", n);
-//         str.push_str("a");
-//     }
-//     str
-// }
-
 
 /// This function is used to create a payload for a GET request parameters
-// TODO add support for schemas 
+// TODO add support for schemas
 pub fn create_payload_for_get(
     swagger: &Value,
     op: &Operation,
     test_value: Option<String>,
 ) -> Vec<RequestParameter> {
-     let mut params_vec = vec![];
+    let mut params_vec = vec![];
     for i in op.params().iter_mut() {
         let parameter = i.inner(&Value::Null); //todo this is broken for schemas
         let in_var = parameter.param_in;
@@ -83,7 +71,8 @@ pub fn create_payload_for_get(
                     }
                 }
             }
-            "query" => { //todo support type
+            "query" => {
+                //todo support type
                 let mut final_value = "blstpollute".to_string();
                 if test_value.as_ref().is_none() {
                     // let mut example_value = "randomString".to_string();

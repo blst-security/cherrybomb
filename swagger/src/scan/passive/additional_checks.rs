@@ -5,15 +5,11 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {
-                let statuses = op
-                    .responses()
-                    .keys()
-                    .cloned()
-                    .collect::<Vec<String>>();
+                let statuses = op.responses().keys().cloned().collect::<Vec<String>>();
 
                 for status in statuses {
                     if let Ok(res_code) = status.parse::<u16>() {
-                        if !(100..600).contains(&res_code){
+                        if !(100..600).contains(&res_code) {
                             alerts.push(Alert::new(
                                 Level::Low,
                                 "Responses have an invalid or unrecognized status code",
@@ -40,7 +36,11 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                     let y = i.values().flatten().cloned().collect::<Vec<String>>();
                     for item in y {
                         if !item.starts_with("read") {
-                            alerts.push(Alert::new(Level::Medium, "Request GET has to be only read permission", format!("swagger path:{} method:{}", path, Method::GET)));
+                            alerts.push(Alert::new(
+                                Level::Medium,
+                                "Request GET has to be only read permission",
+                                format!("swagger path:{} method:{}", path, Method::GET),
+                            ));
                         }
                     }
                 }
@@ -57,7 +57,11 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                     let y = i.values().flatten().cloned().collect::<Vec<String>>();
                     for item in y {
                         if !item.starts_with("write") {
-                            alerts.push(Alert::new(Level::Medium, "Request PUT has to be only write permission", format!("swagger path:{} method:{}", path, Method::PUT)));
+                            alerts.push(Alert::new(
+                                Level::Medium,
+                                "Request PUT has to be only write permission",
+                                format!("swagger path:{} method:{}", path, Method::PUT),
+                            ));
                         }
                     }
                 }
@@ -74,7 +78,11 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                     let y = i.values().flatten().cloned().collect::<Vec<String>>();
                     for item in y {
                         if !item.starts_with("write:") && !item.starts_with("read:") {
-                            alerts.push(Alert::new(Level::Low, "Request POST has to be with read and write permissions", format!("swagger path:{} method:{}", path, Method::POST)));
+                            alerts.push(Alert::new(
+                                Level::Low,
+                                "Request POST has to be with read and write permissions",
+                                format!("swagger path:{} method:{}", path, Method::POST),
+                            ));
                         }
                     }
                 }
@@ -102,8 +110,11 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             if item.get_ops().is_empty() {
-                alerts.push(Alert::new(Level::Low, "Path has no operations"
-                 , format!("swagger path:{} ", path)));
+                alerts.push(Alert::new(
+                    Level::Low,
+                    "Path has no operations",
+                    format!("swagger path:{} ", path),
+                ));
             }
         }
         alerts
