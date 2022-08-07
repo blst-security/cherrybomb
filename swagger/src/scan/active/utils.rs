@@ -3,62 +3,31 @@ use serde_json::Value;
 
 use super::http_client::RequestParameter;
 
-// use super::*;
-// pub fn get_path_urls(path: &PathItem, servers: Option<Vec<Server>>) -> Vec<(Method, String)> {
-//     let mut urls = vec![];
-//     let methods: Vec<Method> = path.get_ops().iter().map(|(m, _)| m).cloned().collect();
-//     for (m, op) in path.get_ops() {
-//         if let Some(servers) = &op.servers {
-//             urls.extend(
-//                 servers
-//                     .iter()
-//                     .map(|s| (m, s.url.clone()))
-//                     .collect::<Vec<(Method, String)>>(),
-//             );
-//         }
-//     }
-//     if urls.is_empty() {
-//         if let Some(servers) = servers {
-//             for m in methods {
-//                 urls.extend(servers.iter().map(|s| (m, s.url.clone())));
-//             }
-//         }
-//     }
-//     urls
-// }
-pub fn create_string(num: i64) -> String {
-    let mut str = String::from("");
-    for n in 0..num + 1 {
-        println!("{:?}", n);
-        str.push_str("a");
-    }
-    str
-}
+
 pub fn create_payload_for_get(
-    //check if there is an exmaple
+    //check if there is an example
     //if query param and path param can be references
     swagger: &Value,
     op: &Operation,
     option_value: Option<String>,
 ) -> Vec<RequestParameter> {
+    //TODO replace this with a model similar to the one in POST requests
     let mut params_vec = vec![];
-    for i in op.params().iter_mut() {
-        let parameter = i.inner(&Value::Null);
+    for param_ref in op.params().iter() {
+        let parameter = param_ref.inner(&Value::Null);
         let in_var = parameter.param_in;
         let param_name = parameter.name.to_string();
-
-        // let slice = &param_name[..];
 
         match in_var.as_str() {
             "path" => {
                 let mut option_example_value = None;
                 if let Some(value) = parameter.examples {
-                    for (_ex, val) in value {
+                    if let Some((_ex, val)) = value.into_iter().next(){
                         option_example_value = Some(val.value.to_string());
-                        break;
                     }
                 }
                 if let Some(schema_ref) = parameter.schema {
+                    dbg!(&schema_ref);
                     if let Some(schema_type) = schema_ref.inner(swagger).schema_type {
                         // let val_to_path:String;
                         match schema_type.as_str() {
@@ -109,9 +78,9 @@ pub fn create_payload_for_get(
                     // let mut example_value = "randomString".to_string();
                     //let mut  option_example_value= None  ;
                     if let Some(values) = parameter.examples {
-                        for (_ex, val) in values {
+                        if let Some((_ex, val)) = values.into_iter().next() {
                             final_value = val.value.to_string();
-                            break;
+                            
                         }
                     }
                 } else {

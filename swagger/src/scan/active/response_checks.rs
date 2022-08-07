@@ -20,8 +20,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
     pub fn time_delay(check_ret: (CheckRetVal, Vec<Duration>)) -> (Vec<Alert>, AttackLog) {
         let mut ret_val = vec![];
         let cc = check_ret.0;
-        for (res_data, response) in cc.0 {
-            for (time) in &check_ret.1 {
+        for (res_data, _res) in cc.0 {
+            for time in &check_ret.1 {
                 if time.as_secs() < 3000 {
                     ret_val.push(Alert::with_certainty(
                         Level::Low,
@@ -58,7 +58,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let check_ret = check_ret_only.0;
         for (res_data, response) in &check_ret {
             for polluted in &check_ret_param.1 {
-                if (200..300u16).contains(&response.status) && response.payload.contains(&*polluted)
+                if (200..300u16).contains(&response.status) && response.payload.contains(polluted)
                 {
                     ret_val.push(Alert::with_certainty(
                         Level::Medium,

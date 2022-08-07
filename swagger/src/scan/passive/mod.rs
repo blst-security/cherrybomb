@@ -92,3 +92,18 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
         string
     }
 }
+impl PassiveChecks{
+    pub fn parse_check_list(list: Vec<String>, exclude: bool) -> Vec<PassiveChecks>{
+        let mut checks = Vec::new();
+        for check in list.iter(){
+            let check = Self::from_string(check);
+            if let Some(c) = check {checks.push(c);}
+        }
+        if exclude{
+            let mut ex_checks: Vec<_> = Self::iter().collect();
+            ex_checks.retain(|x| !checks.contains(x));
+            return ex_checks
+        }
+        checks
+    }
+}

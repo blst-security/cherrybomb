@@ -81,6 +81,14 @@ macro_rules! impl_active_checks{
                     )*
                 }
             }
+            pub fn from_string(str1:&str)->Option<Self>{
+                match str1{
+                    $(
+                        $name=>Some(ActiveChecks::$check((vec![],AttackLog::default()))),
+                    )*
+                    _=>None,
+                }
+            }
         }
         impl <T:OAS+Serialize>ActiveScan<T>{
             pub async fn run_check(&self,check:ActiveChecks,auth:&Authorization)->ActiveChecks{
