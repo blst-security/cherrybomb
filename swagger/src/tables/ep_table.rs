@@ -5,15 +5,15 @@ use std::collections::HashSet;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct EpForTable{
-    path:String,
+    pub path:String,
     //urls
     servers:Vec<String>,
-    ops:Vec<Method>,
-    query_params:Vec<String>,
-    headers_params:Vec<String>,
-    req_body_params:Vec<String>,
-    res_params:Vec<String>,
-    statuses:Vec<String>,
+    pub ops:Vec<Method>,
+    pub query_params:Vec<String>,
+    pub headers_params:Vec<String>,
+    pub req_body_params:Vec<String>,
+    pub res_params:Vec<String>,
+    pub statuses:Vec<String>,
 }
 impl fmt::Display for EpForTable {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -163,6 +163,7 @@ impl EpTable{
             }
             print!("{}",ep);
         }
+        //print_ep_table(&self.eps);
     }
     pub fn path_only(&self,path:&str)->Self{
         let eps = self.eps.iter().filter(|p|{

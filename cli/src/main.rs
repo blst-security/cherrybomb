@@ -92,6 +92,8 @@ pub struct OASOpt {
     ///Use active_scan_checks as an exclude list, if the active scan type is partial (1 - true, 0 - false)
     #[clap(long)]
     exclude_active_checks: Option<i8>,
+    #[clap(long)]
+    no_telemetry: Option<bool>,
     #[clap(subcommand)]
     auth:Option<AuthCmd>,
 }
@@ -107,6 +109,8 @@ pub struct ParamTableOpt {
     ///The OAS file
     #[clap(long,short)]
     file: String,
+    #[clap(long)]
+    no_telemetry: Option<bool>,
 }
 #[derive(Parser, Debug,Clone)]
 #[clap(name = "ep-table")]
@@ -120,6 +124,8 @@ pub struct EpTableOpt {
     ///The OAS file
     #[clap(long,short)]
     file: String,
+    #[clap(long)]
+    no_telemetry: Option<bool>,
 }
 
 #[derive(Subcommand,Debug,Clone)]
@@ -180,11 +186,13 @@ pub async fn parse_oas(oas:OASOpt){
     std::process::exit(res.into());
 }
 
-pub fn parse_param_table(p_table:ParamTableOpt){
+pub async fn parse_param_table(p_table:ParamTableOpt){
+    try_send_telemetry(p_table.no_telemetry,"param_table").await;
     param_table(&p_table.file,p_table.name); 
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
-    pub fn parse_ep_table(e_table:EpTableOpt){
+pub async fn parse_ep_table(e_table:EpTableOpt){
+    try_send_telemetry(e_table.no_telemetry,"ep_table").await;
     ep_table(&e_table.file,e_table.path);
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
@@ -195,8 +203,8 @@ async fn main() {
     let opt = Cli::parse();
     match opt.command{
         Commands::Oas(opt)=>parse_oas(opt).await,
-        Commands::ParamTable(opt)=>parse_param_table(opt),
-        Commands::EpTable(opt)=>parse_ep_table(opt),
+        Commands::ParamTable(opt)=>parse_param_table(opt).await,
+        Commands::EpTable(opt)=>parse_ep_table(opt).await,
     }
 }
 
