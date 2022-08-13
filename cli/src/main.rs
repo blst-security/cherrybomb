@@ -146,7 +146,10 @@ struct Cli {
 }
 
 pub async fn parse_oas(oas: OASOpt) {
-    println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
+    match oas.format {
+        OutputFormat::Json => {},
+        _=> { println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n", "https://www.blstsecurity.com".bold().underline())}
+    }
     if let OutputFormat::Web = oas.format {
         std::process::exit(0);
     }

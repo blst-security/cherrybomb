@@ -22,7 +22,7 @@ where
     };
     scan.run(passive_scan_type);
     if json {
-        println!("{}", serde_json::to_string(&scan).unwrap());
+        println!("{}", serde_json::to_string(&scan.passive_checks).unwrap());
     } else {
         scan.print(verbosity);
     }
@@ -48,6 +48,7 @@ pub async fn run_active_swagger_scan<T>(
     output_file: Option<String>,
     auth: Authorization,
     scan_type: ActiveScanType,
+    json:bool
 ) -> Result<i8, &'static str>
 where
     T: OAS + Serialize + for<'de> Deserialize<'de> + std::fmt::Debug,
@@ -59,7 +60,15 @@ where
         }
     };
     scan.run(scan_type, &auth).await;
-    scan.print(verbosity);
+    if json {
+        let mut out_json : Vec<(&str,Vec<swagger::scan::Alert>)>=vec![];
+        for check in scan.checks.iter(){
+            out_json.push((check.name(),check.inner().clone()));
+        }
+        println!("{}", serde_json::to_string(&out_json).unwrap());
+    } else {
+        scan.print(verbosity);
+    }
     let failed = scan
         .checks
         .iter()
@@ -90,6 +99,9 @@ pub async fn run_swagger(
         return -1;
     };
     if version.starts_with("3.") {
+        if json {
+            print!("{{")
+        }
         let passive_result = run_passive_swagger_scan::<OAS3_1>(
             PassiveSwaggerScan::<OAS3_1>::new(value.clone()),
             verbosity,
@@ -101,27 +113,28 @@ pub async fn run_swagger(
             print_err(e);
             return -1;
         }
+        if json {
+            print!(",");
+        }
         let active_result = run_active_swagger_scan::<OAS3_1>(
             ActiveScan::<OAS3_1>::new(value.clone()),
             verbosity,
             output_file.clone(),
             auth,
             active_scan_type,
-        )
-        .await;
+            json,
+        ).await;
         if let Err(e) = active_result {
             print_err(e);
             return -1;
         }
-        if let Ok(p_r) = passive_result && let Ok(a_r) = active_result{
-            if p_r == 0 && a_r == 0{
-                0
-            }
-            else {
-                101
-            }
+        if json {
+            print!("}}")
+        }
+        if passive_result.unwrap() == 0 && active_result.unwrap() == 0 {
+            0i8
         } else {
-           -1
+            101i8
         }
     } else {
         print_err("Unsupported OpenAPI specification version");

@@ -85,7 +85,7 @@ pub fn print_passive_alerts_verbose(checks: Vec<PassiveChecks>) {
 }
 fn trim_location(loc: String) -> String {
     loc.replace("swagger root", "")
-        .replace("swagger rooot", "")
+        .replace("swagger root", "")
         .replace("swagger", "")
         .replace("media type:application/json", "")
         .replace("response status", "status")

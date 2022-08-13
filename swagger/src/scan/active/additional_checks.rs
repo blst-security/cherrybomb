@@ -50,7 +50,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     .to_string(),
                             )
                             .build();
-                        if let Ok(res) = req.send_request(true).await {
+                        if let Ok(res) = req.send_request(self.verbosity > 0).await {
                             //logging request/response/description
                             ret_val
                                 .1
@@ -66,11 +66,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 },
                                 res.clone(),
                             ));
-                            println!(
-                                "{}:{}",
-                                "Status".green().bold(),
-                                res.status.to_string().magenta()
-                            );
+                            
                         } else {
                             println!("REQUEST FAILED");
                         }
@@ -106,7 +102,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .headers(vec![])
                             .auth(auth.clone())
                             .build();
-                        if let Ok(res) = req.send_request(true).await {
+                        if let Ok(res) = req.send_request(self.verbosity > 0).await {
                             //logging
                             //logging request/response/description
                             ret_val
@@ -180,7 +176,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 )
                                 .build();
 
-                            if let Ok(res) = req.send_request(true).await {
+                            if let Ok(res) = req.send_request(self.verbosity > 0).await {
                                 //logging request/response/description
                                 ret_val
                                     .1
@@ -196,11 +192,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     },
                                     res.clone(),
                                 ));
-                                println!(
-                                    "{}:{}",
-                                    "Status".green().bold(),
-                                    res.status.to_string().magenta()
-                                );
+                                
                             } else {
                                 println!("REQUEST FAILED");
                             }
@@ -245,7 +237,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .headers(vec![])
                             .auth(auth.clone())
                             .build();
-                        if let Ok(res) = req.send_request(true).await {
+                        if let Ok(res) = req.send_request(self.verbosity > 0).await {
                             //logging request/response/description
                             ret_val.1.push(
                                 &req,
@@ -283,7 +275,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .auth(auth.clone())
                         .build();
                     println!("{}", req);
-                    if let Ok(res) = req.send_request(true).await {
+                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
                         //logging request/response/description
                         ret_val
                             .1
@@ -326,7 +318,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .method(method)
                         .headers(vec![])
                         .build();
-                    if let Ok(res) = req.send_request(true).await {
+                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
                         //logging request/response/description
                         ret_val
                             .1
@@ -340,11 +332,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             },
                             res.clone(),
                         ));
-                        println!(
-                            "{}:{}",
-                            "Status".green().bold(),
-                            res.status.to_string().magenta()
-                        );
+                        
                     } else {
                         println!("REQUEST FAILED");
                     }
