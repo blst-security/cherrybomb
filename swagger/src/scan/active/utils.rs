@@ -3,7 +3,7 @@ use crate::{path::Operation, QuePay};
 use serde_json::Value;
 
 /// This function is used to create a payload for a GET request parameters
-// TODO add support for schemas
+// TODO change this t be created at parse instead of on demand
 pub fn create_payload_for_get(
     swagger: &Value,
     op: &Operation,
@@ -11,12 +11,9 @@ pub fn create_payload_for_get(
 ) -> Vec<RequestParameter> {
     let mut params_vec = vec![];
     for i in op.params().iter_mut() {
-        let parameter = i.inner(&Value::Null); //todo this is broken for schemas
+        let parameter = i.inner(swagger);
         let in_var = parameter.param_in;
         let param_name = parameter.name.to_string();
-
-        // let slice = &param_name[..];
-
         match in_var.as_str() {
             "path" => {
                 let mut option_example_value = None;

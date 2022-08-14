@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use super::*;
 use swagger::scan::active::{ActiveScan, ActiveScanType};
 use swagger::scan::passive::PassiveSwaggerScan;
@@ -22,7 +23,13 @@ where
     };
     scan.run(passive_scan_type);
     if json {
-        println!("{}", serde_json::to_string(&scan.passive_checks).unwrap());
+        let mut out_json : HashMap<&str,Vec<swagger::scan::Alert>>= HashMap::new();
+        for check in scan.passive_checks.iter(){
+            if !check.inner().is_empty() {
+                out_json.insert(check.name(),check.inner().clone());
+            }
+        }
+        print!("{}", serde_json::to_string(&out_json).unwrap());
     } else {
         scan.print(verbosity);
     }
@@ -61,11 +68,13 @@ where
     };
     scan.run(scan_type, &auth).await;
     if json {
-        let mut out_json : Vec<(&str,Vec<swagger::scan::Alert>)>=vec![];
+        let mut out_json : HashMap<&str,Vec<swagger::scan::Alert>>= HashMap::new();
         for check in scan.checks.iter(){
-            out_json.push((check.name(),check.inner().clone()));
+            if !check.inner().is_empty() {
+                out_json.insert(check.name(),check.inner().clone());
+            }
         }
-        println!("{}", serde_json::to_string(&out_json).unwrap());
+        print!("{}", serde_json::to_string(&out_json).unwrap());
     } else {
         scan.print(verbosity);
     }
@@ -100,7 +109,7 @@ pub async fn run_swagger(
     };
     if version.starts_with("3.") {
         if json {
-            print!("{{")
+            print!("{{\"passive checks\":");
         }
         let passive_result = run_passive_swagger_scan::<OAS3_1>(
             PassiveSwaggerScan::<OAS3_1>::new(value.clone()),
@@ -114,7 +123,7 @@ pub async fn run_swagger(
             return -1;
         }
         if json {
-            print!(",");
+            print!(",\"active checks\":");
         }
         let active_result = run_active_swagger_scan::<OAS3_1>(
             ActiveScan::<OAS3_1>::new(value.clone()),

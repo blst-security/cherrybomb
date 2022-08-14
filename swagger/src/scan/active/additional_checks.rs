@@ -59,9 +59,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 ResponseData {
                                     location: oas_map.path.path.clone(),
                                     alert_text: format!(
-                                        "The {} for {} is not enforced by the server",
+                                        "The {} for {:?} is not enforced by the server",
                                         val.0,
-                                        json_path[json_path.len() - 1]
+                                        json_path
                                     ),
                                 },
                                 res.clone(),
@@ -128,7 +128,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
     pub async fn check_string_length_max(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-
         for oas_map in self.payloads.iter() {
             for (json_path, schema) in &oas_map.payload.map {
                 if let Some(max_len) = schema.max_length {
@@ -136,9 +135,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .flatten()
                         .take(max_len.try_into().unwrap())
                         .collect::<String>();
-
-                    let test_vals = Vec::from([(schema.max_length, &new_string)]);
-                    for val in test_vals {
                         for (m, _) in oas_map
                             .path
                             .path_item
@@ -170,7 +166,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     &change_payload(
                                         &oas_map.payload.payload,
                                         json_path,
-                                        json!(val.1),
+                                        json!(new_string),
                                     )
                                     .to_string(),
                                 )
@@ -185,9 +181,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     ResponseData {
                                         location: oas_map.path.path.clone(),
                                         alert_text: format!(
-                                            "The {:?} for {} is not enforced by the server",
-                                            val.0,
-                                            json_path[json_path.len() - 1]
+                                            "The {} length limit for {:?} is not enforced by the server",
+                                            max_len,
+                                            json_path
                                         ),
                                     },
                                     res.clone(),
@@ -196,7 +192,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             } else {
                                 println!("REQUEST FAILED");
                             }
-                        }
                     }
                 }
             }
@@ -268,7 +263,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         if let Some(server_list) = self.oas.servers(){
             for server in server_list.iter() {
                 let mut new_url = server.url.clone();
-                if &new_url[..5] == "https" { //todo maybe change this
+                if &new_url[..5] == "https" {
                     new_url.replace_range(0..5, "http");
                     let req = AttackRequest::builder()
                         .uri(&new_url, "")

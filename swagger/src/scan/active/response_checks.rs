@@ -1,8 +1,7 @@
 use super::*;
 
 impl<T: OAS + Serialize> ActiveScan<T> {
-    pub fn not_2xx(check_ret: CheckRetVal) -> (Vec<Alert>, AttackLog) {
-        //todo prob should change name
+    pub fn is_2xx(check_ret: CheckRetVal) -> (Vec<Alert>, AttackLog) {
         let mut ret_val = vec![];
         for (res_data, response) in check_ret.0.into_iter() {
             if (200..300u16).contains(&response.status) {
