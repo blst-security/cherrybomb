@@ -19,7 +19,6 @@ impl Custom{
             "path"=>QuePay::Path,
             "query"=>QuePay::Query,
             "payload"=>QuePay::Payload,
-            "response"=>QuePay::Response,
             _=>QuePay::None
         };
         Custom{
@@ -96,13 +95,6 @@ impl Authorization {
             _ => None,
         }
     }
-    /*
-    pub fn is_api_key(&self) -> bool {
-        match self {
-            Self::APIKey(_) => true,
-            _ => false,
-        }
-    }*/
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum Auth {
