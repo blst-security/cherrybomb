@@ -36,6 +36,12 @@ impl AttackRequestBuilder {
         self.payload = payload.to_string();
         self
     }
+    pub fn add_auth_to_params(&mut self)-> &mut Self{
+        if let Some(a) = self.auth.get_auth(){
+            self.parameters.push(a);
+        }
+        self
+    }
     pub fn build(&self)->AttackRequest{
         AttackRequest {
             path:self.path.clone(),
@@ -87,17 +93,11 @@ impl AttackRequest {
         (self.payload.clone(), query, path_ext, headers)
     }
     pub fn get_headers(&self,payload_headers: &[MHeader]) -> HashMap<String, String> {
-        let mut new: Vec<MHeader> = self.headers
+        self.headers
         .iter()
         .chain(payload_headers)
-        .cloned()
-        .collect();
-        if let Some(a) = self.auth.get_header() {
-            new.push(a);
-        }
-        new.iter()
-            .map(|h| (h.name.clone(), h.value.clone()))
-            .collect()
+        .map(|h| (h.name.clone(), h.value.clone()))
+        .collect()
     }
 
     pub async fn send_request(&self,print:bool) -> Result<AttackResponse,reqwest::Error> {

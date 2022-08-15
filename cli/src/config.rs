@@ -2,8 +2,6 @@ use super::*;
 use std::fs::File;
 use std::io::{Write,Read};
 use swagger::{PassiveScanType,PassiveChecks};
-use hyper::{body, Body, Client, Method, Request};
-use hyper_rustls::HttpsConnectorBuilder;
 use std::path::Path;
 
 
@@ -181,45 +179,6 @@ async fn get_token()->String{
         }
     }
     token
-}
-pub async fn get_access(action: &str) -> bool {
-    let token = get_token().await;
-    let connector = HttpsConnectorBuilder::new()
-        .with_native_roots()
-        .https_only()
-        .enable_http1()
-        .enable_http2()
-        .build();
-    let client = Client::builder().build(connector);
-    let req = Request::builder()
-        .method(Method::POST)
-        .uri("https://cherrybomb.blstsecurity.com/auth")
-        .body(Body::from(format!(
-            "{{\"client_token\":{},\"action\":\"{}\"}}",
-            token, action
-        ).replace('\n',"")))
-        .unwrap();
-    let r = match client.request(req).await {
-        Ok(r) => r,
-        Err(_) => {
-            return false;
-        }
-    };
-    let txt = body::to_bytes(r.into_body()).await.unwrap();
-    let json: serde_json::Value = match serde_json::from_slice(&txt) {
-        Ok(j) => j,
-        Err(_) => {
-            return false;
-        }
-    };
-    match json["opt_in"].as_bool() {
-        Some(b) => {
-            b
-        }
-        None => {
-            false
-        }
-    }
 }
 pub async fn try_send_telemetry(no_tel:Option<bool>,action:&str){
     if let Some(t) = no_tel{

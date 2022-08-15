@@ -43,10 +43,13 @@ impl fmt::Display for OutputFormat{
 #[derive(Parser,Debug,Clone)]
 #[clap(name = "auth")]
 pub struct AuthOpt {
-    ///Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key
+    ///Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key, 4 - Cookie, 5 - Custom
     #[clap(short,long="type")]
     tp:String,
-    ///Sets the authorization token(if it's of type basic then username:password)
+    ///Sets the authorization token
+    ///If it's of type basic then username:password
+    ///If it's Custom then the scheme is delivery method,name,value->headers,X-CUSTOM-HEADER,value
+    ///For all other option, just the token
     #[clap(long)]
     token:String,
 }
@@ -56,7 +59,7 @@ pub enum AuthCmd{
     ///Adds an auth token to the Attacker's requests, for auth based apps
     Auth(AuthOpt),
 }
-
+//,takes_value=false
 #[derive(Parser, Debug,Clone)]
 #[clap(name = "oas")]
 pub struct OASOpt {
