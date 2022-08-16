@@ -1,6 +1,7 @@
 use super::*;
-use crate::scan::passive::*;
 use crate::scan::active::*;
+use crate::scan::passive::*;
+use comfy_table::*;
 use strum_macros::EnumIter;
 
 ///Add the rule name to this enum
@@ -10,18 +11,27 @@ impl Default for PassiveChecks {
         Self::CheckServerUrl(vec![])
     }
 }
-pub trait Check{
-    fn alerts_text(&self) -> ColoredString;
+pub trait Check {
+    fn alerts_text(&self) -> Cell;
     fn top_severity(&self) -> Level;
     fn result(&self) -> &'static str;
 }
 impl Check for PassiveChecks {
-    fn alerts_text(&self) -> ColoredString {
+    fn alerts_text(&self) -> Cell {
         match self.inner().len() {
-            0 => "0".green().bold(),
-            1..=10 => self.inner().len().to_string().yellow().bold(),
-            11..=99 => self.inner().len().to_string().red().bold(),
-            _ => self.inner().len().to_string().red().bold().blink(),
+            0 => Cell::new(self.inner().len())
+                .fg(Color::Green)
+                .add_attribute(Attribute::Bold),
+            1..=10 => Cell::new(self.inner().len())
+                .fg(Color::Yellow)
+                .add_attribute(Attribute::Bold),
+            11..=99 => Cell::new(self.inner().len())
+                .fg(Color::Red)
+                .add_attribute(Attribute::Bold),
+            _ => Cell::new(self.inner().len())
+                .fg(Color::Red)
+                .add_attribute(Attribute::Bold)
+                .add_attribute(Attribute::SlowBlink),
         }
     }
     fn top_severity(&self) -> Level {
@@ -44,12 +54,21 @@ impl Check for PassiveChecks {
 }
 
 impl Check for ActiveChecks {
-    fn alerts_text(&self) -> ColoredString {
+    fn alerts_text(&self) -> Cell {
         match self.inner().len() {
-            0 => "0".green().bold(),
-            1..=10 => self.inner().len().to_string().yellow().bold(),
-            11..=99 => self.inner().len().to_string().red().bold(),
-            _ => self.inner().len().to_string().red().bold().blink(),
+            0 => Cell::new(self.inner().len())
+                .fg(Color::Green)
+                .add_attribute(Attribute::Bold),
+            1..=10 => Cell::new(self.inner().len())
+                .fg(Color::Yellow)
+                .add_attribute(Attribute::Bold),
+            11..=99 => Cell::new(self.inner().len())
+                .fg(Color::Red)
+                .add_attribute(Attribute::Bold),
+            _ => Cell::new(self.inner().len())
+                .fg(Color::Red)
+                .add_attribute(Attribute::Bold)
+                .add_attribute(Attribute::SlowBlink),
         }
     }
     fn top_severity(&self) -> Level {
@@ -68,9 +87,6 @@ impl Check for ActiveChecks {
             "PASSED"
         }
     }
-}
-
-impl ActiveChecks{ 
 }
 
 impl_passive_checks![
@@ -98,5 +114,10 @@ impl_passive_checks![
 ];
 
 impl_active_checks![
-    (CheckMinMax, check_min_max,not_2xx,"NUMBER LIMITS ENFORCED","checks that the api enforces the number limits in the OAS")
+    (CheckMinMax,check_min_max,is_2xx,"NUMBER LIMITS ENFORCED","checks that the api enforces the number limits in the OAS"),
+    (OpenRedirect,check_open_redirect,is_2xx,"OPEN REDIRECT","Check if the API may be vulnerable to open redirect"),
+    (CheckStringMaxLength,check_string_length_max,is_2xx,"STRING LENGTH ENFORCED","check that the api validate the String length"),
+    (ParameterPollution,check_parameter_pollution,reflected_and_2xx,"PARAMETER POLLUTION","Check if the endpoint is vulnerable to http pollution"),
+    (CheckSSL,check_ssl,is_2xx,"SSL ENFORCED","Check if the connection is secure"),
+    (MethodPermissions,check_method_permissions,is_2xx,"METHOD PERMISSION","Check if the endpoint is correctly configured")
 ];

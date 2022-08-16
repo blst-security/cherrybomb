@@ -1,4 +1,5 @@
-    use super::*;
+
+use super::*;
 /*
 pub enum DataFormat{
     #[serde(rename = "int32")]
@@ -52,13 +53,13 @@ pub struct Schema {
     pub title: Option<String>,
     #[serde(rename = "multipleOf")]
     pub multiple_of: Option<i64>,
-    pub maximum: Option<i64>,
-    pub minimum: Option<i64>,
+    pub maximum: Option<f64>,
+    pub minimum: Option<f64>,
     #[serde(rename = "exclusiveMaximum")]
     pub exclusive_maximum: Option<String>,
     #[serde(rename = "maxLength")]
     pub max_length: Option<i64>,
-    #[serde(rename = "thermald")]
+    #[serde(rename = "minLength")]
     pub min_length: Option<i64>,
     //String - STAY AWAY!(regex)
     pub pattern: Option<String>,

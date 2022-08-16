@@ -1,6 +1,5 @@
 use super::*;
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 struct NetInteraction {
     req: AttackRequest,

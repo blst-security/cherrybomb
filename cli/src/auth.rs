@@ -2,12 +2,11 @@
 use hyper::{body, Body, Client, Method, Request};
 use hyper_rustls::HttpsConnectorBuilder;
 use std::fs::File;
-use std::io::{Read,Write};
+use std::io::{Read, Write};
 use std::path::Path;
 
-
-const TOKEN_FILE:&str = ".cherrybomb/token.txt";
-async fn sign_up(filename:&Path,dir:&Path)->bool{
+const TOKEN_FILE: &str = ".cherrybomb/token.txt";
+async fn sign_up(filename: &Path, dir: &Path) -> bool {
     /*
     match set_current_dir(dirs::home_dir().unwrap()){
         Ok(_)=>(),
@@ -19,18 +18,18 @@ async fn sign_up(filename:&Path,dir:&Path)->bool{
     let mut file = match File::create(filename) {
         Ok(f) => f,
         Err(_) => {
-            match std::fs::create_dir(dir){
-                Ok(_)=>{
+            match std::fs::create_dir(dir) {
+                Ok(_) => {
                     match File::create(filename) {
-                        Ok(f)=>f,
-                        Err(e)=>{
-                            println!("{:?}",e);
+                        Ok(f) => f,
+                        Err(e) => {
+                            println!("{:?}", e);
                             //panic!("Could not generate a CLI token, please contact BLST at support@blstsecurity.com");
                             return false;
                         }
                     }
                 }
-                Err(_e)=>{
+                Err(_e) => {
                     //println!("{:?}",e);
                     //panic!("Could not generate a CLI token, please contact BLST at support@blstsecurity.com");
                     return false;
@@ -38,18 +37,18 @@ async fn sign_up(filename:&Path,dir:&Path)->bool{
             }
         }
     };
-    let res = match reqwest::get("https://cherrybomb.blstsecurity.com/token").await{
-        Ok(r)=>{
-            match r.text().await{
-                Ok(t)=>t,
-                Err(_)=>{
+    let res = match reqwest::get("https://cherrybomb.blstsecurity.com/token").await {
+        Ok(r) => {
+            match r.text().await {
+                Ok(t) => t,
+                Err(_) => {
                     //panic!("Could not generate a CLI token, please contact BLST at support@blstsecurity.com");
                     return false;
                 }
             }
-        },
-        Err(e)=>{
-            println!("{:?}",e);
+        }
+        Err(e) => {
+            println!("{:?}", e);
             //panic!("Could not generate a CLI token, please contact BLST at support@blstsecurity.com");
             return false;
         }
@@ -61,30 +60,30 @@ async fn sign_up(filename:&Path,dir:&Path)->bool{
             return false;
         }
     };
-    match file.write_all(json["client_token"].to_string().as_bytes()){
-        Ok(_)=>(),
-        Err(_)=>{
+    match file.write_all(json["client_token"].to_string().as_bytes()) {
+        Ok(_) => (),
+        Err(_) => {
             //panic!("Could not generate a CLI token, please contact BLST at support@blstsecurity.com");
             return false;
         }
     }
     true
 }
-async fn get_token()->String{
-    let mut filename =  dirs::home_dir().unwrap();
+async fn get_token() -> String {
+    let mut filename = dirs::home_dir().unwrap();
     filename.push(TOKEN_FILE);
     let dir = dirs::home_dir().unwrap();
     let mut file = match File::open(&filename) {
         Ok(f) => f,
         Err(_) => {
-            if sign_up(&filename,&dir).await{
+            if sign_up(&filename, &dir).await {
                 match File::open(&filename) {
-                    Ok(f)=>f,
-                    Err(_)=>{
+                    Ok(f) => f,
+                    Err(_) => {
                         panic!("Could not validate the CLI token, please contact BLST at support@blstsecurity.com");
                     }
                 }
-            }else{
+            } else {
                 panic!("Could not validate the CLI token, please contact BLST at support@blstsecurity.com");
             }
             /*
@@ -125,10 +124,9 @@ pub async fn get_access(action: &str) -> bool {
     let req = Request::builder()
         .method(Method::POST)
         .uri("https://cherrybomb.blstsecurity.com/auth")
-        .body(Body::from(format!(
-            "{{\"client_token\":{},\"action\":\"{}\"}}",
-            token, action
-        ).replace('\n',"")))
+        .body(Body::from(
+            format!("{{\"client_token\":{},\"action\":\"{}\"}}", token, action).replace('\n', ""),
+        ))
         .unwrap();
     let r = match client.request(req).await {
         Ok(r) => r,

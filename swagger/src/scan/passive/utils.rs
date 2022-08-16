@@ -367,54 +367,23 @@ pub fn get_all_params_by_type(
             } else {
                 HashMap::new()
             };
-            schemas.extend(
-                any_of
-                    .iter()
-                    .flat_map(|a| {
-                        get_all_params_by_type(
-                            &a.inner(swagger_value),
-                            swagger_value,
-                            tp,
-                            location.clone(),
-                        )
-                    }),
-            );
-            schemas.extend(
-                all_of
-                    .iter()
-                    .flat_map(|a| {
-                        get_all_params_by_type(
-                            &a.inner(swagger_value),
-                            swagger_value,
-                            tp,
-                            location.clone(),
-                        )
-                    }),
-            );
-            schemas.extend(
-                one_of
-                    .iter()
-                    .flat_map(|a| {
-                        get_all_params_by_type(
-                            &a.inner(swagger_value),
-                            swagger_value,
-                            tp,
-                            location.clone(),
-                        )
-                    }),
-            );
-            schemas.extend(
-                props
-                    .iter()
-                    .flat_map(|(name, p)| {
-                        get_all_params_by_type(
-                            &p.inner(swagger_value),
-                            swagger_value,
-                            tp,
-                            format!("{} prop:{}", location, name),
-                        )
-                    }),
-            );
+            schemas.extend(any_of.iter().flat_map(|a| {
+                get_all_params_by_type(&a.inner(swagger_value), swagger_value, tp, location.clone())
+            }));
+            schemas.extend(all_of.iter().flat_map(|a| {
+                get_all_params_by_type(&a.inner(swagger_value), swagger_value, tp, location.clone())
+            }));
+            schemas.extend(one_of.iter().flat_map(|a| {
+                get_all_params_by_type(&a.inner(swagger_value), swagger_value, tp, location.clone())
+            }));
+            schemas.extend(props.iter().flat_map(|(name, p)| {
+                get_all_params_by_type(
+                    &p.inner(swagger_value),
+                    swagger_value,
+                    tp,
+                    format!("{} prop:{}", location, name),
+                )
+            }));
         }
         _ => (),
     };
