@@ -1,4 +1,4 @@
-use super::*;
+    use super::*;
 
 impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
     pub fn check_valid_responses(&self) -> Vec<Alert> {
@@ -105,7 +105,6 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         }
         alerts
     }
-
     pub fn check_contains_operation(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
@@ -119,4 +118,101 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         }
         alerts
     }
+
+    pub fn check_valid_encoding(&self) -> Vec<Alert>{
+        let mut alerts: Vec<Alert> = vec![];
+        for (path, item) in &self.swagger.get_paths() {
+            for (_m, op) in item.get_ops() {
+                if let Some(req_body) = &op.request_body {
+                    req_body.inner(&self.swagger_value)
+                        .content
+                        .keys()
+                        .for_each(|c_t| if !LIST_CONTENT_TYPE.contains(&c_t.as_str()) {
+                            alerts.push(Alert::new(
+                                Level::Low,
+                                "Request body has an invalid content type",
+                                format!("swagger path:{} content type:{}", path, c_t),
+                            ))
+                        });
+                }
+            }
+        }
+        alerts
+    }
+
+    pub fn check_description(&self) -> Vec<Alert> {
+        let mut alerts: Vec<Alert> = vec![];
+        for (path, item) in &self.swagger.get_paths() {
+            for (m, op) in item.get_ops() {
+                if op.description.is_none() {
+                    alerts.push(Alert::new(
+                        Level::Low,
+                        "Operation has no description",
+                        format!("swagger path:{} operation:{}", path, m),
+                    ));
+                } else if op.description.as_ref().unwrap().is_empty() {
+                    alerts.push(Alert::new(
+                        Level::Low,
+                        "Operation has an empty description",
+                        format!("swagger path:{} operation:{}", path, m),
+                    ));
+                }
+            }
+        }
+        alerts
+    }
+
+    pub fn check_contains_response(&self) ->Vec<Alert> {
+        let mut alerts: Vec<Alert> = vec![];
+        for (path, item) in &self.swagger.get_paths() {
+            for (m, op) in item.get_ops() {
+                if op.responses.is_none() || op.responses.as_ref().unwrap().is_empty() {
+                    alerts.push(Alert::new(
+                        Level::Low,
+                        "Operation has no responses",
+                        format!("swagger path:{} operation:{}", path, m),
+                    ));
+                }
+            }
+        }
+        alerts
+    }
 }
+
+const LIST_CONTENT_TYPE: [&str; 35] = [
+    "application/java-archive",
+    "application/json",
+    "application/xml",
+    "multipart/form-data",
+    "application/EDI-X12",
+    "application/EDIFACT",
+    "application/javascript",
+    "application/octet-stream",
+    "application/ogg",
+    "application/pdf",
+    "application/pdf",
+    "application/xhtml+xml",
+    "application/x-shockwave-flash",
+    "application/json",
+    "application/ld+json",
+    "application/xml",
+    "application/zip",
+    "application/x-www-form-urlencoded",
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "image/tiff",
+    "image/vnd.microsoft.icon",
+    "image/x-icon",
+    "image/vnd.djvu",
+    "image/svg+xml",
+    "text/css",
+    "text/csv",
+    "text/html",
+    "text/plain",
+    "text/xml",
+    "multipart/mixed",
+    "multipart/alternative",
+    "multipart/related",
+    "multipart/form-data",
+];
