@@ -93,11 +93,14 @@ where
     }
 }
 
+// todo create type, maybe add activeScanType none
+#[allow(clippy::too_many_arguments)]
 pub async fn run_swagger(
     file: &str,
     verbosity: u8,
     output_file: Option<String>,
     auth: Authorization,
+    no_active: bool,
     active_scan_type: ActiveScanType,
     passive_scan_type: PassiveScanType,
     json: bool,
@@ -125,14 +128,19 @@ pub async fn run_swagger(
         if json {
             print!(",\"active checks\":");
         }
-        let active_result = run_active_swagger_scan::<OAS3_1>(
-            ActiveScan::<OAS3_1>::new(value.clone()),
-            verbosity,
-            output_file.clone(),
-            auth,
-            active_scan_type,
-            json,
-        ).await;
+        let active_result =
+            if !no_active {
+                run_active_swagger_scan::<OAS3_1>(
+                    ActiveScan::<OAS3_1>::new(value.clone()),
+                    verbosity,
+                    output_file.clone(),
+                    auth,
+                    active_scan_type,
+                    json,
+                ).await
+            } else {
+                Ok(0)
+            };
         if let Err(e) = active_result {
             print_err(e);
             return -1;

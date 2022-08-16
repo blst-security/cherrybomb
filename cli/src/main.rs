@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ArgAction};
 use cli::*;
 use colored::*;
 use std::fmt;
@@ -84,6 +84,9 @@ pub struct OASOpt {
         requires("exclude-passive-checks")
     )]
     passive_scan_checks: Option<Vec<String>>,
+    ///Dont run any active tests
+    #[clap(long,takes_value = false,action = ArgAction::SetTrue)]
+    no_active: bool,
     ///The Active Scan Type to run, 0 - Full, 1 - Non invasive, 2 - only tests, 3 - Partial (list of checks)
     #[clap(short, long)]
     active_scan_type: Option<i32>,
@@ -164,6 +167,7 @@ pub async fn parse_oas(oas: OASOpt) {
             Some(AuthCmd::Auth(auth)) => swagger::Authorization::from_parts(&auth.tp, auth.token),
             _ => swagger::Authorization::None,
         },
+        oas.no_active,
         match oas.active_scan_type {
             Some(0) => swagger::ActiveScanType::Full,
             Some(1) => swagger::ActiveScanType::NonInvasive,

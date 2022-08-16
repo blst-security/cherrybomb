@@ -16,7 +16,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         (ret_val, check_ret.1)
     }
 
-    pub fn check_if_3xx(check_ret: CheckRetVal) -> (Vec<Alert>, AttackLog) {
+    pub fn is_3xx(check_ret: CheckRetVal) -> (Vec<Alert>, AttackLog) {
         let mut ret_val = vec![];
         for (res_data, response) in check_ret.0.into_iter() {
             if (300..300u16).contains(&response.status) {

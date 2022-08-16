@@ -80,6 +80,7 @@ pub fn create_payload_for_get(
                         }
                     }
                 } else {
+                    // unwrap - else clause of is_none
                     final_value = test_value.as_ref().unwrap().to_string();
                 }
                 params_vec.push(RequestParameter {
