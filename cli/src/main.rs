@@ -1,4 +1,4 @@
-use clap::{Parser,Subcommand};
+use clap::{Parser,Subcommand,ArgAction};
 use swagger::ActiveChecks;
 use swagger::PassiveChecks;
 use std::str::FromStr;
@@ -59,7 +59,6 @@ pub enum AuthCmd{
     ///Adds an auth token to the Attacker's requests, for auth based apps
     Auth(AuthOpt),
 }
-//,takes_value=false
 #[derive(Parser, Debug,Clone)]
 #[clap(name = "oas")]
 pub struct OASOpt {
@@ -85,6 +84,8 @@ pub struct OASOpt {
     /// ex: "check1,check2,check3"
     #[clap(long,required_if("passive-scan-type", "1"), requires("exclude-passive-checks"))]
     passive_scan_checks: Option<Vec<String>>,
+    #[clap(long,takes_value = false,action = ArgAction::SetTrue)]
+    no_active: bool,
     ///The Active Scan Type to run, 0 - Full, 1 - Non invasive, 2 - only tests, 3 - Partial (list of checks)
     #[clap(short,long)]
     active_scan_type: Option<i32>,
@@ -150,6 +151,11 @@ struct Cli {
 
 pub async fn parse_oas(oas:OASOpt){
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
+    if oas.no_active{
+        try_send_telemetry(oas.no_telemetry,"passive oas scan").await;
+    }else{
+        try_send_telemetry(oas.no_telemetry,"passive and active oas scan").await;
+    }
     if let OutputFormat::Web = oas.format{
         std::process::exit(0);
     }
