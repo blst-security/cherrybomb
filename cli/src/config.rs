@@ -188,6 +188,6 @@ pub async fn try_send_telemetry(no_tel:Option<bool>,action:&str){
     }
     let token = get_token().await;
     let client = reqwest::Client::new();
-    let a = client.post("https://cherrybomb.blstsecurity.com/tel").body(format!("{{\"client_token\":{},\"event\":\"{}\"}}",token,action)).send().await;
+    let _ = client.post("https://cherrybomb.blstsecurity.com/tel").body(format!("{{\"client_token\":{},\"event\":\"{}\"}}",token,action)).send().await;
 
 }
