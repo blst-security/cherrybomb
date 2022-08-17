@@ -1,10 +1,12 @@
-use clap::{Parser, Subcommand, ArgAction};
-use cli::*;
-use colored::*;
-use std::fmt;
-use std::str::FromStr;
+use clap::{Parser,Subcommand,ArgAction};
 use swagger::ActiveChecks;
 use swagger::PassiveChecks;
+use std::str::FromStr;
+use std::fmt;
+use colored::*;
+use cli::*;
+
+
 
 const SWAGGER_OUTPUT_FILE: &str = "results.txt";
 
@@ -41,10 +43,13 @@ impl fmt::Display for OutputFormat {
 #[derive(Parser, Debug, Clone)]
 #[clap(name = "auth")]
 pub struct AuthOpt {
-    ///Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key
-    #[clap(short, long = "type")]
-    tp: String,
-    ///Sets the authorization token(if it's of type basic then username:password)
+    ///Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key, 4 - Cookie, 5 - Custom
+    #[clap(short,long="type")]
+    tp:String,
+    ///Sets the authorization token
+    ///If it's of type basic then username:password
+    ///If it's Custom then the scheme is delivery method,name,value->headers,X-CUSTOM-HEADER,value
+    ///For all other option, just the token
     #[clap(long)]
     token: String,
 }
@@ -54,8 +59,7 @@ pub enum AuthCmd {
     ///Adds an auth token to the Attacker's requests, for auth based apps
     Auth(AuthOpt),
 }
-
-#[derive(Parser, Debug, Clone)]
+#[derive(Parser, Debug,Clone)]
 #[clap(name = "oas")]
 pub struct OASOpt {
     ///The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)
@@ -101,6 +105,8 @@ pub struct OASOpt {
     ///Use active_scan_checks as an exclude list, if the active scan type is partial (1 - true, 0 - false)
     #[clap(long)]
     exclude_active_checks: Option<i8>,
+    #[clap(long)]
+    no_telemetry: Option<bool>,
     #[clap(subcommand)]
     auth: Option<AuthCmd>,
 }
@@ -116,6 +122,8 @@ pub struct ParamTableOpt {
     ///The OAS file
     #[clap(long, short)]
     file: String,
+    #[clap(long)]
+    no_telemetry: Option<bool>,
 }
 #[derive(Parser, Debug, Clone)]
 #[clap(name = "ep-table")]
@@ -129,6 +137,8 @@ pub struct EpTableOpt {
     ///The OAS file
     #[clap(long, short)]
     file: String,
+    #[clap(long)]
+    no_telemetry: Option<bool>,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -152,6 +162,11 @@ pub async fn parse_oas(oas: OASOpt) {
     match oas.format {
         OutputFormat::Json => {},
         _=> { println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n", "https://www.blstsecurity.com".bold().underline())}
+    }
+    if oas.no_active{
+        try_send_telemetry(oas.no_telemetry,"passive oas scan").await;
+    }else{
+        try_send_telemetry(oas.no_telemetry,"passive and active oas scan").await;
     }
     if let OutputFormat::Web = oas.format {
         std::process::exit(0);
@@ -192,21 +207,25 @@ pub async fn parse_oas(oas: OASOpt) {
     std::process::exit(res.into());
 }
 
-pub fn parse_param_table(p_table: ParamTableOpt) {
-    param_table(&p_table.file, p_table.name);
+pub async fn parse_param_table(p_table:ParamTableOpt){
+    try_send_telemetry(p_table.no_telemetry,"param_table").await;
+    param_table(&p_table.file,p_table.name); 
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
-pub fn parse_ep_table(e_table: EpTableOpt) {
-    ep_table(&e_table.file, e_table.path);
+pub async fn parse_ep_table(e_table:EpTableOpt){
+    try_send_telemetry(e_table.no_telemetry,"ep_table").await;
+    ep_table(&e_table.file,e_table.path);
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
+
 
 #[tokio::main]
 async fn main() {
     let opt = Cli::parse();
-    match opt.command {
-        Commands::Oas(opt) => parse_oas(opt).await,
-        Commands::ParamTable(opt) => parse_param_table(opt),
-        Commands::EpTable(opt) => parse_ep_table(opt),
+    match opt.command{
+        Commands::Oas(opt)=>parse_oas(opt).await,
+        Commands::ParamTable(opt)=>parse_param_table(opt).await,
+        Commands::EpTable(opt)=>parse_ep_table(opt).await,
     }
 }
+

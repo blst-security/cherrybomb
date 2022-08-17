@@ -36,7 +36,13 @@ impl AttackRequestBuilder {
         self.payload = payload.to_string();
         self
     }
-    pub fn build(&self) -> AttackRequest {
+    pub fn add_auth_to_params(&mut self)-> &mut Self{
+        if let Some(a) = self.auth.get_auth(){
+            self.parameters.push(a);
+        }
+        self
+    }
+    pub fn build(&self)->AttackRequest{
         AttackRequest {
             path: self.path.clone(),
             parameters: self.parameters.clone(),
@@ -98,26 +104,20 @@ impl AttackRequest {
         query.pop();
         (self.payload.clone(), query, path_ext, headers)
     }
-    pub fn get_headers(&self, payload_headers: &[MHeader]) -> HashMap<String, String> {
-        let mut new: Vec<MHeader> = self
-            .headers
-            .iter()
-            .chain(payload_headers)
-            .cloned()
-            .collect();
-        if let Some(a) = self.auth.get_header() {
-            new.push(a);
-        }
-        new.iter()
-            .map(|h| (h.name.clone(), h.value.clone()))
-            .collect()
+    pub fn get_headers(&self,payload_headers: &[MHeader]) -> HashMap<String, String> {
+        self.headers
+        .iter()
+        .chain(payload_headers)
+        .map(|h| (h.name.clone(), h.value.clone()))
+        .collect()
     }
 
     pub async fn send_request(&self, print: bool) -> Result<AttackResponse, reqwest::Error> {
         let client = reqwest::Client::new();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
-        let h = self.get_headers(&headers1);
+        let mut h = self.get_headers(&headers1);
+        h.insert("X-BLST-ATTACKER".to_string(),"true".to_string());
         let req = client
             .request(method1, &format!("{}{}", path, req_query))
             .body(req_payload.clone())

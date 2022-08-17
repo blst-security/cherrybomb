@@ -11,6 +11,12 @@ async fn main() {
     a.print(1);
     a.print(0);
 
+    let a = ParamTable::new::<OAS3_1>(&swagger_value);
+    a.print();
+
+    let a = EpTable::new::<OAS3_1>(&swagger_value);
+    a.print();
+
     let mut a = ActiveScan::<OAS3_1>::new(swagger_value).unwrap();
     use futures::executor;
     executor::block_on(a.run(ActiveScanType::Full, &Authorization::None));
