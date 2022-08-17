@@ -5,8 +5,11 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {
-                let statuses = op.responses().keys().cloned().collect::<Vec<String>>();
-
+                let statuses = op
+                    .responses()
+                    .keys()
+                    .cloned()
+                    .collect::<Vec<String>>();
                 for status in statuses {
                     if let Ok(res_code) = status.parse::<u16>() {
                         if !(100..600).contains(&res_code) {

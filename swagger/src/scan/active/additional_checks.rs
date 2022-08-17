@@ -66,7 +66,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 },
                                 res.clone(),
                             ));
-                            
+
                         } else {
                             println!("REQUEST FAILED");
                         }
@@ -188,7 +188,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     },
                                     res.clone(),
                                 ));
-                                
+
                             } else {
                                 println!("REQUEST FAILED");
                             }
@@ -327,7 +327,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             },
                             res.clone(),
                         ));
-                        
+
                     } else {
                         println!("REQUEST FAILED");
                     }
@@ -337,7 +337,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
-    
+
 }
 
 const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT];
