@@ -1,11 +1,11 @@
 use super::*;
-use comfy_table::modifiers::UTF8_ROUND_CORNERS;
-use comfy_table::presets::UTF8_FULL;
 use comfy_table::*;
+use comfy_table::presets::UTF8_FULL;
+use comfy_table::modifiers::UTF8_ROUND_CORNERS;
 pub const LEFT_PAD: usize = 40;
 pub const TBL_LEN: usize = 190;
 pub const URL_LEN: usize = 75;
-pub fn print_active_alerts(checks: Vec<ActiveChecks>) {
+pub fn print_active_alerts(checks:Vec<ActiveChecks>){
     let mut table = Table::new();
     table
         .load_preset(UTF8_FULL)
@@ -83,12 +83,122 @@ pub fn print_passive_alerts_verbose(checks: Vec<PassiveChecks>) {
     }
     println!("{table}");
 }
-fn trim_location(loc: String) -> String {
-    loc.replace("swagger root", "")
-        .replace("swagger root", "")
-        .replace("swagger", "")
-        .replace("media type:application/json", "")
-        .replace("response status", "status")
+fn prep_param(param:&ParamForTable)->(String,String,String,String,String,String,String){
+    let max = if let Some(m) = param.max { m.to_string() } else { "NULL".to_string() };
+    let min = if let Some(m) = param.min { m.to_string() } else { "NULL".to_string() };
+    let mut statuses = String::new();
+    let mut dms = String::new();
+    let mut eps = String::new();
+    let mut parents = String::new();
+    let mut children = String::new();
+    for status in &param.statuses{
+        statuses.push_str(status);
+        statuses.push('\n');
+    }
+    for dm in &param.dms{
+        dms.push_str(&format!("{:?}",dm));
+        dms.push('\n');
+    }
+    for ep in &param.eps{
+        eps.push_str(ep);
+        eps.push('\n');
+    }
+    for parent in &param.parents{
+        parents.push_str(parent);
+        parents.push('\n');
+    }
+    for child in &param.children{
+        children.push_str(child);
+        children.push('\n');
+    }
+    (min,max,statuses,dms,eps,parents,children)
+}
+// NOT YET USABLE SINCE THERE IS NO WAY FOR MULTICOLORING ONE CELL
+pub fn print_param_table(params:&Vec<ParamForTable>){
+    let mut table = Table::new();
+    table
+        .load_preset(UTF8_FULL)
+        .apply_modifier(UTF8_ROUND_CORNERS)
+        .set_content_arrangement(ContentArrangement::Dynamic)
+        .set_header(vec!["Name","Type","Statuses","Delivery Methods","Endpoints","Parents","Children","Min-Max"]);
+    for param in params{
+        let (min,max,statuses,dms,eps,parents,children) = prep_param(&param);
+        table.add_row(vec![
+                      Cell::new(param.name.clone()).add_attribute(Attribute::Bold),
+                      Cell::new(param.param_type.clone()).add_attribute(Attribute::Bold),
+                      Cell::new(statuses).add_attribute(Attribute::Bold),
+                      Cell::new(dms).add_attribute(Attribute::Bold),
+                      Cell::new(eps).add_attribute(Attribute::Bold),
+                      Cell::new(parents).add_attribute(Attribute::Bold),
+                      Cell::new(children).add_attribute(Attribute::Bold),
+                      Cell::new(format!("{}-{}",min,max)).add_attribute(Attribute::Bold),
+        ]);
+    }
+    println!("{table}");
+}
+fn prep_ep(eps:&EpForTable)->(String,String,String,String,String,String){
+    let mut q_p = String::new();
+    let mut h_p = String::new();
+    let mut r_b_p = String::new();
+    let mut r_p = String::new();
+    let mut statuses = String::new();
+    let mut methods = String::new();
+    for method in &eps.ops{
+        methods.push_str(&method.to_string());
+        methods.push('\n');
+    }
+    for status in &eps.statuses{
+        statuses.push_str(status);
+        statuses.push('\n');
+    }
+    for p in &eps.query_params{
+        q_p.push_str(&p.to_string());
+        q_p.push('\n');
+    }
+    for p in &eps.headers_params{
+        h_p.push_str(p);
+        h_p.push('\n');
+    }
+    for p in &eps.req_body_params{
+        r_b_p.push_str(p);
+        r_b_p.push('\n');
+    }
+    for p in &eps.res_params{
+        r_p.push_str(p);
+        r_p.push('\n');
+    }
+    (methods,q_p,h_p,r_b_p,r_p,statuses)
+}
+// NOT YET USABLE SINCE THERE IS NO WAY FOR MULTICOLORING ONE CELL
+pub fn print_ep_table(eps:&Vec<EpForTable>){
+    let mut table = Table::new();
+    table
+        .load_preset(UTF8_FULL)
+        .apply_modifier(UTF8_ROUND_CORNERS)
+        .set_content_arrangement(ContentArrangement::Dynamic)
+        .set_header(vec!["Path","Methods","Query Params","Header Params","Body Params","Response Params","Statuses"]);
+    for ep in eps{
+        let (methods,q_p,h_p,r_b_p,r_p,statuses) = prep_ep(&ep);
+        table.add_row(vec![
+                      Cell::new(ep.path.clone()).add_attribute(Attribute::Bold),
+                      Cell::new(methods).add_attribute(Attribute::Bold),
+                      Cell::new(q_p).add_attribute(Attribute::Bold),
+                      Cell::new(h_p).add_attribute(Attribute::Bold),
+                      Cell::new(r_b_p).add_attribute(Attribute::Bold),
+                      Cell::new(r_p).add_attribute(Attribute::Bold),
+                      Cell::new(statuses).add_attribute(Attribute::Bold),
+        ]);
+    }
+    println!("{table}");
+}
+fn trim_location(loc:String)->String{
+        loc
+            .replace("swagger root", "")
+            .replace("swagger rooot", "")
+            .replace("swagger", "")
+            .replace("media type:application/json", "")
+            .replace("response status", "status")
+
 }
 impl Level {
     pub fn printable(&self) -> Cell {
@@ -135,6 +245,9 @@ impl Certainty {
     }
 }
 /*
+//pub const LEFT_PAD: usize = 40;
+//pub const TBL_LEN: usize = 190;
+//pub const URL_LEN: usize = 75;
 pub fn print_checks_table<T>(checks: &[T])
 where T:fmt::Display+Check{
     println!(

@@ -1,8 +1,11 @@
 use super::*;
 use std::fs::File;
-use std::io::{Read, Write};
-use swagger::{PassiveChecks, PassiveScanType};
+use std::io::{Write,Read};
+use swagger::{PassiveScanType,PassiveChecks};
+use std::path::Path;
 
+
+const TOKEN_FILE:&str = ".cherrybomb/token.txt";
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Config {
     pub scan_type: PassiveScanType,
@@ -116,4 +119,89 @@ impl Config {
             None
         }
     }
+}
+async fn sign_up(filename:&Path,dir:&Path)->bool{
+    let mut file = match File::create(filename) {
+        Ok(f) => f,
+        Err(_) => {
+            match std::fs::create_dir(dir){
+                Ok(_)=>{
+                    match File::create(filename) {
+                        Ok(f)=>f,
+                        Err(_)=>{
+                            return false;
+                        }
+                    }
+                }
+                Err(_)=>{
+                    return false;
+                }
+            }
+        }
+    };
+    let res = match reqwest::get("https://cherrybomb.blstsecurity.com/token").await{
+        Ok(r)=>{
+            match r.text().await{
+                Ok(t)=>t,
+                Err(_)=>{
+                    return false;
+                }
+            }
+        },
+        Err(_)=>{
+            return false;
+        }
+    };
+    let json: serde_json::Value = match serde_json::from_str(&res) {
+        Ok(j) => j,
+        Err(_) => {
+            return false;
+        }
+    };
+    match file.write_all(json["client_token"].to_string().as_bytes()){
+        Ok(_)=>(),
+        Err(_)=>{
+            return false;
+        }
+    }
+    true
+}
+async fn get_token()->String{
+    let mut filename =  dirs::home_dir().unwrap();
+    filename.push(TOKEN_FILE);
+    let dir = dirs::home_dir().unwrap();
+    let mut file = match File::open(&filename) {
+        Ok(f) => f,
+        Err(_) => {
+            if sign_up(&filename,&dir).await{
+                match File::open(&filename) {
+                    Ok(f)=>f,
+                    Err(_)=>{
+                        return String::new();
+                    }
+                }
+            }else{
+                return String::new();
+            }
+        }
+    };
+    let mut token = String::new();
+    match file.read_to_string(&mut token) {
+        Ok(_) => (),
+        Err(_) => {
+            return String::new();
+        }
+    }
+    token
+}
+pub async fn try_send_telemetry(no_tel:Option<bool>,action:&str){
+    if let Some(t) = no_tel{
+        if t{
+            return;
+        }
+    }
+    let token = get_token().await;
+    let client = reqwest::Client::new();
+    let _ = client.post("https://cherrybomb.blstsecurity.com/tel").body(format!("{{\"client_token\":{},\"event\":\"{}\"}}",token,action)).send().await;
+
 }

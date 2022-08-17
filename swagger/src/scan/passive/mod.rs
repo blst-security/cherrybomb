@@ -16,7 +16,6 @@ pub enum PassiveScanType {
     Partial(Vec<PassiveChecks>),
 }
 
-impl PassiveScanType {}
 impl Default for PassiveScanType {
     fn default() -> Self {
         Self::Full
