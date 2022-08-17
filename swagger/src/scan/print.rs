@@ -122,7 +122,7 @@ pub fn print_param_table(params:&Vec<ParamForTable>){
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec!["Name","Type","Statuses","Delivery Methods","Endpoints","Parents","Children","Min-Max"]);
     for param in params{
-        let (min,max,statuses,dms,eps,parents,children) = prep_param(&param);
+        let (min,max,statuses,dms,eps,parents,children) = prep_param(param);
         table.add_row(vec![
                       Cell::new(param.name.clone()).add_attribute(Attribute::Bold),
                       Cell::new(param.param_type.clone()).add_attribute(Attribute::Bold),
@@ -178,7 +178,7 @@ pub fn print_ep_table(eps:&Vec<EpForTable>){
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec!["Path","Methods","Query Params","Header Params","Body Params","Response Params","Statuses"]);
     for ep in eps{
-        let (methods,q_p,h_p,r_b_p,r_p,statuses) = prep_ep(&ep);
+        let (methods,q_p,h_p,r_b_p,r_p,statuses) = prep_ep(ep);
         table.add_row(vec![
                       Cell::new(ep.path.clone()).add_attribute(Attribute::Bold),
                       Cell::new(methods).add_attribute(Attribute::Bold),
