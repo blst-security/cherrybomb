@@ -9,7 +9,7 @@ edition = "2021"
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.8.23"
-mapper={path="../mapper"}
+#mapper={path="../mapper"}
 reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls"] }
 tokio = { version = "^1", features = ["rt-multi-thread","macros"] }
 futures = "0.3"
@@ -20,3 +20,4 @@ colored = "2.0.0"
 base64 = "0.13.0"
 regex = "1"
 uuid = { version = "0.8", features = ["v4","serde"] }
+comfy-table = "6.0.0"

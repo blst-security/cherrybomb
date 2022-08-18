@@ -1,6 +1,6 @@
 [package]
 name = "cherrybomb"
-version = "0.6.1"
+version = "0.7.0"
 authors = ["BLST Security"]
 description = """
 Cherrybomb is a CLI tool that helps you avoid undefined user behavior by validating your API specifications.
@@ -20,21 +20,20 @@ name = "cherrybomb"
 path = "cli/src/main.rs"
 test = false
 
+[[bin]]
+name = "oas"
+path = "swagger/src/main.rs"
+test = false
+
 [workspace]
 
 members = [
 	"cli",
-	"mapper",
-	"decider",
-	"attacker",
 	"swagger",
 ]
 [dependencies]
-cli = {version="0.6",path="cli"}
-mapper = {path="./mapper"}
-attacker = {path="./attacker"}
-decider = {path="./decider"}
-                                                                                                      swagger = {path="./swagger"}
+cli = {version="0.7",path="cli"}
+swagger = {path="./swagger"}
 clap = { version = "^3", features = ["derive"] }
 uuid = { version = "0.8", features = ["v4","serde"] }
 serde = { version = "^1.0", features = ["derive"] }

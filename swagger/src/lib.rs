@@ -15,9 +15,11 @@ use ep::*;
 pub mod scan;
 pub mod tables;
 pub use tables::*;
-use mapper::digest::{Method, ParamDescriptor, PayloadDescriptor, QuePay, ValueDescriptor};
-use mapper::path::Path as DPath;
+//use mapper::digest::{Method, ParamDescriptor, PayloadDescriptor, QuePay, ValueDescriptor};
+//use mapper::path::Path as DPath;
 pub use scan::*;
+mod utils;
+pub use utils::*;
 
 //Info Object
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
@@ -86,7 +88,7 @@ pub struct Link {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct Response {
-    pub description: String,
+    pub description: Option<String>,
     pub headers: Option<HeaderMap>,
     pub content: Option<Content>,
     pub links: Option<Links>,

@@ -3,11 +3,11 @@ mod checks;
 pub use checks::*;
 pub mod passive;
 pub use passive::*;
-//pub mod active;
-//pub use active::*;
+pub mod active;
+pub use active::*;
 mod macros;
 mod print;
-use colored::*;
+//use colored::*;
 pub use print::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
@@ -29,7 +29,7 @@ pub enum Certainty {
     Low,
     Medium,
     High,
-    Certain
+    Certain,
 }
 impl Default for Certainty {
     fn default() -> Self {
@@ -43,7 +43,6 @@ pub struct Alert {
     pub location: String,
     pub certainty: Certainty,
 }
-
 impl Alert {
     pub fn new(level: Level, description: &'static str, location: String) -> Alert {
         Alert {
@@ -53,10 +52,15 @@ impl Alert {
             certainty: Certainty::Passive,
         }
     }
-    pub fn with_certainty(level: Level, description: &'static str, location: String,certainty:Certainty) -> Alert {
+    pub fn with_certainty(
+        level: Level,
+        description: String,
+        location: String,
+        certainty: Certainty,
+    ) -> Alert {
         Alert {
             level,
-            description: description.to_string(),
+            description,
             location,
             certainty,
         }

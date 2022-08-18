@@ -8,9 +8,57 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+
+  cargo-fmt:
+    name: fmt
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build
+      - uses: actions/checkout@v2
+      - name: Install nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt
+      
+      - name: cargo-fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+
+  cargo-clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: clippy
+      
+      - name: cargo-clippy
+        env:
+          RUSTFLAGS: "-D warnings"
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+
+  cargo-build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      
+      - name: cargo-build
+        env:
+          RUSTFLAGS: "-A warnings"
+        uses: actions-rs/cargo@v1
+        with:
+          command: build

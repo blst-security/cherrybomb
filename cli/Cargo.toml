@@ -1,6 +1,6 @@
 [package]
 name = "cli"
-version = "0.6.1"
+version = "0.7.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,13 +10,11 @@ clap = { version = "^3", features = ["derive"] }
 uuid = { version = "0.8", features = ["v4","serde"] }
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "1.0"
-tokio = { version = "^1.13", features = ["full"] }
+tokio = { version = "^1.0", features = ["full"] }
 futures = "0.3"
 futures-util = { version = "^0.3", default-features = false, features = ["alloc"] }
-mapper = { path = "../mapper" }
-decider = { path = "../decider" }
-attacker = { path = "../attacker" }
 swagger = { path = "../swagger" }
+reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls"] }
 colored = "2.0.0"
 url = { version = "2" }
 hyper = { version = "^0.14", features = ["http2"] }
@@ -24,4 +22,3 @@ hyper-rustls = { git = "https://github.com/rustls/hyper-rustls", features = ["ht
 httparse = "1.5.1"
 dirs="^4"
 serde_yaml="^0.8"
-reqwest = { version = "^0.11",default-features=false, features = ["rustls-tls"] }

@@ -1,45 +1,63 @@
-use clap::{Parser,Subcommand};
+use clap::{Parser,Subcommand,ArgAction};
+use swagger::ActiveChecks;
+use swagger::PassiveChecks;
 use std::str::FromStr;
 use std::fmt;
 use colored::*;
 use cli::*;
-use attacker::{Authorization, Verbosity};
-use mapper::digest::Header;
-use futures::executor::block_on;
 
-const MAP_FILE: &str = "map";
+
+
 const SWAGGER_OUTPUT_FILE: &str = "results.txt";
-const CONFIG_DEFAULT_FILE: &str = ".cherrybomb/config.json";
-const DECIDE_FILE: &str = "decide";
 
-#[derive(Copy,Clone,Debug)]
-pub enum OutputFormat{
+#[derive(Copy, Clone, Debug)]
+pub enum OutputFormat {
     Json,
     Txt,
     Cli,
-    Web
+    Web,
 }
 impl FromStr for OutputFormat {
     type Err = &'static str;
     fn from_str(input: &str) -> Result<OutputFormat, Self::Err> {
         match input.to_lowercase().as_str() {
-            "json"  => Ok(OutputFormat::Json),
-            "txt"  => Ok(OutputFormat::Txt),
-            "cli"  => Ok(OutputFormat::Cli),
-            "web"  => Ok(OutputFormat::Web),
-            _      => Err("None"),
+            "json" => Ok(OutputFormat::Json),
+            "txt" => Ok(OutputFormat::Txt),
+            "cli" => Ok(OutputFormat::Cli),
+            "web" => Ok(OutputFormat::Web),
+            _ => Err("None"),
         }
     }
 }
-impl fmt::Display for OutputFormat{
+impl fmt::Display for OutputFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self{
-            Self::Json=>write!(f, "JSON"),
-            Self::Txt=>write!(f, "TXT"),
-            Self::Cli=>write!(f, "CLI"),
-            Self::Web=>write!(f, "WEB"),
+        match self {
+            Self::Json => write!(f, "JSON"),
+            Self::Txt => write!(f, "TXT"),
+            Self::Cli => write!(f, "CLI"),
+            Self::Web => write!(f, "WEB"),
         }
     }
+}
+
+#[derive(Parser, Debug, Clone)]
+#[clap(name = "auth")]
+pub struct AuthOpt {
+    ///Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key, 4 - Cookie, 5 - Custom
+    #[clap(short,long="type")]
+    tp:String,
+    ///Sets the authorization token
+    ///If it's of type basic then username:password
+    ///If it's Custom then the scheme is delivery method,name,value->headers,X-CUSTOM-HEADER,value
+    ///For all other option, just the token
+    #[clap(long)]
+    token: String,
+}
+
+#[derive(Subcommand, Debug, Clone)]
+pub enum AuthCmd {
+    ///Adds an auth token to the Attacker's requests, for auth based apps
+    Auth(AuthOpt),
 }
 #[derive(Parser, Debug,Clone)]
 #[clap(name = "oas")]
@@ -54,275 +72,160 @@ pub struct OASOpt {
     #[clap(short, long)]
     output: Option<String>,
     ///The OAS file path
-    #[clap(long,short)]
+    #[clap(long, short)]
     file: String,
-    ///The config file path
-    #[clap(short,long)]
-    config: Option<String>,
-}
-#[derive(Parser, Debug,Clone)]
-#[clap(name = "swagger")]
-pub struct SwaggerOpt {
-    ///The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)
-    #[clap(short = 'v', long)]
-    verbosity: Option<u8>,
-    ///The output's format type -> cli/txt/json
-    #[clap(long,default_value_t=OutputFormat::Cli)]
-    format: OutputFormat,
-    ///The output file, for the alerts and checks
+    ///The Passive Scan Type to run, 0 - Full, 1 - Partial (list of checks)
     #[clap(short, long)]
-    output: Option<String>,
-    ///The OAS file path
-    #[clap(long,short)]
-    file: String,
-    ///The config file path
-    #[clap(short,long)]
-    config: Option<String>,
+    passive_scan_type: Option<i32>,
+    ///Use passive_scan_checks as an exclude list, if the passive scan type is partial (1 - true, 0 - false)
+    #[clap(long)]
+    exclude_passive_checks: Option<i8>,
+    ///The list of checks to run/exclude, if the passive_scan_type is 1
+    /// ex: "check1,check2,check3"
+    #[clap(
+        long,
+        required_if("passive-scan-type", "1"),
+        requires("exclude-passive-checks")
+    )]
+    passive_scan_checks: Option<Vec<String>>,
+    ///Dont run any active tests
+    #[clap(long,takes_value = false,action = ArgAction::SetTrue)]
+    no_active: bool,
+    ///The Active Scan Type to run, 0 - Full, 1 - Non invasive, 2 - only tests, 3 - Partial (list of checks)
+    #[clap(short, long)]
+    active_scan_type: Option<i32>,
+    ///The list of checks to run, if the active_scan_type is 3
+    /// ex: "check1,check2,check3"
+    #[clap(
+        long,
+        required_if("active-scan-type", "3"),
+        requires("exclude-active-checks")
+    )]
+    active_scan_checks: Option<Vec<String>>,
+    ///Use active_scan_checks as an exclude list, if the active scan type is partial (1 - true, 0 - false)
+    #[clap(long)]
+    exclude_active_checks: Option<i8>,
+    #[clap(long)]
+    no_telemetry: Option<bool>,
+    #[clap(subcommand)]
+    auth: Option<AuthCmd>,
 }
-impl SwaggerOpt{
-    pub fn to_oas_opt(&self)->OASOpt{
-        OASOpt{
-            verbosity:self.verbosity,
-            format:self.format,
-            output:self.output.clone(),
-            file:self.file.clone(),
-            config:self.config.clone(),
-        }
-    }
-}
-#[derive(Parser, Debug,Clone)]
+#[derive(Parser, Debug, Clone)]
 #[clap(name = "param-table")]
 pub struct ParamTableOpt {
     ///An option to present a single parameter with that name.
     #[clap(short, long)]
-    name:Option<String>,
+    name: Option<String>,
     ///The output file
     #[clap(short, long)]
     output: Option<String>,
     ///The OAS file
-    #[clap(long,short)]
+    #[clap(long, short)]
     file: String,
+    #[clap(long)]
+    no_telemetry: Option<bool>,
 }
-#[derive(Parser, Debug,Clone)]
+#[derive(Parser, Debug, Clone)]
 #[clap(name = "ep-table")]
 pub struct EpTableOpt {
     ///An option to present a single endpoint with that path
     #[clap(short, long)]
-    path:Option<String>,
+    path: Option<String>,
     ///The output file
     #[clap(short, long)]
     output: Option<String>,
     ///The OAS file
-    #[clap(long,short)]
+    #[clap(long, short)]
     file: String,
+    #[clap(long)]
+    no_telemetry: Option<bool>,
 }
 
-#[derive(Parser, Debug,Clone)]
-#[clap(name = "mapper")]
-pub struct MapperOpt {
-    ///The output map's file name
-    #[clap(short, long)]
-    output: Option<String>,
-    ///The input log's file name
-    #[clap(long,short)]
-    file: String,
-    ///OpenAPI specification given as a hint to the mapper
-    #[clap(long,short)]
-    hint: Option<String>
-}
-#[derive(Parser, Debug,Clone)]
-#[clap(name = "mapper")]
-pub struct LoadOpt {
-    ///The map the logs get loaded to
-    #[clap(long,short)]
-    map:Option<String>,
-    ///The input's log file name
-    #[clap(long,short)]
-    file: String,
-}
-#[derive(Parser, Debug,Clone)]
-#[clap(name = "prepare")]
-pub struct PrepareOpt {
-    ///The map file that serves as the attacker's scope
-    #[clap(long,short,default_value_t=MAP_FILE.to_string())]
-    map:String,
-    ///The url to attack
-    #[clap(long,short)]
-    url: String,
-}
-#[derive(Parser,Debug,Clone)]
-#[clap(name = "auth")]
-pub struct AuthOpt {
-    ///Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key
-    #[clap(short,long="type")]
-    tp:String,
-    ///Sets the authorization token(if it's of type basic then username:password)
-    #[clap(long)]
-    token:String,
-}
-#[derive(Subcommand,Debug,Clone)]
-pub enum AuthCmd{
-    Auth(AuthOpt),
-}
-#[derive(Parser, Debug,Clone)]
-#[clap(name = "attack")]
-pub struct AttackOpt {
-    ///The map file that the attack will be based on
-    #[clap(long,short,default_value_t=MAP_FILE.to_string())]
-    map:String,
-    ///Sets the output decide file's name
-    #[clap(long,short,default_value_t=DECIDE_FILE.to_string())]
-    decide_file:String,
-    ///Sets the population number
-    #[clap(long,short,default_value_t=0)]
-    population:u8,
-    ///Sets the max generations number
-    #[clap(long,short,default_value_t=1)]
-    generations:u8,
-    ///Adds the header to the default request headers of the attacker
-    #[clap(long,short)]
-    header:Option<String>,
-    ///Sets the level of verbosity, 0 - Max, 1 - Default, 2 - Basic, 3 - None
-    #[clap(long,short,default_value_t=1)]
-    verbosity:u8,
-    ///Adds an auth token to the Attacker's requests, for auth based apps
-    #[clap(subcommand)]
-    auth:Option<AuthCmd>,
-}
-#[derive(Subcommand,Debug,Clone)]
-enum Commands{
+#[derive(Subcommand, Debug, Clone)]
+enum Commands {
     ///Runs a set of passive checks on a given OpenAPI specification file
     Oas(OASOpt),
-    ///Runs a set of passive checks on a given OpenAPI specification file
-    Swagger(SwaggerOpt),
     ///Prints out a param table given an OpenAPI specification file
     ParamTable(ParamTableOpt),
     ///Prints out an endpoint table given an OpenAPI specification file
     EpTable(EpTableOpt),
-    ///Creates a new map from a given log file, outputs a digest file to the local directory
-    Mapper(MapperOpt),
-    ///Load more logs to an existing map
-    Load(LoadOpt),
-    ///Prepare the attacker for the attack
-    Prepare(PrepareOpt),
-    ///Attacks your domain based on an existing map
-    Attack(AttackOpt),
 }
-#[derive(Parser,Debug,Clone)]
+#[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
 #[clap(propagate_version = true)]
 struct Cli {
     #[clap(subcommand)]
     command: Commands,
 }
-pub fn parse_oas(oas:OASOpt){
-    let res = match oas.format{
-        OutputFormat::Cli=>{
-            let f = run_swagger(&oas.file,oas.verbosity.unwrap_or(1),oas.output,&oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),false);
-            println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
-            f 
+
+pub async fn parse_oas(oas: OASOpt) {
+    match oas.format {
+        OutputFormat::Json => {},
+        _=> { println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n", "https://www.blstsecurity.com".bold().underline())}
+    }
+    if oas.no_active{
+        try_send_telemetry(oas.no_telemetry,"passive oas scan").await;
+    }else{
+        try_send_telemetry(oas.no_telemetry,"passive and active oas scan").await;
+    }
+    if let OutputFormat::Web = oas.format {
+        std::process::exit(0);
+    }
+    let res = run_swagger(
+        &oas.file,
+        oas.verbosity.unwrap_or(1),
+        Some(
+            oas.output
+                .unwrap_or_else(|| SWAGGER_OUTPUT_FILE.to_string()),
+        ),
+        match oas.auth {
+            Some(AuthCmd::Auth(auth)) => swagger::Authorization::from_parts(&auth.tp, auth.token),
+            _ => swagger::Authorization::None,
         },
-        OutputFormat::Web=>{
-            0
+        oas.no_active,
+        match oas.active_scan_type {
+            Some(0) => swagger::ActiveScanType::Full,
+            Some(1) => swagger::ActiveScanType::NonInvasive,
+            Some(2) => swagger::ActiveScanType::OnlyTests,
+            Some(3) => swagger::ActiveScanType::Partial(ActiveChecks::parse_check_list(
+                oas.active_scan_checks.unwrap_or_default(),
+                oas.exclude_active_checks.unwrap_or(0) == 1,
+            )),
+            _ => swagger::ActiveScanType::Full,
         },
-        OutputFormat::Txt=>{
-            let f = run_swagger(&oas.file,oas.verbosity.unwrap_or(1),
-            Some(oas.output.unwrap_or_else(|| SWAGGER_OUTPUT_FILE.to_string())),
-            &oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),
-            false
-            );
-            println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
-            f 
+        match oas.passive_scan_type {
+            Some(0) => swagger::PassiveScanType::Full,
+            Some(1) => swagger::PassiveScanType::Partial(PassiveChecks::parse_check_list(
+                oas.passive_scan_checks.unwrap_or_default(),
+                oas.exclude_passive_checks.unwrap_or(0) == 1,
+            )),
+            _ => swagger::PassiveScanType::Full,
         },
-        OutputFormat::Json=>{
-            run_swagger(&oas.file,oas.verbosity.unwrap_or(1),oas.output,&oas.config.unwrap_or_else(|| {println!("No config file was loaded to the scan, default configuration is being used\n"); CONFIG_DEFAULT_FILE.to_string()}),true)
-        },
-    };
+        matches!(oas.format, OutputFormat::Json),
+    )
+    .await;
     std::process::exit(res.into());
 }
-pub fn parse_param_table(p_table:ParamTableOpt){
+
+pub async fn parse_param_table(p_table:ParamTableOpt){
+    try_send_telemetry(p_table.no_telemetry,"param_table").await;
     param_table(&p_table.file,p_table.name); 
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
-pub fn parse_ep_table(e_table:EpTableOpt){
+pub async fn parse_ep_table(e_table:EpTableOpt){
+    try_send_telemetry(e_table.no_telemetry,"ep_table").await;
     ep_table(&e_table.file,e_table.path);
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
-pub fn parse_mapper(mapper:MapperOpt){
-    map(mapper.file,mapper.output.unwrap_or_else(|| MAP_FILE.to_string()),mapper.hint);
-    println!("\n\nFor better map visualization you can go and sign up at {} and get access to our dashboards!\n","https://www.blstsecurity.com".bold().underline());
-}
-pub fn parse_load(load1:LoadOpt){
-    load(load1.file,load1.map.unwrap_or_else(|| MAP_FILE.to_string()));
-    println!("\n\nFor better map visualization you can go and sign up at {} and get access to our dashboards!\n","https://www.blstsecurity.com".bold().underline());
-}
-pub fn parse_prepare(prep:PrepareOpt){
-    prepare_attacker(prep.url,prep.map);
-}
-pub fn parse_attack(attack:AttackOpt){
-    let verbosity = match attack.verbosity{
-        0 => {
-            println!("Verbosity level is Max");
-            Verbosity::Verbose
-        }
-        1 => {
-            println!("Verbosity level is Default");
-            Verbosity::Default
-        }
-        2 => {
-            println!("Verbosity level is Basic");
-            Verbosity::Basic
-        }
-        3 => {
-            println!("Verbosity level is None");
-            Verbosity::None
-        }
-        _ => {
-            println!("Verbosity level is Default");
-            Verbosity::Default
-        }
-    };
-    let auth = if let Some(AuthCmd::Auth(opt)) = attack.auth{
-        Authorization::from_parts(&opt.tp,opt.token) 
-    }else{
-        Authorization::None
-    };
-    let header = match attack.header{
-        Some(h)=>{
-            if !h.trim().is_empty() {
-                let split1 = h.split(':').collect::<Vec<&str>>();
-                vec![Header::from(split1[0], split1[1])]
-            } else {
-                vec![]
-            }
-        },
-        None=>vec![],
-    };
-    block_on(attack_domain(attack.map,attack.decide_file,attack.population.into(),attack.generations.into(),verbosity,header,auth));
-}
-fn main() {
+
+
+#[tokio::main]
+async fn main() {
     let opt = Cli::parse();
     match opt.command{
-        Commands::Oas(opt)=>parse_oas(opt),
-        Commands::Swagger(opt)=>parse_oas(opt.to_oas_opt()),
-        Commands::ParamTable(opt)=>parse_param_table(opt),
-        Commands::EpTable(opt)=>parse_ep_table(opt),
-        Commands::Mapper(opt)=>parse_mapper(opt),
-        Commands::Load(opt)=>parse_load(opt),
-        Commands::Prepare(opt)=>parse_prepare(opt),
-        Commands::Attack(opt)=>parse_attack(opt),
-/*        _=>{
-            println!(
-            "\n\n\n  __ ._______   .____      ._______________________.  __
- / /\\/      /\\  /   /\\     /   _______             /\\/ /\\
-/_/ /    ----/\\/   /_/__  /_____     /___.    ____/ /_/ /
-\\ \\/    __  / /        /\\/   /_/    / / /     /\\__\\/\\_\\/
-  /________/ /________/ /__________/ / /_____/ /
-  \\.   .___\\/\\.   .___\\/\\.   ._____\\/  \\. .__\\/\n"
-            );
-            println!("\nCHERRYBOMB v{}", VERSION);
-            println!("\nFor more information try {}", "--help".green());
-        }*/
+        Commands::Oas(opt)=>parse_oas(opt).await,
+        Commands::ParamTable(opt)=>parse_param_table(opt).await,
+        Commands::EpTable(opt)=>parse_ep_table(opt).await,
     }
 }
 
