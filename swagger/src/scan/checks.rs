@@ -118,9 +118,9 @@ impl_passive_checks![
 
 impl_active_checks![
     (CheckMinMax,check_min_max,is_2xx,"NUMBER LIMITS ENFORCED","checks that the api enforces the number limits in the OAS"),
-    (OpenRedirect,check_open_redirect,is_2xx,"OPEN REDIRECT","Check if the API may be vulnerable to open redirect"),
+    (CheckOpenRedirect,check_open_redirect,is_2xx,"OPEN REDIRECT","Check if the API may be vulnerable to open redirect"),
     (CheckStringMaxLength,check_string_length_max,is_2xx,"STRING LENGTH ENFORCED","check that the api validate the String length"),
-    (ParameterPollution,check_parameter_pollution,reflected_and_2xx,"PARAMETER POLLUTION","Check if the endpoint is vulnerable to http pollution"),
+    (CheckParameterPollution,check_parameter_pollution,reflected_and_2xx,"PARAMETER POLLUTION","Check if the endpoint is vulnerable to http pollution"),
     (CheckSSL,check_ssl,is_2xx,"SSL ENFORCED","Check if the connection is secure"),
-    (MethodPermissions,check_method_permissions,is_2xx,"METHOD PERMISSION","Check if the endpoint is correctly configured")
+    (CheckMethodPermissionsActive,check_method_permissions_active,is_2xx,"METHOD PERMISSION","Check if the endpoint is correctly configured")
 ];
