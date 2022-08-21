@@ -294,7 +294,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
-    pub async fn check_method_permissions(&self, auth: &Authorization) -> CheckRetVal {
+    pub async fn check_method_permissions_active(&self, auth: &Authorization) -> CheckRetVal {
         //// reformat get with path parameter
         let mut ret_val = CheckRetVal::default();
         let base_url = &self.oas.servers().and_then(|servers| servers.first().cloned());
