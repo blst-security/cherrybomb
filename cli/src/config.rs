@@ -132,7 +132,8 @@ async fn create_token(filename:&Path,dir:&Path)->bool{
 async fn get_token()->String{
     let mut filename =  dirs::home_dir().unwrap();
     filename.push(TOKEN_FILE);
-    let dir = dirs::home_dir().unwrap();
+    let mut dir = dirs::home_dir().unwrap();
+    dir.push(".cherrybomb");
     let mut file = match File::open(&filename) {
         Ok(f) => f,
         Err(_) => {
