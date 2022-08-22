@@ -10,7 +10,7 @@
 </div>
 
 # 💣 What is Cherrybomb?
-Cherrybomb is a CLI tool that helps you avoid undefined user behavior by validating your API specifications.
+Cherrybomb is a CLI tool that helps you avoid undefined user behavior by validating your API specifications and running API security tests.
 
 
 # 🔨 How does it work?
