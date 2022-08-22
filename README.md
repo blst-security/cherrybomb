@@ -90,8 +90,6 @@ cherrybomb ep-table --file <PATH> --name <SINGLE PARAM NAME(OPTIONAL)>
 For all methods of integrating with BLST, please go to the [integrations folder](https://github.com/blst-security/cherrybomb/tree/main/integrations).
 
 # 💪 Support
-### Documentation
-Please read [our documentation](https://www.blstsecurity.com/cherrybomb/Documentation) to understand the format of sessions our mapper needs to function correctly.
 
 ### Get help
 If you have any questions, please send us a message to [support@blstsecurity.com](mailto:support@blstsecurity.com) or ask us on our [discord server](https://discord.gg/WdHhv4DqwU).
