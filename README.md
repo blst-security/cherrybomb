@@ -28,7 +28,7 @@ curl https://cherrybomb.blstsecurity.com/install	| /bin/bash
 The script requires sudo permissions to move the cherrybomb bin into <b>/usr/local/bin/</b>.</br>
 (If you want to view the shell script(or even help to improving it - [/scripts/install.sh](/scripts/install.sh))
 #### Docker container
-You can use our docker container that we host on our public repo in aws, though we require an API key for it, you can get it at [our CI pipeline integration maker](https://www.blstsecurity.com/CICD)(after you sign up)
+You can use our docker container that we host on our public repo in aws, though we require an API key for it, you can get it at [our CI pipeline integration builder](https://www.blstsecurity.com/CICD)(after you sign up)
 ```
 docker run --mount type=bind,source=PATH_TO_OAS_DIR,destination=/home public.ecr.aws/t1d5k0l0/cherrybomb:latest cherrybomb oas -f home/OAS_NAME --api-key=API-KEY
 ```
@@ -87,8 +87,9 @@ cherrybomb ep-table --file <PATH> --name <SINGLE PARAM NAME(OPTIONAL)>
 
 # 🍻 Integration
 
-For all methods of integrating with BLST, please go to the [integrations folder](https://github.com/blst-security/cherrybomb/tree/main/integrations).
-
+You can embed it into your CI pipeline, and If you plan on doing that I would recommend that you go to our [website](https://www.blstsecurity.com/), sign up, go through the [CI pipeline integration builder](https://www.blstsecurity.com/CICD), and copy the groovy/GitHub actions snippet built for you. 
+</br>Example:
+![CI pipeline builder output](/images/ci_output.png)
 # 💪 Support
 
 ### Get help
