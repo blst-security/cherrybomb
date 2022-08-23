@@ -33,7 +33,7 @@ You can use our docker container that we host on our public repo in aws, though 
 docker run --mount type=bind,source=PATH_TO_OAS_DIR,destination=/home public.ecr.aws/t1d5k0l0/cherrybomb:latest cherrybomb oas -f home/OAS_NAME --api-key=API-KEY
 ```
 #### Clone
-You can also install Cherrybomb by cloning this repo, and building it using cargo:
+You can also install Cherrybomb by cloning this repo, and building it using cargo(*only works with the nightly toolchain):
 ```
 git clone https://github.com/blst-security/cherrybomb && cd cherrybomb
 cargo build --release
