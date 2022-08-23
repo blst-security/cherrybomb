@@ -160,7 +160,7 @@ type Callbacks = HashMap<String, CallbackRef>;
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct OAuth {
     #[serde(rename = "authorizationUrl")]
-    pub authorization_url: String,
+    pub authorization_url: Option<String>,
     #[serde(rename = "tokenUrl")]
     pub token_url: Option<String>,
     #[serde(rename = "refreshUrl")]
