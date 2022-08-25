@@ -18,13 +18,13 @@ default-run = "cherrybomb"
 
 [[bin]]
 name = "cherrybomb"
-path = "cli/src/main.rs"
+path = "main.rs"
 test = false
 
-[[bin]]
-name = "oas"
-path = "swagger/src/main.rs"
-test = false
+#[[bin]]
+#name = "oas"
+#path = "swagger/src/main.rs"
+#test = false
 
 [workspace]
 
