@@ -33,8 +33,8 @@ members = [
 	"swagger",
 ]
 [dependencies]
-cherrybomb-cli = {version="0.7",path="cli"}
-cherrybomb-swagger = {path="swagger",version="0.1"}
+cherrybomb-cli = "^0.7"
+cherrybomb-swagger = "^0.1"
 clap = { version = "^3", features = ["derive"] }
 uuid = { version = "0.8", features = ["v4","serde"] }
 serde = { version = "^1.0", features = ["derive"] }
