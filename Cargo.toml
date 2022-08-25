@@ -8,7 +8,7 @@ Cherrybomb is a CLI tool that helps you avoid undefined user behavior by validat
 documentation = "https://github.com/blst-security/cherrybomb"
 homepage = "https://blstsecurity.com/"
 repository = "https://github.com/blst-security/cherrybomb"
-keywords = ["API","security","OAS", "specifications", "CLI", "OpenAPI", "OAS", "businesslogic", "scanning"]
+keywords = ["API","security",  "CLI", "OpenAPI",  "scanning"]
 categories = ["command-line-utilities","web-programming"]
 license = "Apache-2.0"
 edition = "2021"
