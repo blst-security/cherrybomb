@@ -1,5 +1,5 @@
 [package]
-name = "cli"
+name = "cherrybomb-cli"
 version = "0.7.0"
 edition = "2021"
 
