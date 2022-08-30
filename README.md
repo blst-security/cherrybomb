@@ -27,6 +27,13 @@ curl https://cherrybomb.blstsecurity.com/install	| /bin/bash
 ```
 The script requires sudo permissions to move the cherrybomb bin into <b>/usr/local/bin/</b>.</br>
 (If you want to view the shell script(or even help to improving it - [/scripts/install.sh](/scripts/install.sh))
+
+#### Get it from crates.io
+```bash
+cargo install cherrybomb
+```
+If you don't have cargo installed, you can install it from [here](https://doc.rust-lang.org/cargo/getting-started/installation.html)
+
 #### Docker container
 You can use our docker container that we host on our public repo in aws, though we require an API key for it, you can get it at [our CI pipeline integration builder](https://www.blstsecurity.com/CICD)(after you sign up)
 ```
