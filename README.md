@@ -27,13 +27,20 @@ curl https://cherrybomb.blstsecurity.com/install	| /bin/bash
 ```
 The script requires sudo permissions to move the cherrybomb bin into <b>/usr/local/bin/</b>.</br>
 (If you want to view the shell script(or even help to improving it - [/scripts/install.sh](/scripts/install.sh))
+
+#### Get it from crates.io
+```bash
+cargo install cherrybomb
+```
+If you don't have cargo installed, you can install it from [here](https://doc.rust-lang.org/cargo/getting-started/installation.html)
+
 #### Docker container
 You can use our docker container that we host on our public repo in aws, though we require an API key for it, you can get it at [our CI pipeline integration builder](https://www.blstsecurity.com/CICD)(after you sign up)
 ```
 docker run --mount type=bind,source=PATH_TO_OAS_DIR,destination=/home public.ecr.aws/t1d5k0l0/cherrybomb:latest cherrybomb oas -f home/OAS_NAME --api-key=API-KEY
 ```
 #### Clone
-You can also install Cherrybomb by cloning this repo, and building it using cargo:
+You can also install Cherrybomb by cloning this repo, and building it using cargo(*only works with the nightly toolchain):
 ```
 git clone https://github.com/blst-security/cherrybomb && cd cherrybomb
 cargo build --release
