@@ -18,6 +18,7 @@ impl AttackRequestBuilder {
     }
     pub fn auth(&mut self, auth: Authorization) -> &mut Self {
         self.auth = auth;
+        self.add_auth_to_params();
         self
     }
     pub fn method(&mut self, method: Method) -> &mut Self {
@@ -36,11 +37,10 @@ impl AttackRequestBuilder {
         self.payload = payload.to_string();
         self
     }
-    pub fn add_auth_to_params(&mut self)-> &mut Self{
+    pub fn add_auth_to_params(&mut self){
         if let Some(a) = self.auth.get_auth(){
             self.parameters.push(a);
         }
-        self
     }
     pub fn build(&self)->AttackRequest{
         AttackRequest {
@@ -82,11 +82,12 @@ impl AttackRequest {
         let mut query = String::from('?');
         let mut path_ext = self.path.to_string();
         let mut headers = vec![];
+        let mut payload = self.payload.clone();
         for param in self.parameters.iter() {
             match param.dm {
-                // QuePay::Payload => {
-                //     payload.push_str(&format!("\"{}\":{},", param.name, param.value))
-                // }
+                QuePay::Payload => {
+                     payload.push_str(&format!("\"{}\":{},", param.name, param.value))
+                }
                 QuePay::Query => query.push_str(&format!("{}={}&", param.name, param.value)),
                 QuePay::Path => {
                     path_ext =
@@ -102,7 +103,7 @@ impl AttackRequest {
             }
         }
         query.pop();
-        (self.payload.clone(), query, path_ext, headers)
+        (payload, query, path_ext, headers)
     }
     pub fn get_headers(&self,payload_headers: &[MHeader]) -> HashMap<String, String> {
         self.headers

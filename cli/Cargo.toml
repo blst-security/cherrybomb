@@ -19,7 +19,8 @@ serde_json = "1.0"
 tokio = { version = "^1.0", features = ["full"] }
 futures = "0.3"
 futures-util = { version = "^0.3", default-features = false, features = ["alloc"] }
-cherrybomb-swagger = "^0.1"
+#cherrybomb-swagger = "^0.1"
+cherrybomb-swagger = {path="../swagger"}
 reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls"] }
 colored = "2.0.0"
 url = { version = "2" }
