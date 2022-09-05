@@ -22,13 +22,18 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     schema.maximum.map(|max| ("maximum", max + 1.0)),
                 ]);
                 for val in test_vals.into_iter().flatten() {
-                    for (m, _) in oas_map
+                    for (m, op) in oas_map
                         .path
                         .path_item
                         .get_ops()
                         .iter()
                         .filter(|(m, _)| m == &Method::POST)
                     {
+                        let vec_param = create_payload_for_get(
+                            &self.oas_value,
+                            op,
+                            Some("".to_string()),
+                        );
                         let url;
                         if let Some(servers) = &self.oas.servers() {
                             if let Some(s) = servers.first() {
@@ -43,7 +48,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .uri(&url, &oas_map.path.path)
                             .method(*m)
                             .headers(vec![])
-                            .parameters(vec![])
+                            .parameters(vec_param.clone())
                             .auth(auth.clone())
                             .payload(
                                 &change_payload(&oas_map.payload.payload, json_path, json!(val.1))
@@ -135,13 +140,21 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .flatten()
                         .take(max_len.try_into().unwrap())
                         .collect::<String>();
-                        for (m, _) in oas_map
+                        for (m, op) in oas_map
                             .path
                             .path_item
                             .get_ops()
                             .iter()
                             .filter(|(m, _)| m == &Method::POST)
                         {
+                            let vec_param = create_payload_for_get(
+                                &self.oas_value,
+                                op,
+                                Some("".to_string()),
+                            );
+
+
+
                             let url;
                             if let Some(servers) = &self.oas.servers() {
                                 if let Some(s) = servers.first() {
@@ -156,7 +169,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 .uri(&url, &oas_map.path.path)
                                 .method(*m)
                                 .headers(vec![])
-                                .parameters(vec![])
+                                .parameters(vec_param.clone())
                                 .auth(auth.clone())
                                 .headers(Vec::from([MHeader {
                                     name: "Content-Type".to_string(),
@@ -304,11 +317,16 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 .map(|(m,_)| m)
                 .cloned()
                 .collect::<HashSet<_>>();
+            
+            let mut vec_param = create_payload_for_get(&self.oas_value, item.get_ops()[0].1, Some("".to_string()));
+
+                
             let all_method_set = HashSet::from(LIST_METHOD);
             for method in all_method_set.difference(&current_method_set).cloned() {
                 if let Some(url) = base_url {
                     let req = AttackRequest::builder()
                         .uri(&url.url, path)
+                        .parameters(vec_param.clone())
                         .auth(auth.clone())
                         .method(method)
                         .headers(vec![])
