@@ -306,6 +306,47 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         ret_val
     }
+    pub async fn check_auth(&self,auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        let base_url = self.oas.servers().unwrap().get(0).unwrap().clone();
+        for (path, item) in &self.oas.get_paths(){
+            for (m,op) in item.get_ops(){
+                let mut vec_param= Vec::new();
+                if let Some(value)= &op.security{
+                    vec_param = create_payload_for_get(&self.oas_value, op, Some("".to_string()));
+                    let req = AttackRequest::builder()
+                                .uri(&base_url.url, path)
+                                .parameters(vec_param.clone())
+                                //.auth(auth.clone()) not sending the auth 
+                                .method(m)
+                                .headers(vec![])
+                                .build();
+                            if let Ok(res) = req.send_request(true).await {
+                                //logging
+                                //logging request/response/description
+                                ret_val
+                                    .1
+                                    .push(&req, &res, "Testing without auth".to_string());
+                                println!("Status Code : {:?}", res.status);
+                                ret_val.0.push((
+                                ResponseData{
+                                    location: path.clone(),
+                                    alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", path, m )
+                                },
+                            res.clone(),
+                            ));
+                            } else {
+                                println!("REQUEST FAILED");
+                            }
+                            
+                        }
+    
+            }
+            
+        }
+        ret_val
+    }
+    
 
     pub async fn check_method_permissions_active(&self, auth: &Authorization) -> CheckRetVal {
         //// reformat get with path parameter
