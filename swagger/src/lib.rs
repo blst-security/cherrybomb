@@ -20,6 +20,10 @@ pub use tables::*;
 pub use scan::*;
 mod utils;
 pub use utils::*;
+//use lazy_static::lazy_static;
+use regex::Regex;
+
+
 
 //Info Object
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
@@ -225,6 +229,7 @@ pub trait OAS {
     fn security(&self) -> Option<Vec<Security>>;
     fn tags(&self) -> Option<Vec<Tag>>;
     fn ext_docs(&self) -> Option<ExternalDocs>;
+    fn get_servers(&self) -> Option<Vec<String>>;
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct Swagger {
@@ -276,6 +281,32 @@ impl OAS for Swagger {
     fn ext_docs(&self) -> Option<ExternalDocs> {
         self.external_docs.clone()
     }
+    fn get_servers(&self) -> Option<Vec<String>> {
+        let re  = Regex::new(r"\{(\w{1,})\}").unwrap();
+        let mut vec = Vec::new();
+        if  let Some(server_value) = self.servers(){
+         for serv in server_value{
+            let mut new_url = serv.url.to_string();
+            let mut vec_match: Vec<Vec<&str>> = re
+            .captures_iter(&serv.url)
+            .map(|c| c.iter().map(|m| m.unwrap().as_str()).collect())
+            .collect();
+            if let Some(var)= serv.variables{
+                for iter_val  in var.into_iter().map(|(_key, value)| value.default).collect::<Vec<String>>().iter().zip(vec_match.iter()){
+                    let (def,reg) = iter_val;
+                    new_url = new_url.replace(reg[0],&def);
+                }
+                println!("URL FROM lib {}",new_url);
+               vec.push(new_url);
+            }
+            else{
+                vec.push(serv.url);
+            }
+            
+         }
+        }
+        Some(vec)
+    }
 }
 impl OAS for OAS3_1 {
     fn get_paths(&self) -> Paths {
@@ -308,6 +339,33 @@ impl OAS for OAS3_1 {
     }
     fn ext_docs(&self) -> Option<ExternalDocs> {
         self.external_docs.clone()
+    }
+
+    fn get_servers(&self) -> Option<Vec<String>> {
+        let re  = Regex::new(r"\{(\w{1,})\}").unwrap();
+        let mut vec = Vec::new();
+        if  let Some(server_value) = self.servers(){
+         for serv in server_value{
+            let mut new_url = serv.url.to_string();
+            let mut vec_match: Vec<Vec<&str>> = re
+            .captures_iter(&serv.url)
+            .map(|c| c.iter().map(|m| m.unwrap().as_str()).collect())
+            .collect();
+            if let Some(var)= serv.variables{
+                for iter_val  in var.into_iter().map(|(_key, value)| value.default).collect::<Vec<String>>().iter().zip(vec_match.iter()){
+                    let (def,reg) = iter_val;
+                    new_url = new_url.replace(reg[0],&def);
+                }
+                println!("URL FROM lib {}",new_url);
+               vec.push(new_url);
+            }
+            else{
+                vec.push(serv.url);
+            }
+            
+         }
+        }
+        Some(vec)
     }
 }
 /*

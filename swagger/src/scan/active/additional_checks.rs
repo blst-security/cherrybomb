@@ -273,6 +273,12 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
     pub async fn check_ssl(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
+        let new_url = &self.oas.get_servers();
+        println!("new url !!!{:?}", new_url);
+             
+             
+        
+        
         if let Some(server_list) = self.oas.servers(){
             for server in server_list.iter() {
                 let mut new_url = server.url.clone();
