@@ -292,10 +292,13 @@ impl OAS for Swagger {
             .map(|c| c.iter().map(|m| m.unwrap().as_str()).collect())
             .collect();
             if let Some(var)= serv.variables{
-                for iter_val  in var.into_iter().map(|(_key, value)| value.default).collect::<Vec<String>>().iter().zip(vec_match.iter()){
+                for (key, value) in var{
+                    new_url=new_url.replace(&format!("{}{}{}",'{',key,'}'),&value.default);
+                }
+                /*for iter_val  in var.into_iter().map(|(_key, value)| value.default).collect::<Vec<String>>().iter().zip(vec_match.iter()){
                     let (def,reg) = iter_val;
                     new_url = new_url.replace(reg[0],&def);
-                }
+                }*/
                 println!("URL FROM lib {}",new_url);
                vec.push(new_url);
             }
@@ -352,9 +355,8 @@ impl OAS for OAS3_1 {
             .map(|c| c.iter().map(|m| m.unwrap().as_str()).collect())
             .collect();
             if let Some(var)= serv.variables{
-                for iter_val  in var.into_iter().map(|(_key, value)| value.default).collect::<Vec<String>>().iter().zip(vec_match.iter()){
-                    let (def,reg) = iter_val;
-                    new_url = new_url.replace(reg[0],&def);
+                for (key, value) in var{
+                    new_url=new_url.replace(&format!("{}{}{}",'{',key,'}'),&value.default);
                 }
                 println!("URL FROM lib {}",new_url);
                vec.push(new_url);
