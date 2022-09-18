@@ -25,16 +25,16 @@ pub struct ParamForTable {
     pub name: String,
     //probably will become an Enum
     #[serde(rename = "type")]
-    pub param_type:String,
-    pub statuses:Vec<String>,
+    pub param_type: String,
+    pub statuses: Vec<String>,
     //probably will become an Enum
     //from:String,
-    pub dms:Vec<QuePay>,
-    pub eps:Vec<String>,
-    pub parents:Vec<String>,
-    pub children:Vec<String>,
-    pub max:Option<i64>,
-    pub min:Option<i64>,
+    pub dms: Vec<QuePay>,
+    pub eps: Vec<String>,
+    pub parents: Vec<String>,
+    pub children: Vec<String>,
+    pub max: Option<i64>,
+    pub min: Option<i64>,
     //default:Option<SchemaStrInt>,
 }
 //value_from_vec

@@ -1,5 +1,5 @@
 use super::http_client::RequestParameter;
-use crate::{path::Operation, QuePay, scan::print, Server, OAS, ActiveScan};
+use crate::{path::Operation, scan::print, ActiveScan, QuePay, Server, OAS};
 use serde::Serialize;
 use serde_json::Value;
 
@@ -65,7 +65,7 @@ pub fn create_payload_for_get(
                             }
                             _ => (),
                         };
-                    }else {
+                    } else {
                         let mut example_value = "randomString".to_string();
                         if let Some(val) = option_example_value {
                             example_value = val;
@@ -82,8 +82,8 @@ pub fn create_payload_for_get(
             "query" => {
                 //todo support type
                 let mut final_value = "blstpollute".to_string();
-                if let Some(ref value) = test_value{
-                    if !value.eq(&"".to_string()){
+                if let Some(ref value) = test_value {
+                    if !value.eq(&"".to_string()) {
                         if test_value.as_ref().is_none() {
                             // let mut example_value = "randomString".to_string();
                             //let mut  option_example_value= None  ;
@@ -94,7 +94,7 @@ pub fn create_payload_for_get(
                             }
                         } else {
                             // unwrap - else clause of is_none
-                            final_value =  value.to_string();
+                            final_value = value.to_string();
                         }
                         params_vec.push(RequestParameter {
                             name: param_name,
@@ -103,11 +103,9 @@ pub fn create_payload_for_get(
                         });
                     }
                 }
-                
             }
             _ => (),
         };
     }
-    println!("params_vec : {:?}",params_vec);
     params_vec
 }

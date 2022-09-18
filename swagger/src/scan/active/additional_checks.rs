@@ -68,6 +68,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                         val.0,
                                         json_path
                                     ),
+                                    serverity: Level::Low,
                                 },
                                 res.clone(),
                             ));
@@ -116,7 +117,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             ret_val.0.push((
                             ResponseData{
                                 location: path.clone(),
-                                alert_text: format!("The parameter {} seems to be vulnerable to open-redirect, location: {}  ",param_to_redirect,path)
+                                alert_text: format!("The parameter {} seems to be vulnerable to open-redirect, location: {}  ",param_to_redirect,path),
+                                serverity: Level::Medium,
                             },
                         res.clone(),
                         ));
@@ -198,6 +200,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                             max_len,
                                             json_path
                                         ),
+                                        serverity: Level::Low,
                                     },
                                     res.clone(),
                                 ));
@@ -212,22 +215,20 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
+    
     pub async fn check_parameter_pollution(
         &self,
         auth: &Authorization,
     ) -> (CheckRetVal, Vec<String>) {
         let mut ret_val = CheckRetVal::default();
         let server = self.oas.servers();
-        //    let mut new_url:(String , String);
         let vec_polluted = vec!["blstparamtopollute".to_string()];
         let base_url = server.unwrap().get(0).unwrap().clone();
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
                 let _text = path.to_string();
-                //   println!("{:?}", text);
                 if m == Method::GET {
                     let mut vec_param = create_payload_for_get(&self.oas_value, op, None);
-                    //let param_to_add =vec_param.iter().find(|&x| x.dm == QuePay::Query ).collect;
                     let indices = vec_param
                         .iter()
                         .enumerate()
@@ -255,7 +256,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             ret_val.0.push((
                                         ResponseData{
                                             location: path.clone(),
-                                            alert_text: format!("The endpoint {} seems to be vulerable to parameter pollution on the {} parameter",path,vec_param.last().unwrap().name)
+                                            alert_text: format!("The endpoint {} seems to be vulerable to parameter pollution on the {} parameter",path,vec_param.last().unwrap().name),
+                                            serverity: Level::Medium,
                                         },
                                         res.clone(),
                                     ));
@@ -271,14 +273,10 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         (ret_val, vec_polluted)
     }
 
+
+
     pub async fn check_ssl(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-        let new_url = &self.oas.get_servers();
-        println!("new url !!!{:?}", new_url);
-             
-             
-        
-        
         if let Some(server_list) = self.oas.servers(){
             for server in server_list.iter() {
                 let mut new_url = server.url.clone();
@@ -288,7 +286,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .uri(&new_url, "")
                         .auth(auth.clone())
                         .build();
-                    println!("{}", req);
                     if let Ok(res) = req.send_request(self.verbosity > 0).await {
                         //logging request/response/description
                         ret_val
@@ -301,6 +298,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     "The server: {} is not secure against https downgrade",
                                     &new_url
                                 ),
+                                serverity: Level::Medium,
                             },
                             res.clone(),
                         ));
@@ -312,51 +310,83 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         ret_val
     }
-    pub async fn check_auth(&self,auth: &Authorization) -> CheckRetVal {
-        let mut ret_val = CheckRetVal::default();
-        let base_url = self.oas.servers().unwrap().get(0).unwrap().clone();
-        for (path, item) in &self.oas.get_paths(){
-            for (m,op) in item.get_ops(){
-                let mut vec_param= Vec::new();
-                if let Some(value)= &op.security{
-                    vec_param = create_payload_for_get(&self.oas_value, op, Some("".to_string()));
-                    let req = AttackRequest::builder()
-                                .uri(&base_url.url, path)
-                                .parameters(vec_param.clone())
-                                //.auth(auth.clone()) not sending the auth 
-                                .method(m)
-                                .headers(vec![])
-                                .build();
-                            if let Ok(res) = req.send_request(true).await {
-                                //logging
-                                //logging request/response/description
-                                ret_val
+
+pub async fn check_authentication(&self, _auth: &Authorization) -> CheckRetVal {
+    let mut ret_val = CheckRetVal::default();
+    for oas_map in self.payloads.iter() {
+        for (_json_path, _schema) in &oas_map.payload.map {
+                for (m, op) in oas_map
+                    .path
+                    .path_item
+                    .get_ops()
+                    .iter()
+                {
+                    let vec_param = create_payload_for_get(
+                        &self.oas_value,
+                        op,
+                        Some("".to_string()),
+                    );
+                    let url;
+                    if let Some(servers) = &self.oas.servers() {
+                        if let Some(s) = servers.first() {
+                            url = s.url.clone();
+                        } else {
+                            continue;
+                        };
+                    } else {
+                        continue;
+                    };
+                    if let Some(_value)= &op.security{
+                    let req;   
+                    if m == &Method::POST {
+                        req = AttackRequest::builder()
+                        .uri(&url, &oas_map.path.path)
+                        .method(*m)
+                        .headers(vec![])
+                        .parameters(vec_param.clone())
+                        //.auth(auth.clone())  
+                        .payload(&oas_map.payload.payload.to_string())
+                        .build();
+                    }
+                    else {
+                        req = AttackRequest::builder()
+                        .uri(&url, &oas_map.path.path)
+                        .method(*m)
+                        .headers(vec![])
+                        .parameters(vec_param.clone())
+                        .build();
+                        //.auth(auth.clone())  
+
+                    }
+                   
+                  
+                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
+                        //logging request/response/description
+                           ret_val
                                     .1
                                     .push(&req, &res, "Testing without auth".to_string());
-                                println!("Status Code : {:?}", res.status);
+                               // println!("Status Code : {:?}", res.status);
                                 ret_val.0.push((
                                 ResponseData{
-                                    location: path.clone(),
-                                    alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", path, m )
+                                    location: oas_map.path.path.clone(),
+                                    alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", &oas_map.path.path, m ),
+                                    serverity: Level::High,
                                 },
                             res.clone(),
-                            ));
-                            } else {
-                                println!("REQUEST FAILED");
-                            }
-                            
-                        }
-    
+                        ));
+
+                    } else {
+                        println!("REQUEST FAILED");
+                    }
+                    }
             }
-            
         }
-        ret_val
     }
-    
+    ret_val
+}
 
     pub async fn check_method_permissions_active(&self, auth: &Authorization) -> CheckRetVal {
-        //// reformat get with path parameter
-        let mut ret_val = CheckRetVal::default();
+         let mut ret_val = CheckRetVal::default();
         let base_url = &self.oas.servers().and_then(|servers| servers.first().cloned());
         for (path, item) in &self.oas.get_paths() {
             let current_method_set = item.get_ops()
@@ -365,7 +395,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 .cloned()
                 .collect::<HashSet<_>>();
             
-            let mut vec_param = create_payload_for_get(&self.oas_value, item.get_ops()[0].1, Some("".to_string()));
+            let  vec_param = create_payload_for_get(&self.oas_value, item.get_ops()[0].1, Some("".to_string()));
 
                 
             let all_method_set = HashSet::from(LIST_METHOD);
@@ -388,7 +418,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 location: path.clone(),
                                 alert_text: format!(
                                     "The {} endpoint accepts {:?} although its not documented to", path, method
-                                )
+                                ),
+                                serverity: Level::High,
                             },
                             res.clone(),
                         ));

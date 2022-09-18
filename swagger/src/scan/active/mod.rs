@@ -47,6 +47,7 @@ struct OASMap {
 pub struct ResponseData {
     location: String,
     alert_text: String,
+    serverity: Level,
 }
 
 #[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]

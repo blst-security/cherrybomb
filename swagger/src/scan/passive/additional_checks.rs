@@ -1,15 +1,11 @@
-    use super::*;
+use super::*;
 
 impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
     pub fn check_valid_responses(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {
-                let statuses = op
-                    .responses()
-                    .keys()
-                    .cloned()
-                    .collect::<Vec<String>>();
+                let statuses = op.responses().keys().cloned().collect::<Vec<String>>();
                 for status in statuses {
                     if let Ok(res_code) = status.parse::<u16>() {
                         if !(100..600).contains(&res_code) {
@@ -122,20 +118,23 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         alerts
     }
 
-    pub fn check_valid_encoding(&self) -> Vec<Alert>{
+    pub fn check_valid_encoding(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             for (_m, op) in item.get_ops() {
                 if let Some(req_body) = &op.request_body {
-                    req_body.inner(&self.swagger_value)
+                    req_body
+                        .inner(&self.swagger_value)
                         .content
                         .keys()
-                        .for_each(|c_t| if !LIST_CONTENT_TYPE.contains(&c_t.as_str()) {
-                            alerts.push(Alert::new(
-                                Level::Low,
-                                "Request body has an invalid content type",
-                                format!("swagger path:{} content type:{}", path, c_t),
-                            ))
+                        .for_each(|c_t| {
+                            if !LIST_CONTENT_TYPE.contains(&c_t.as_str()) {
+                                alerts.push(Alert::new(
+                                    Level::Low,
+                                    "Request body has an invalid content type",
+                                    format!("swagger path:{} content type:{}", path, c_t),
+                                ))
+                            }
                         });
                 }
             }
@@ -165,7 +164,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         alerts
     }
 
-    pub fn check_contains_response(&self) ->Vec<Alert> {
+    pub fn check_contains_response(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {

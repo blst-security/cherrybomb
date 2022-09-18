@@ -37,12 +37,12 @@ impl AttackRequestBuilder {
         self.payload = payload.to_string();
         self
     }
-    pub fn add_auth_to_params(&mut self){
-        if let Some(a) = self.auth.get_auth(){
+    pub fn add_auth_to_params(&mut self) {
+        if let Some(a) = self.auth.get_auth() {
             self.parameters.push(a);
         }
     }
-    pub fn build(&self)->AttackRequest{
+    pub fn build(&self) -> AttackRequest {
         AttackRequest {
             path: self.path.clone(),
             parameters: self.parameters.clone(),
@@ -83,15 +83,15 @@ impl AttackRequest {
         let mut path_ext = self.path.to_string();
         let mut headers = vec![];
         let mut payload = self.payload.clone();
-        println!("{:?}",self.parameters);
+//        println!("{:?}", self.parameters);
         for param in self.parameters.iter() {
             match param.dm {
                 QuePay::Payload => {
-                     payload.push_str(&format!("\"{}\":{},", param.name, param.value))
+                    payload.push_str(&format!("\"{}\":{},", param.name, param.value))
                 }
                 QuePay::Query => query.push_str(&format!("{}={}&", param.name, param.value)),
                 QuePay::Path => {
-                    println!("{:?}",param);
+                  //  println!("{:?}", param);
                     path_ext =
                         path_ext.replace(&format!("{}{}{}", '{', param.name, '}'), &param.value)
                 }
@@ -105,15 +105,15 @@ impl AttackRequest {
             }
         }
         query.pop();
-        println!("{}",path_ext);
+      //  println!("{}", path_ext);
         (payload, query, path_ext, headers)
     }
-    pub fn get_headers(&self,payload_headers: &[MHeader]) -> HashMap<String, String> {
+    pub fn get_headers(&self, payload_headers: &[MHeader]) -> HashMap<String, String> {
         self.headers
-        .iter()
-        .chain(payload_headers)
-        .map(|h| (h.name.clone(), h.value.clone()))
-        .collect()
+            .iter()
+            .chain(payload_headers)
+            .map(|h| (h.name.clone(), h.value.clone()))
+            .collect()
     }
 
     pub async fn send_request(&self, print: bool) -> Result<AttackResponse, reqwest::Error> {
@@ -121,11 +121,12 @@ impl AttackRequest {
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let mut h = self.get_headers(&headers1);
-        h.insert("X-BLST-ATTACKER".to_string(),"true".to_string());
+        h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let req = client
             .request(method1, &format!("{}{}", path, req_query))
             .body(req_payload.clone())
             .headers((&h).try_into().expect("not valid headers"))
+            .header("content-type", "application/json")
             .build()
             .unwrap();
         match client.execute(req).await {

@@ -4,27 +4,27 @@ use base64::encode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub struct Custom{
-    dm:QuePay,
-    name:String,
-    value:String,
+pub struct Custom {
+    dm: QuePay,
+    name: String,
+    value: String,
 }
-impl Custom{
-    pub fn from_3_vals(vals:Vec<&str>)->Self{
+impl Custom {
+    pub fn from_3_vals(vals: Vec<&str>) -> Self {
         if vals.len() != 3 {
             panic!("Authentication doesn't match cherrybomb's scheme!");
         }
-        let dm = match vals[0].trim().to_lowercase().as_str(){
-            "headers"=>QuePay::Headers,
-            "path"=>QuePay::Path,
-            "query"=>QuePay::Query,
-            "payload"=>QuePay::Payload,
-            _=>QuePay::None
+        let dm = match vals[0].trim().to_lowercase().as_str() {
+            "headers" => QuePay::Headers,
+            "path" => QuePay::Path,
+            "query" => QuePay::Query,
+            "payload" => QuePay::Payload,
+            _ => QuePay::None,
         };
-        Custom{
+        Custom {
             dm,
-            name:vals[1].to_string(),
-            value:vals[2].to_string(),
+            name: vals[1].to_string(),
+            value: vals[2].to_string(),
         }
     }
 }
@@ -56,39 +56,39 @@ impl Authorization {
             "5" => {
                 let vals: Vec<&str> = value.split(',').collect();
                 Self::Custom(Custom::from_3_vals(vals))
-            },
+            }
             _ => Self::None,
         }
     }
     pub fn get_auth(&self) -> Option<RequestParameter> {
         match self {
             Self::Authorization(Auth::Basic(username, password)) => Some(RequestParameter {
-                dm:QuePay::Headers,
+                dm: QuePay::Headers,
                 name: String::from("Authorization"),
                 value: format!("Basic {}", encode(format!("{}:{}", username, password))),
             }),
             Self::Authorization(Auth::Bearer(token)) => Some(RequestParameter {
-                dm:QuePay::Headers,
+                dm: QuePay::Headers,
                 name: String::from("Authorization"),
                 value: format!("Bearer {}", token),
             }),
             Self::JWT(token) => Some(RequestParameter {
-                dm:QuePay::Headers,
+                dm: QuePay::Headers,
                 name: String::from("jwt"),
                 value: token.to_string(),
             }),
             Self::APIKey(key) => Some(RequestParameter {
-                dm:QuePay::Headers,
+                dm: QuePay::Headers,
                 name: String::from("X-API-Key"),
                 value: key.to_string(),
             }),
             Self::Cookie(cookie) => Some(RequestParameter {
-                dm:QuePay::Headers,
+                dm: QuePay::Headers,
                 name: String::from("Cookie"),
                 value: cookie.to_string(),
             }),
-            Self::Custom(custom)=> Some(RequestParameter {
-                dm:custom.dm,
+            Self::Custom(custom) => Some(RequestParameter {
+                dm: custom.dm,
                 name: custom.name.clone(),
                 value: custom.value.clone(),
             }),
