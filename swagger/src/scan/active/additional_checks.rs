@@ -29,11 +29,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .iter()
                         .filter(|(m, _)| m == &Method::POST)
                     {
-                        let vec_param = create_payload_for_get(
-                            &self.oas_value,
-                            op,
-                            Some("".to_string()),
-                        );
+                        let vec_param =
+                            create_payload_for_get(&self.oas_value, op, Some("".to_string()));
                         let url;
                         if let Some(servers) = &self.oas.servers() {
                             if let Some(s) = servers.first() {
@@ -65,14 +62,12 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     location: oas_map.path.path.clone(),
                                     alert_text: format!(
                                         "The {} for {:?} is not enforced by the server",
-                                        val.0,
-                                        json_path
+                                        val.0, json_path
                                     ),
                                     serverity: Level::Low,
                                 },
                                 res.clone(),
                             ));
-
                         } else {
                             println!("REQUEST FAILED");
                         }
@@ -142,57 +137,52 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .flatten()
                         .take(max_len.try_into().unwrap())
                         .collect::<String>();
-                        for (m, op) in oas_map
-                            .path
-                            .path_item
-                            .get_ops()
-                            .iter()
-                            .filter(|(m, _)| m == &Method::POST)
-                        {
-                            let vec_param = create_payload_for_get(
-                                &self.oas_value,
-                                op,
-                                Some("".to_string()),
-                            );
+                    for (m, op) in oas_map
+                        .path
+                        .path_item
+                        .get_ops()
+                        .iter()
+                        .filter(|(m, _)| m == &Method::POST)
+                    {
+                        let vec_param =
+                            create_payload_for_get(&self.oas_value, op, Some("".to_string()));
 
-
-
-                            let url;
-                            if let Some(servers) = &self.oas.servers() {
-                                if let Some(s) = servers.first() {
-                                    url = s.url.clone();
-                                } else {
-                                    continue;
-                                };
+                        let url;
+                        if let Some(servers) = &self.oas.servers() {
+                            if let Some(s) = servers.first() {
+                                url = s.url.clone();
                             } else {
                                 continue;
                             };
-                            let req = AttackRequest::builder()
-                                .uri(&url, &oas_map.path.path)
-                                .method(*m)
-                                .headers(vec![])
-                                .parameters(vec_param.clone())
-                                .auth(auth.clone())
-                                .headers(Vec::from([MHeader {
-                                    name: "Content-Type".to_string(),
-                                    value: "application/json".to_string(),
-                                }]))
-                                .payload(
-                                    &change_payload(
-                                        &oas_map.payload.payload,
-                                        json_path,
-                                        json!(new_string),
-                                    )
-                                    .to_string(),
+                        } else {
+                            continue;
+                        };
+                        let req = AttackRequest::builder()
+                            .uri(&url, &oas_map.path.path)
+                            .method(*m)
+                            .headers(vec![])
+                            .parameters(vec_param.clone())
+                            .auth(auth.clone())
+                            .headers(Vec::from([MHeader {
+                                name: "Content-Type".to_string(),
+                                value: "application/json".to_string(),
+                            }]))
+                            .payload(
+                                &change_payload(
+                                    &oas_map.payload.payload,
+                                    json_path,
+                                    json!(new_string),
                                 )
-                                .build();
+                                .to_string(),
+                            )
+                            .build();
 
-                            if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                                //logging request/response/description
-                                ret_val
-                                    .1
-                                    .push(&req, &res, "Testing min/max length".to_string());
-                                ret_val.0.push((
+                        if let Ok(res) = req.send_request(self.verbosity > 0).await {
+                            //logging request/response/description
+                            ret_val
+                                .1
+                                .push(&req, &res, "Testing min/max length".to_string());
+                            ret_val.0.push((
                                     ResponseData {
                                         location: oas_map.path.path.clone(),
                                         alert_text: format!(
@@ -204,10 +194,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     },
                                     res.clone(),
                                 ));
-
-                            } else {
-                                println!("REQUEST FAILED");
-                            }
+                        } else {
+                            println!("REQUEST FAILED");
+                        }
                     }
                 }
             }
@@ -215,7 +204,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
-    
     pub async fn check_parameter_pollution(
         &self,
         auth: &Authorization,
@@ -273,11 +261,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         (ret_val, vec_polluted)
     }
 
-
-
     pub async fn check_ssl(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-        if let Some(server_list) = self.oas.servers(){
+        if let Some(server_list) = self.oas.servers() {
             for server in server_list.iter() {
                 let mut new_url = server.url.clone();
                 if &new_url[..5] == "https" {
@@ -311,21 +297,13 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
-pub async fn check_authentication(&self, _auth: &Authorization) -> CheckRetVal {
-    let mut ret_val = CheckRetVal::default();
-    for oas_map in self.payloads.iter() {
-        for (_json_path, _schema) in &oas_map.payload.map {
-                for (m, op) in oas_map
-                    .path
-                    .path_item
-                    .get_ops()
-                    .iter()
-                {
-                    let vec_param = create_payload_for_get(
-                        &self.oas_value,
-                        op,
-                        Some("".to_string()),
-                    );
+    pub async fn check_authentication(&self, _auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        for oas_map in self.payloads.iter() {
+            for (_json_path, _schema) in &oas_map.payload.map {
+                for (m, op) in oas_map.path.path_item.get_ops().iter() {
+                    let vec_param =
+                        create_payload_for_get(&self.oas_value, op, Some("".to_string()));
                     let url;
                     if let Some(servers) = &self.oas.servers() {
                         if let Some(s) = servers.first() {
@@ -336,37 +314,34 @@ pub async fn check_authentication(&self, _auth: &Authorization) -> CheckRetVal {
                     } else {
                         continue;
                     };
-                    if let Some(_value)= &op.security{
-                    let req;   
-                    if m == &Method::POST {
-                        req = AttackRequest::builder()
-                        .uri(&url, &oas_map.path.path)
-                        .method(*m)
-                        .headers(vec![])
-                        .parameters(vec_param.clone())
-                        //.auth(auth.clone())  
-                        .payload(&oas_map.payload.payload.to_string())
-                        .build();
-                    }
-                    else {
-                        req = AttackRequest::builder()
-                        .uri(&url, &oas_map.path.path)
-                        .method(*m)
-                        .headers(vec![])
-                        .parameters(vec_param.clone())
-                        .build();
-                        //.auth(auth.clone())  
+                    if let Some(_value) = &op.security {
+                        let req;
+                        if m == &Method::POST {
+                            req = AttackRequest::builder()
+                                .uri(&url, &oas_map.path.path)
+                                .method(*m)
+                                .headers(vec![])
+                                .parameters(vec_param.clone())
+                                //.auth(auth.clone())
+                                .payload(&oas_map.payload.payload.to_string())
+                                .build();
+                        } else {
+                            req = AttackRequest::builder()
+                                .uri(&url, &oas_map.path.path)
+                                .method(*m)
+                                .headers(vec![])
+                                .parameters(vec_param.clone())
+                                .build();
+                            //.auth(auth.clone())
+                        }
 
-                    }
-                   
-                  
-                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                        //logging request/response/description
-                           ret_val
-                                    .1
-                                    .push(&req, &res, "Testing without auth".to_string());
-                               // println!("Status Code : {:?}", res.status);
-                                ret_val.0.push((
+                        if let Ok(res) = req.send_request(self.verbosity > 0).await {
+                            //logging request/response/description
+                            ret_val
+                                .1
+                                .push(&req, &res, "Testing without auth".to_string());
+                            // println!("Status Code : {:?}", res.status);
+                            ret_val.0.push((
                                 ResponseData{
                                     location: oas_map.path.path.clone(),
                                     alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", &oas_map.path.path, m ),
@@ -374,30 +349,33 @@ pub async fn check_authentication(&self, _auth: &Authorization) -> CheckRetVal {
                                 },
                             res.clone(),
                         ));
-
-                    } else {
-                        println!("REQUEST FAILED");
+                        } else {
+                            println!("REQUEST FAILED");
+                        }
                     }
-                    }
+                }
             }
         }
+        ret_val
     }
-    ret_val
-}
 
     pub async fn check_method_permissions_active(&self, auth: &Authorization) -> CheckRetVal {
-         let mut ret_val = CheckRetVal::default();
-        let base_url = &self.oas.servers().and_then(|servers| servers.first().cloned());
+        let mut ret_val = CheckRetVal::default();
+        let base_url = &self
+            .oas
+            .servers()
+            .and_then(|servers| servers.first().cloned());
         for (path, item) in &self.oas.get_paths() {
-            let current_method_set = item.get_ops()
+            let current_method_set = item
+                .get_ops()
                 .iter()
-                .map(|(m,_)| m)
+                .map(|(m, _)| m)
                 .cloned()
                 .collect::<HashSet<_>>();
-            
-            let  vec_param = create_payload_for_get(&self.oas_value, item.get_ops()[0].1, Some("".to_string()));
 
-                
+            let vec_param =
+                create_payload_for_get(&self.oas_value, item.get_ops()[0].1, Some("".to_string()));
+
             let all_method_set = HashSet::from(LIST_METHOD);
             for method in all_method_set.difference(&current_method_set).cloned() {
                 if let Some(url) = base_url {
@@ -417,13 +395,13 @@ pub async fn check_authentication(&self, _auth: &Authorization) -> CheckRetVal {
                             ResponseData {
                                 location: path.clone(),
                                 alert_text: format!(
-                                    "The {} endpoint accepts {:?} although its not documented to", path, method
+                                    "The {} endpoint accepts {:?} although its not documented to",
+                                    path, method
                                 ),
                                 serverity: Level::High,
                             },
                             res.clone(),
                         ));
-
                     } else {
                         println!("REQUEST FAILED");
                     }
@@ -432,8 +410,83 @@ pub async fn check_authentication(&self, _auth: &Authorization) -> CheckRetVal {
         }
         ret_val
     }
-
-
+    pub async fn check_broken_object_level_authentication(&self, auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        let mut vec_param: Vec<RequestParameter> = Vec::new();
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+                for i in op.params() {
+                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
+                        == "path".to_string(){
+                            break;
+                        }
+                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
+                        == "query".to_string()
+                    {
+                        if let Some(types) = i
+                            .inner(&self.oas_value)
+                            .schema()
+                            .inner(&self.oas_value)
+                            .schema_type
+                        {
+                            let mut value_to_send="2".to_string();
+                            let mut var_int:i32= 2;
+                            if types == "integer".to_string() {
+                                if let Some(val) = i
+                                    .inner(&self.oas_value)
+                                    .examples
+                                {
+                                    if let Some((_ex, val)) = val.into_iter().next() {
+                                        value_to_send = val.value.to_string();
+                                        var_int = value_to_send.parse::<i32>().unwrap();
+                                            
+                                    }
+                                    for n in 0..2 {
+                                        
+                                    }
+                                    
+                                    
+                                    let param_to_send: RequestParameter = RequestParameter {
+                                        name: i.inner(&self.oas_value).name.to_string(),
+                                        value: value_to_send.to_string(),
+                                        dm: QuePay::Query,
+                                    };
+                                    vec_param.push(param_to_send);
+                                    let req = AttackRequest::builder()
+                                        .uri(&path, "")
+                                        .auth(auth.clone())
+                                        .build();
+                                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
+                                        //logging request/response/description
+                                        ret_val.1.push(
+                                            &req,
+                                            &res,
+                                            "Testing for BOLA".to_string(),
+                                        );
+                                        ret_val.0.push((
+                                            ResponseData {
+                                                location: path.clone(),
+                                                alert_text: format!(
+                                    "The server: {} is not secure against https downgrade",
+                                    &path
+                                ),
+                                                serverity: Level::Medium,
+                                            },
+                                            res.clone(),
+                                        ));
+                                    } else {
+                                        println!("REQUEST FAILED");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //    ret_val;
+                }
+            }
+        }
+        ret_val
+    }
 }
 
 const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT];
