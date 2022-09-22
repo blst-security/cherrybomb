@@ -117,6 +117,12 @@ impl_passive_checks![
 ];
 
 impl_active_checks![
+    // (checkForTestingOnly,
+    // check_req,
+    // is_2xx,
+    // "CHECK FOR SERVERS",
+    // "JUST TESTING"
+    // ),
     (
         CheckMinMax,
         check_min_max,
@@ -163,7 +169,13 @@ impl_active_checks![
         CheckAuthentication,
         check_authentication,
         is_2xx,
-        "BROKEN FUNCTION LEVEL AUTHORIZATION",
+        "BROKEN FUNCTION LEVEL AUTHENTICATION",
         "Check if the auth is correctly configured"
-    )
+    ) // (
+      //     CheckBOLA,
+      //     check_broken_object_level_authorization,
+      //     is_2xx,
+      //     "BROKEN OBJECT LEVEL AUTHORIZATION",
+      //     "Check if object is vulnerable to level auth"
+      // ),
 ];

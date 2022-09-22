@@ -1,6 +1,5 @@
 use super::http_client::RequestParameter;
-use crate::{path::Operation, scan::print, ActiveScan, QuePay, Server, OAS};
-use serde::Serialize;
+use crate::{path::Operation,QuePay};
 use serde_json::Value;
 
 /// This function is used to create a payload for a GET request parameters

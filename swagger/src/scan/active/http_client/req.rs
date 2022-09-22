@@ -12,10 +12,45 @@ pub struct AttackRequestBuilder {
     payload: String,
 }
 impl AttackRequestBuilder {
-    pub fn uri(&mut self, base_url: &str, path: &str) -> &mut Self {
-        self.path = format!("{}{}", base_url, path);
+    pub fn uri_http(&mut self, server: &Server) -> &mut Self { //build base url with http protocol
+        let mut new_url = server.url.to_string(); 
+        if let Some(var) = server.variables.clone() {
+            for (key, value) in var {
+                new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
+                new_url.replace_range(0..5, "http");
+            }
+            // new_url.pop();
+            self.path = new_url;
+        } else {
+            self.path = server.url.clone();
+        }
         self
     }
+
+    pub fn uri(&mut self, server: &Option<Vec<Server>>, path: &str) -> &mut Self {
+        // servers
+        if let Some(server_value) = server {
+            let server_object = server_value.get(0).unwrap();
+            let mut new_url = server_object.url.to_string();
+            if let Some(var) = server_object.variables.clone() {
+                for (key, value) in var {
+                    new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
+                }
+                new_url.pop();
+                /*for iter_val  in var.into_iter().map(|(_key, value)| value.default).collect::<Vec<String>>().iter().zip(vec_match.iter()){
+                    let (def,reg) = iter_val;
+                    new_url = new_url.replace(reg[0],&def);
+                }*/
+                self.path = format!("{}{}", new_url, path);
+            } else {
+                self.path = format!("{}{}", server_object.url, path);
+            }
+
+            return self;
+        }
+        self
+    }
+
     pub fn auth(&mut self, auth: Authorization) -> &mut Self {
         self.auth = auth;
         self.add_auth_to_params();

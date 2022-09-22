@@ -278,6 +278,7 @@ impl OAS for Swagger {
         self.external_docs.clone()
     }
     fn get_servers(&self) -> Option<Vec<String>> {
+        // servers
         let mut vec = Vec::new();
         if let Some(server_value) = self.servers() {
             for serv in server_value {
