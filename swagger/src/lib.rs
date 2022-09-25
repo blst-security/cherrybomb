@@ -225,7 +225,6 @@ pub trait OAS {
     fn security(&self) -> Option<Vec<Security>>;
     fn tags(&self) -> Option<Vec<Tag>>;
     fn ext_docs(&self) -> Option<ExternalDocs>;
-    fn get_servers(&self) -> Option<Vec<String>>;
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct Swagger {
@@ -277,29 +276,6 @@ impl OAS for Swagger {
     fn ext_docs(&self) -> Option<ExternalDocs> {
         self.external_docs.clone()
     }
-    fn get_servers(&self) -> Option<Vec<String>> {
-        // servers
-        let mut vec = Vec::new();
-        if let Some(server_value) = self.servers() {
-            for serv in server_value {
-                let mut new_url = serv.url.to_string();
-                if let Some(var) = serv.variables {
-                    for (key, value) in var {
-                        new_url =
-                            new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
-                    }
-                    /*for iter_val  in var.into_iter().map(|(_key, value)| value.default).collect::<Vec<String>>().iter().zip(vec_match.iter()){
-                        let (def,reg) = iter_val;
-                        new_url = new_url.replace(reg[0],&def);
-                    }*/
-                    vec.push(new_url);
-                } else {
-                    vec.push(serv.url);
-                }
-            }
-        }
-        Some(vec)
-    }
 }
 impl OAS for OAS3_1 {
     fn get_paths(&self) -> Paths {
@@ -332,25 +308,6 @@ impl OAS for OAS3_1 {
     }
     fn ext_docs(&self) -> Option<ExternalDocs> {
         self.external_docs.clone()
-    }
-
-    fn get_servers(&self) -> Option<Vec<String>> {
-        let mut vec = Vec::new();
-        if let Some(server_value) = self.servers() {
-            for serv in server_value {
-                let mut new_url = serv.url.to_string();
-                if let Some(var) = serv.variables {
-                    for (key, value) in var {
-                        new_url =
-                            new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
-                    }
-                    vec.push(new_url);
-                } else {
-                    vec.push(serv.url);
-                }
-            }
-        }
-        Some(vec)
     }
 }
 /*
