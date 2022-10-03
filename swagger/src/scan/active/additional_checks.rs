@@ -559,7 +559,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
     }
 }
 
-const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT, Method::DELETE];
+const LIST_METHOD: [Method; 4] = [Method::GET, Method::POST, Method::PUT, Method::DELETE];
 
 const LIST_PARAM: [&str; 85] = [
     "photoUrls",
