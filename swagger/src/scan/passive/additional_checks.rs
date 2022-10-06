@@ -148,7 +148,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
             for (m, op) in item.get_ops() {
                 if op.description.is_none() {
                     alerts.push(Alert::new(
-                        Level::Low,
+                        Level::Info,
                         "Operation has no description",
                         format!("swagger path:{} operation:{}", path, m),
                     ));
