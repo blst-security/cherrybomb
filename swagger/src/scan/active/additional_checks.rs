@@ -31,7 +31,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     {
                         let vec_param =
                             create_payload_for_get(&self.oas_value, op, Some("".to_string()));
-                        let url= self.oas.servers();
+                        let url = self.oas.servers();
                         let req = AttackRequest::builder()
                             .uri(&url, &oas_map.path.path)
                             .method(*m)
@@ -138,7 +138,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             create_payload_for_get(&self.oas_value, op, Some("".to_string()));
 
                         let url = self.oas.servers();
-                         
+
                         let req = AttackRequest::builder()
                             .uri(&url, &oas_map.path.path)
                             .method(*m)
@@ -193,12 +193,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let mut ret_val = CheckRetVal::default();
         let server = self.oas.servers();
         let vec_polluted = vec!["blstparamtopollute".to_string()];
-     //   let base_url = server.unwrap().get(0).unwrap().clone();
+        //   let base_url = server.unwrap().get(0).unwrap().clone();
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
                 let _text = path.to_string();
                 if m == Method::GET {
-
                     let mut vec_param = create_payload_for_get(&self.oas_value, op, None);
                     let indices = vec_param
                         .iter()
@@ -210,7 +209,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         let param_query_pollute = vec_param.get(i).unwrap().clone();
                         vec_param.push(param_query_pollute);
                         let req = AttackRequest::builder()
-                            .uri(&server, path)// base_url
+                            .uri(&server, path) // base_url
                             .auth(auth.clone())
                             .parameters(vec_param.clone())
                             .method(m)
@@ -244,17 +243,16 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         (ret_val, vec_polluted)
     }
 
-   
     pub async fn check_ssl(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         if let Some(server_list) = self.oas.servers() {
-            for server in  server_list {
+            for server in server_list {
                 let new_url = server.url.clone();
                 if &new_url[..5] == "https" {
-                    let req  = AttackRequest::builder()
-                    .uri_http(&server)
-                    .auth(auth.clone())
-                    .build();
+                    let req = AttackRequest::builder()
+                        .uri_http(&server)
+                        .auth(auth.clone())
+                        .build();
                     if let Ok(res) = req.send_request(self.verbosity > 0).await {
                         //logging request/response/description
                         ret_val
@@ -274,8 +272,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     } else {
                         println!("REQUEST FAILED");
                     }
-                
-            }
+                }
             }
         }
         ret_val
@@ -285,7 +282,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let mut ret_val = CheckRetVal::default();
         for oas_map in self.payloads.iter() {
             //for (_json_path, _schema) in &oas_map.payload.map {
-            for _schema in oas_map.payload.map.values(){
+            for _schema in oas_map.payload.map.values() {
                 for (m, op) in oas_map.path.path_item.get_ops().iter() {
                     let vec_param =
                         create_payload_for_get(&self.oas_value, op, Some("".to_string()));
@@ -351,207 +348,120 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
             let all_method_set = HashSet::from(LIST_METHOD);
             for method in all_method_set.difference(&current_method_set).cloned() {
-                    let req = AttackRequest::builder()
-                        .uri(server, path)
-                        .parameters(vec_param.clone())
-                        .auth(auth.clone())
-                        .method(method)
-                        .headers(vec![])
-                        .build();
-                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                        //logging request/response/description
-                        ret_val
-                            .1
-                            .push(&req, &res, "Test method permission".to_string());
-                        ret_val.0.push((
-                            ResponseData {
-                                location: path.clone(),
-                                alert_text: format!(
-                                    "The {} endpoint accepts {:?} although its not documented to",
-                                    path, method
-                                ),
-                                serverity: Level::High,
-                            },
-                            res.clone(),
-                        ));
-                    } else {
-                        println!("REQUEST FAILED");
-                    }
-                
-            }
-        }
-        ret_val
-    }
-    pub async fn check_broken_object_level_authorization(&self, auth: &Authorization) -> CheckRetVal {
-        let mut ret_val = CheckRetVal::default();
-        let mut vec_param: Vec<RequestParameter> = Vec::new();
-        let server = &self.oas.servers();
-        for (path, item) in &self.oas.get_paths() {
-            for (m, op) in item.get_ops().iter().filter(|(m, _)| m != &Method::POST || m != &Method::PUT) {
-                for i in op.params() {
-                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
-                        == "path".to_string(){
-                            break;
-                        }
-                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
-                        == "query".to_string()
-                    {
-                    if i.inner(&self.oas_value).name.to_lowercase().contains(&"id".to_string())
-                    
-                    {
-
-                        if let Some(types) = i
-                            .inner(&self.oas_value)
-                            .schema()
-                            .inner(&self.oas_value)
-                            .schema_type
-                        {
-                            let mut value_to_send="2".to_string();
-                            let mut var_int:i32= 2;
-                            if types == "integer".to_string() {
-                                if let Some(val) = i
-                                    .inner(&self.oas_value)
-                                    .examples
-                                {
-                                    if let Some((_ex, val)) = val.into_iter().next() {
-                                        value_to_send = val.value.to_string();
-                                        var_int = value_to_send.parse::<i32>().unwrap();
-                                            
-                                    }
-                                    for n in var_int-1..var_int+1 {
-                                    println!("PATH {:?}",path);
-                                    let param_to_send: RequestParameter = RequestParameter {
-                                        name: i.inner(&self.oas_value).name.to_string(),
-                                        value: n.to_string(),
-                                        dm: QuePay::Query,
-                                    };
-                                    vec_param.push(param_to_send);
-                                    let req = AttackRequest::builder()
-                                        .uri(server,path)
-                                        .method(*m)
-                                        .auth(auth.clone())
-                                        .build();
-                                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                                        //logging request/response/description
-                                        ret_val.1.push(
-                                            &req,
-                                            &res,
-                                            "Testing for BOLA".to_string(),
-                                        );
-                                        ret_val.0.push((
-                                            ResponseData {
-                                                location: path.clone(),
-                                                alert_text: format!(
-                                    "The server: {} is not secure against https downgrade",
-                                    &path
-                                ),
-                                                serverity: Level::Medium,
-                                            },
-                                            res.clone(),
-                                        ));
-                                    } else {
-                                        println!("REQUEST FAILED");
-                                    }
-                                }
-                                }
-                            }
-                        }
-                        }
-                    }
-                  
+                let req = AttackRequest::builder()
+                    .uri(server, path)
+                    .parameters(vec_param.clone())
+                    .auth(auth.clone())
+                    .method(method)
+                    .headers(vec![])
+                    .build();
+                if let Ok(res) = req.send_request(self.verbosity > 0).await {
+                    //logging request/response/description
+                    ret_val
+                        .1
+                        .push(&req, &res, "Test method permission".to_string());
+                    ret_val.0.push((
+                        ResponseData {
+                            location: path.clone(),
+                            alert_text: format!(
+                                "The {} endpoint accepts {:?} although its not documented to",
+                                path, method
+                            ),
+                            serverity: Level::High,
+                        },
+                        res.clone(),
+                    ));
+                } else {
+                    println!("REQUEST FAILED");
                 }
             }
         }
         ret_val
     }
-    pub async fn check_broken_object(&self, auth: &Authorization) -> CheckRetVal {
+    pub async fn check_broken_object_level_authorization(
+        &self,
+        auth: &Authorization,
+    ) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         let mut vec_param: Vec<RequestParameter> = Vec::new();
         let server = &self.oas.servers();
-       // let mut param_object;
-       let mut flag = false;
         for (path, item) in &self.oas.get_paths() {
-            for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+            for (m, op) in item
+                .get_ops()
+                .iter()
+                .filter(|(m, _)| m != &Method::POST || m != &Method::PUT)
+            {
                 for i in op.params() {
                     if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
-                        == "path".to_string()|| i.inner(&self.oas_value).param_in.to_string().to_lowercase() == "query"{
-                            flag = true;
-                            
-                        }
-                   
-                   // if i.inner(&self.oas_value).name.to_lowercase().contains(&"id".to_string())
-                    let mut param_obj ;
-                    if flag{
-                     //   param_object = i.inner(&self.oas_value).name;
-                     let resp =  op.responses();
-                     let data_resp = resp.get(&"200".to_string());
-                     if let Some(value)= data_resp {
-                        param_obj = value.inner(&self.oas_value).content.unwrap().into_values();
-                        for i in param_obj {
-                           println!("SHEMMMMMMAAAAA {:?}", i.schema.unwrap().inner(&self.oas_value).required);
-                        }
-                       // println!("PARAMMMM. {:?}", &param_obj);clear
-
-
-                     }
-                        if let Some(types) = i
-                            .inner(&self.oas_value)
-                            .schema()
-                            .inner(&self.oas_value)
-                            .schema_type
+                        == *"path".to_string()
+                    {
+                        break;
+                    }
+                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
+                        == *"query".to_string()
+                    {
+                        if i.inner(&self.oas_value)
+                            .name
+                            .to_lowercase()
+                            .contains(&"id".to_string())
                         {
-                            let mut value_to_send="2".to_string();
-                            let mut var_int:i32= 2;
-                            if types == "integer".to_string() {
-                                if let Some(val) = i
-                                    .inner(&self.oas_value)
-                                    .examples
-                                {
-                                    if let Some((_ex, val)) = val.into_iter().next() {
-                                        value_to_send = val.value.to_string();
-                                        var_int = value_to_send.parse::<i32>().unwrap();
-                                            
-                                    }
-                                    for n in var_int-1..var_int+1 {
-                                    let param_to_send: RequestParameter = RequestParameter {
-                                        name: i.inner(&self.oas_value).name.to_string(),
-                                        value: n.to_string(),
-                                        dm: QuePay::Query,
-                                    };
-                                    vec_param.push(param_to_send);
-                                    let req = AttackRequest::builder()
-                                        .uri(server,path)
-                                        .method(*m)
-                                        .auth(auth.clone())
-                                        .build();
-                                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                                        //logging request/response/description
-                                        ret_val.1.push(
-                                            &req,
-                                            &res,
-                                            "Testing for BOLA".to_string(),
-                                        );
-                                        ret_val.0.push((
-                                            ResponseData {
-                                                location: path.clone(),
-                                                alert_text: format!(
+                            if let Some(types) = i
+                                .inner(&self.oas_value)
+                                .schema()
+                                .inner(&self.oas_value)
+                                .schema_type
+                            {
+                                let mut value_to_send = "2".to_string();
+                                let mut var_int: i32 = 2;
+                                if types == *"integer".to_string() {
+                                    if let Some(val) = i.inner(&self.oas_value).examples {
+                                        if let Some((_ex, val)) = val.into_iter().next() {
+                                            value_to_send = val.value.to_string();
+                                            var_int = value_to_send.parse::<i32>().unwrap();
+                                        }
+                                        for n in var_int - 1..var_int + 1 {
+                                            println!("PATH {:?}", path);
+                                            let param_to_send: RequestParameter =
+                                                RequestParameter {
+                                                    name: i.inner(&self.oas_value).name.to_string(),
+                                                    value: n.to_string(),
+                                                    dm: QuePay::Query,
+                                                };
+                                            vec_param.push(param_to_send);
+                                            let req = AttackRequest::builder()
+                                                .uri(server, path)
+                                                .method(*m)
+                                                .auth(auth.clone())
+                                                .build();
+                                            if let Ok(res) =
+                                                req.send_request(self.verbosity > 0).await
+                                            {
+                                                //logging request/response/description
+                                                ret_val.1.push(
+                                                    &req,
+                                                    &res,
+                                                    "Testing for BOLA".to_string(),
+                                                );
+                                                ret_val.0.push((
+                                                    ResponseData {
+                                                        location: path.clone(),
+                                                        alert_text: format!(
                                     "The server: {} is not secure against https downgrade",
                                     &path
                                 ),
-                                                serverity: Level::Medium,
-                                            },
-                                            res.clone(),
-                                        ));
-                                    } else {
-                                        println!("REQUEST FAILED");
+                                                        serverity: Level::Medium,
+                                                    },
+                                                    res.clone(),
+                                                ));
+                                            } else {
+                                                println!("REQUEST FAILED");
+                                            }
+                                        }
                                     }
-                                }
                                 }
                             }
                         }
-                    
                     }
-                  
                 }
             }
         }
