@@ -288,25 +288,14 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         create_payload_for_get(&self.oas_value, op, Some("".to_string()));
                     let url = &self.oas.servers();
                     if let Some(_value) = &op.security {
-                        let req: AttackRequest;
-                        if m == &Method::POST {
-                            req = AttackRequest::builder()
-                                .uri(url, &oas_map.path.path)
-                                .method(*m)
-                                .headers(vec![])
-                                .parameters(vec_param.clone())
-                                //.auth(auth.clone())
-                                .payload(&oas_map.payload.payload.to_string())
-                                .build();
-                        } else {
-                            req = AttackRequest::builder()
-                                .uri(url, &oas_map.path.path)
-                                .method(*m)
-                                .headers(vec![])
-                                .parameters(vec_param.clone())
-                                .build();
+                        let req = AttackRequest::builder()
+                            .uri(url, &oas_map.path.path)
+                            .method(*m)
+                            .headers(vec![])
+                            .parameters(vec_param.clone())
                             //.auth(auth.clone())
-                        }
+                            .payload(&oas_map.payload.payload.to_string())
+                            .build();
 
                         if let Ok(res) = req.send_request(self.verbosity > 0).await {
                             //logging request/response/description
@@ -331,7 +320,43 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         ret_val
     }
-
+    pub async fn check_authentication_for_get(&self, _auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        let server = self.oas.servers();
+        //   let base_url = server.unwrap().get(0).unwrap().clone();
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item.get_ops() {
+                if m == Method::GET {
+                    let vec_param =
+                        create_payload_for_get(&self.oas_value, op, Some("".to_string()));
+                    let req = AttackRequest::builder()
+                        .uri(&server, &path)
+                        .method(m)
+                        .headers(vec![])
+                        .parameters(vec_param.clone())
+                        .build();
+                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
+                        //logging request/response/description
+                        ret_val
+                            .1
+                            .push(&req, &res, "Testing without auth".to_string());
+                        // println!("Status Code : {:?}", res.status);
+                        ret_val.0.push((
+                            ResponseData{
+                                location: path.to_string(),
+                                alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", &path, m ),
+                                serverity: Level::High,
+                            },
+                        res.clone(),
+                    ));
+                    } else {
+                        println!("REQUEST FAILED");
+                    }
+                }
+            }
+        }
+        ret_val
+    }
     pub async fn check_method_permissions_active(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         let server = &self.oas.servers();

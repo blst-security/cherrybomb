@@ -167,10 +167,16 @@ impl_active_checks![
         "Check if the auth is correctly configured"
     ),
     (
-        CheckBOLA,
-        check_broken_object_level_authorization,
+        CheckAuthenticationGET,
+        check_authentication_for_get,
         is_2xx,
-        "BROKEN OBJECT LEVEL AUTHORIZATION",
-        "Check if object is vulnerable to level authorization"
-    )
+        "AUTH BY PASS",
+        "Check if the auth is correctly configured"
+    ) ,(
+          CheckBOLA,
+          check_broken_object_level_authorization,
+          is_2xx,
+          "BROKEN OBJECT LEVEL AUTHORIZATION",
+          "Check if object is vulnerable to level authorization"
+      )
 ];
