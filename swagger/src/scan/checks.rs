@@ -160,11 +160,17 @@ impl_active_checks![
         "Check if the endpoint is correctly configured"
     ),
     (
-        CheckAuthentication,
-        check_authentication,
+        CheckAuthenticationPOST,
+        check_authentication_for_post,
         is_2xx,
-        "BROKEN FUNCTION LEVEL AUTHENTICATION",
+        "AUTH BY PASS",
+        "Check if the auth is correctly configured"
+   ),
+   (
+        CheckAuthenticationGET, 
+        check_authentication_for_get,
+        is_2xx,
+        "AUTH BY PASS", 
         "Check if the auth is correctly configured"
    )
-     
 ];
