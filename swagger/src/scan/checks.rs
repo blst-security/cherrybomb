@@ -165,6 +165,12 @@ impl_active_checks![
         is_2xx,
         "BROKEN FUNCTION LEVEL AUTHENTICATION",
         "Check if the auth is correctly configured"
+   ),
+   (CheckForBrokenObject, 
+    check_broken_object_level_authorization,
+    is_2xx, 
+    "BROKEN OBJECT AUTHORIZATION", 
+    "Check if the object is broken"
    )
      
 ];
