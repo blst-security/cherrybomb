@@ -118,7 +118,6 @@ impl AttackRequest {
         let mut path_ext = self.path.to_string();
         let mut headers = vec![];
         let mut payload = self.payload.clone();
-        //        println!("{:?}", self.parameters);
         for param in self.parameters.iter() {
             match param.dm {
                 QuePay::Payload => {
@@ -126,7 +125,6 @@ impl AttackRequest {
                 }
                 QuePay::Query => query.push_str(&format!("{}={}&", param.name, param.value)),
                 QuePay::Path => {
-                    //  println!("{:?}", param);
                     path_ext =
                         path_ext.replace(&format!("{}{}{}", '{', param.name, '}'), &param.value)
                 }
