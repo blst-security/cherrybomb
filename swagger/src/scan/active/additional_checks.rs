@@ -13,6 +13,14 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
     ret.clone()
 }
 impl<T: OAS + Serialize> ActiveScan<T> {
+    pub async fn check_access_control(&self, auth: &Authorization) -> CheckRetVal {
+        let ret_val = CheckRetVal::default();
+        println!("Security testing");
+        if let Some(value) = self.oas.security(){
+            println!("security: {:?}", value);
+        }
+        ret_val
+    }
     pub async fn check_broken_object(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         let mut vec_param: Vec<RequestParameter> = Vec::new();

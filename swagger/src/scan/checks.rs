@@ -117,11 +117,18 @@ impl_passive_checks![
 ];
 
 impl_active_checks![
-      (
-        CheckIDOR,
+    (
+        CheckIDOR,    
         check_broken_object,
         is_2xx,
         "BROKEN OBJECT LEVEL AUTHORIZATION",
         "Check if object is vulnerable to level authorization"
+    ),
+    (
+        CheckAccessControl,
+        check_access_control,
+        is_2xx,
+        "Check broken level authentication",
+        "Checks tokens"
     )
 ];
