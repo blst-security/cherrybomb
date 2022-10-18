@@ -123,12 +123,6 @@ impl_active_checks![
         is_2xx,
         "BROKEN OBJECT LEVEL AUTHORIZATION",
         "Check if object is vulnerable to level authorization"
-    ),
-    (
-        CheckAccessControl,
-        check_access_control,
-        is_2xx,
-        "Check broken level authentication",
-        "Checks tokens"
     )
+  
 ];
