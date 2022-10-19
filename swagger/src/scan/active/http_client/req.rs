@@ -12,6 +12,19 @@ pub struct AttackRequestBuilder {
     payload: String,
 }
 impl AttackRequestBuilder {
+    pub fn uri2(&mut self, server: Server , path: &str , secure: bool) -> &mut Self {
+        self.path = server.url + path;
+        if let Some(vars) = server.variables {
+            for (k, v) in vars {
+                self.path = self.path.replace(&format!("{{{}}}", k), v.default.as_str());
+            }
+        }
+        if !secure {
+            self.path.replace_range(0..5, "http")
+        }
+        self
+    }
+
     pub fn uri_http(&mut self, server: &Server) -> &mut Self { //build base url with http protocol
         let mut new_url = server.url.to_string(); 
         if let Some(var) = server.variables.clone() {
@@ -37,10 +50,6 @@ impl AttackRequestBuilder {
                     new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
                 }
                 new_url.pop();
-                /*for iter_val  in var.into_iter().map(|(_key, value)| value.default).collect::<Vec<String>>().iter().zip(vec_match.iter()){
-                    let (def,reg) = iter_val;
-                    new_url = new_url.replace(reg[0],&def);
-                }*/
                 self.path = format!("{}{}", new_url, path);
             } else {
                 self.path = format!("{}{}", server_object.url, path);
@@ -118,7 +127,6 @@ impl AttackRequest {
         let mut path_ext = self.path.to_string();
         let mut headers = vec![];
         let mut payload = self.payload.clone();
-        //        println!("{:?}", self.parameters);
         for param in self.parameters.iter() {
             match param.dm {
                 QuePay::Payload => {
@@ -126,7 +134,6 @@ impl AttackRequest {
                 }
                 QuePay::Query => query.push_str(&format!("{}={}&", param.name, param.value)),
                 QuePay::Path => {
-                    //  println!("{:?}", param);
                     path_ext =
                         path_ext.replace(&format!("{}{}{}", '{', param.name, '}'), &param.value)
                 }

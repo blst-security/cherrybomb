@@ -1,29 +1,4 @@
 use super::*;
-/*
-pub enum DataFormat{
-    #[serde(rename = "int32")]
-    Int32>,
-    #[serde(rename = "int64")]
-    Int64>,
-    #[serde(rename = "float")]
-    Float>,
-    #[serde(rename = "double")]
-    Double>,
-    #[serde(rename = "byte")]
-    Byte>,
-    #[serde(rename = "binary")]
-    Binary>,
-    #[serde(rename = "date")]
-    Date>,
-    #[serde(rename = "date-time")]
-    DateTime>,
-    #[serde(rename = "password")]
-    Password>,
-    #[serde(rename = "string")]
-    String>,
-    #[serde(rename = "boolean")]
-    Boolean
-}*/
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum SchemaStrInt {
