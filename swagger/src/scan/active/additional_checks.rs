@@ -291,26 +291,24 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         create_payload_for_get(&self.oas_value, op, Some("".to_string()));
                     let url = &self.oas.servers();
                     if let Some(_value) = &op.security {
-                        let req: AttackRequest;
+                        let req: AttackRequest =
                         if m == &Method::POST {
-                            req = AttackRequest::builder()
+                            AttackRequest::builder()
                                 .uri(url, &oas_map.path.path)
                                 .method(*m)
                                 .headers(vec![])
                                 .parameters(vec_param.clone())
                                 //.auth(auth.clone())
                                 .payload(&oas_map.payload.payload.to_string())
-                                .build();
+                                .build()
                         } else {
-                            req = AttackRequest::builder()
+                            AttackRequest::builder()
                                 .uri(url, &oas_map.path.path)
                                 .method(*m)
                                 .headers(vec![])
                                 .parameters(vec_param.clone())
-                                .build();
-                            //.auth(auth.clone())
-                        }
-
+                                .build()
+                        };
                         if let Ok(res) = req.send_request(self.verbosity > 0).await {
                             //logging request/response/description
                             ret_val
