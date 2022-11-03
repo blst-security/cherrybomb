@@ -14,7 +14,7 @@ name = "swagger"
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.8.23"
-reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls"] }
+reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls", "blocking"] }
 tokio = { version = "^1", features = ["rt-multi-thread","macros"] }
 futures = "0.3"
 strum = "0.23"
