@@ -210,7 +210,7 @@ impl ParamTable {
                 .servers()
                 .unwrap_or_default()
                 .iter()
-                .map(|s| s.url.clone())
+                .map(|s| s.domain.clone())
                 .collect(),
             params: Self::get_params(&oas, value),
             eps: oas.get_paths().iter().map(|(p, _)| p).cloned().collect(),

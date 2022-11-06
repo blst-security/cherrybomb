@@ -12,7 +12,7 @@ pub struct Custom {
 impl Custom {
     pub fn from_3_vals(vals: Vec<&str>) -> Self {
         if vals.len() != 3 {
-            panic!("Authentication doesn't match cherrybomb's scheme!");
+            panic!("Authentication doesn't match Cherrybomb's scheme!");
         }
         let dm = match vals[0].trim().to_lowercase().as_str() {
             "headers" => QuePay::Headers,

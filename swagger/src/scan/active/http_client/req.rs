@@ -4,6 +4,7 @@ use std::fmt;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct AttackRequestBuilder {
+    servers: Vec<Server>,
     path: String,
     parameters: Vec<RequestParameter>,
     auth: Authorization,
@@ -11,9 +12,10 @@ pub struct AttackRequestBuilder {
     headers: Vec<MHeader>,
     payload: String,
 }
+
 impl AttackRequestBuilder {
-    pub fn uri2(&mut self, server: Server , path: &str , secure: bool) -> &mut Self {
-        self.path = server.url + path;
+    pub fn uri2(&mut self, server: Server, path: &str, secure: bool) -> &mut Self {
+        self.path = server.domain + path;
         if let Some(vars) = server.variables {
             for (k, v) in vars {
                 self.path = self.path.replace(&format!("{{{}}}", k), v.default.as_str());
@@ -24,9 +26,37 @@ impl AttackRequestBuilder {
         }
         self
     }
+    pub fn servers(&mut self, servers: Option<Vec<Server>>, secure: bool) -> &mut Self {
+        if let Some(servers) = servers {
+            for server in servers {
+                let mut new_server_addr = server.domain.clone();
+                if let Some(vars) = &server.variables {
+                    for (k, v) in vars {
+                        new_server_addr = new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
+                    }
+                }
+                if !secure & new_server_addr.starts_with("https") {
+                    new_server_addr.replace_range(0..5, "http")
+                }
+                self.servers.push(Server {
+                    domain: new_server_addr,
+                    description: server.description,
+                    variables: server.variables,
+                });
+            }
+        }
+            //TODO implement error here
+        else { println!("No servers supplied") }
+        self
+    }
+
+    pub fn path(&mut self, path: &str) -> &mut Self {
+        self.path = path.to_string();
+        self
+    }
 
     pub fn uri_http(&mut self, server: &Server) -> &mut Self { //build base url with http protocol
-        let mut new_url = server.url.to_string(); 
+        let mut new_url = server.domain.to_string();
         if let Some(var) = server.variables.clone() {
             for (key, value) in var {
                 new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
@@ -35,7 +65,7 @@ impl AttackRequestBuilder {
             // new_url.pop();
             self.path = new_url;
         } else {
-            self.path = server.url.clone();
+            self.path = server.domain.clone();
         }
         self
     }
@@ -44,7 +74,7 @@ impl AttackRequestBuilder {
         // servers
         if let Some(server_value) = server {
             let server_object = server_value.get(0).unwrap();
-            let mut new_url = server_object.url.to_string();
+            let mut new_url = server_object.domain.to_string();
             if let Some(var) = server_object.variables.clone() {
                 for (key, value) in var {
                     new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
@@ -52,7 +82,7 @@ impl AttackRequestBuilder {
                 new_url.pop();
                 self.path = format!("{}{}", new_url, path);
             } else {
-                self.path = format!("{}{}", server_object.url, path);
+                self.path = format!("{}{}", server_object.domain, path);
             }
 
             return self;
@@ -88,6 +118,7 @@ impl AttackRequestBuilder {
     }
     pub fn build(&self) -> AttackRequest {
         AttackRequest {
+            servers: vec![],
             path: self.path.clone(),
             parameters: self.parameters.clone(),
             auth: self.auth.clone(),
@@ -97,6 +128,7 @@ impl AttackRequestBuilder {
         }
     }
 }
+
 impl std::fmt::Display for AttackRequest {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (mut payload, query, path, headers) = self.params_to_payload();
@@ -118,6 +150,7 @@ impl std::fmt::Display for AttackRequest {
         )
     }
 }
+
 impl AttackRequest {
     pub fn builder() -> AttackRequestBuilder {
         AttackRequestBuilder::default()
@@ -147,7 +180,6 @@ impl AttackRequest {
             }
         }
         query.pop();
-        //  println!("{}", path_ext);
         (payload, query, path_ext, headers)
     }
     pub fn get_headers(&self, payload_headers: &[MHeader]) -> HashMap<String, String> {
@@ -191,5 +223,42 @@ impl AttackRequest {
                 Err(e)
             }
         }
+    }
+    pub async fn send_request_all_servers(&self, print: bool) -> Vec<AttackResponse> {
+        let client = reqwest::Client::new();
+        let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
+        let (req_payload, req_query, path, headers1) = self.params_to_payload();
+        let mut h = self.get_headers(&headers1);
+        h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
+        let mut ret = vec![];
+        for server in &self.servers {
+            let req = client
+                .request(method1.clone(), &format!("{}{}{}", server.domain, path, req_query))
+                .body(req_payload.clone())
+                .headers((&h).try_into().expect("not valid headers"))
+                .header("content-type", "application/json")
+                .build()
+                .unwrap(); //TODO return builder error
+            match client.execute(req).await {
+                Ok(res) => {
+                    if print {
+                        println!("{}: {}", "Request".bright_blue().bold(), self);
+                    }
+                    ret.push(AttackResponse {
+                        status: res.status().into(),
+                        headers: res
+                            .headers()
+                            .iter()
+                            .map(|(n, v)| (n.to_string(), format!("{:?}", v)))
+                            .collect(),
+                        payload: res.text().await.unwrap_or_default(),
+                    })
+                }
+                Err(e) => {
+                    println!("{}: {} - {}: {}", "FAILED TO EXECUTE".red().bold(), self, "ERROR".red().bold(), e);
+                }
+            }
+        }
+        ret
     }
 }

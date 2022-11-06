@@ -12,6 +12,8 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
     *change = new_val;
     ret.clone()
 }
+
+
 impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_min_max(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
@@ -31,9 +33,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     {
                         let vec_param =
                             create_payload_for_get(&self.oas_value, op, Some("".to_string()));
-                        let url= self.oas.servers();
                         let req = AttackRequest::builder()
-                            .uri(&url, &oas_map.path.path)
+                            .servers(self.oas.servers(),true)
+                            .path(&oas_map.path.path)
                             .method(*m)
                             .headers(vec![])
                             .parameters(vec_param.clone())
@@ -43,11 +45,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     .to_string(),
                             )
                             .build();
-                        if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                            //logging request/response/description
-                            ret_val
-                                .1
-                                .push(&req, &res, "Testing min/max values".to_string());
+                        let response_vector = req.send_request_all_servers(self.verbosity>0).await;
+                        for response in response_vector {
+                            ret_val.1.push(&req, &response,"Testing min/max values".to_string());
                             ret_val.0.push((
                                 ResponseData {
                                     location: oas_map.path.path.clone(),
@@ -57,10 +57,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     ),
                                     serverity: Level::Low,
                                 },
-                                res.clone(),
+                                response,
                             ));
-                        } else {
-                            println!("REQUEST FAILED");
                         }
                     }
                 }
@@ -249,7 +247,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let mut ret_val = CheckRetVal::default();
         if let Some(server_list) = self.oas.servers() {
             for server in  server_list {
-                let new_url = server.url.clone();
+                let new_url = server.domain.clone();
                 if &new_url[..5] == "https" {
                     let req  = AttackRequest::builder()
                     .uri_http(&server)

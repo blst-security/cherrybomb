@@ -54,7 +54,8 @@ pub struct ServerVariable {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct Server {
-    pub url: String,
+    #[serde(rename(deserialize = "url"))]
+    pub domain: String,
     pub description: Option<String>,
     pub variables: Option<HashMap<String, ServerVariable>>,
 }
