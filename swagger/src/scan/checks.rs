@@ -116,10 +116,19 @@ impl_passive_checks![
     (CheckContainsResponse, check_contains_response, "CONTAINS RESPONSE", "Checks that each operation has a response")
 ];
 
-impl_active_checks![(
+impl_active_checks![
+    (
     CheckIDOR,
     check_broken_object,
     is_2xx,
     "BROKEN OBJECT LEVEL AUTHORIZATION",
     "Check if object is vulnerable to level authorization"
-)];
+)
+// (
+//     CheckTest,
+//     check_of_param,
+//     is_2xx,
+//     "TESTING",
+//     "BLAH"
+// )
+];

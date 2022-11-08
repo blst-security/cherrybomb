@@ -1,23 +1,136 @@
 use std::collections::HashMap;
 
 use super::http_client::RequestParameter;
-use crate::{path::Operation, QuePay};
+use crate::{path::Operation, QuePay, refs::{ResponseRef, SchemaRef}};
 use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+pub fn recursive_func_to_find(swagger: &Value, schema: SchemaRef, vec_of_param:  &mut Vec<String>)
+-> Vec<String> {
+    let properti_option = schema.inner(swagger).items;
+    println!("{:?}",&properti_option);
+    if let Some(schemaB) = properti_option{
+   
+    let propertie = schemaB.inner(swagger).properties.unwrap_or_default();
+    
+    for (key, value) in propertie {
+        println!("################\n");
+        let inner_ref = value.inner(swagger).items;
+      
+        if key.contains("id") && inner_ref.is_none(){
+            vec_of_param.push(key);
+        }
+        else if value.inner(swagger).properties.is_some(){
+
+
+            recursive_func_to_find(swagger, value, vec_of_param);
+        }   
+    
+    }
+    }
+    let propertie = schema.inner(swagger).properties.unwrap_or_default(); //if let failed 
+    //meanning that the schemaref is none so we need build it 
+    
+    for (key, value) in propertie {
+        println!("################\n");
+        let inner_ref = value.inner(swagger).items;
+        println!("key2: {:?} value2 :{:?}", key, value );
+        if key.contains("id") && inner_ref.is_none(){
+            println!("this is the key {:?}", key);
+            vec_of_param.push(key);
+        }
+        else if value.inner(swagger).properties.is_some(){
+            recursive_func_to_find(swagger, value, vec_of_param);
+        }   
+    
+    }
+    vec_of_param.to_vec()
+
+ }
+
+
+
+
+pub fn find_id_param(
+    swagger: &Value,
+    data_resp:&ResponseRef) -> Vec<String> {
+    let vec_of_params:Vec<String> = Vec::new();
+
+    let values = data_resp
+    .inner(swagger)
+    .content
+    .unwrap_or_default()
+    .into_values();
+for i in values {
+     if i.schema
+        .as_ref()
+        .unwrap()
+        .inner(swagger)
+        .schema_type
+        .unwrap_or_default()
+        .to_string()
+        == "array".to_string()
+
+    {
+        //if array in response
+        let val = i
+            .schema
+            .unwrap()
+            .inner(swagger)
+            .items
+            .unwrap_or_default();
+       // println!("THIS IS VAL : {:?}", val);
+        let var_name: Vec<String> = val
+                                    .inner(swagger)
+                                    .properties
+                                    .unwrap()
+                                    .keys()
+                                    .cloned()
+                                    .collect();
+        println!("This is the var_name vec {:?}", var_name);
+        let elem = val.inner(swagger).properties.unwrap();
+        for (keys, value) in elem {
+           // println!("KEY : {:?} , value : {:?}", keys, value);
+            let refr  = value.inner(swagger).properties.unwrap_or_default();
+            println!("key is {:?} , this is the ref  {:?}", keys,refr);
+    }
+   
+    
+    }
+}
+vec_of_params
+    }
+
+
+
+
+
+
+
+
 pub fn read_json_func(obj: &Value, element: &String) -> Option<String> {
+   let mut ret= None;
    
    // let collection_of_values:Vec<String> = Vec::new();
     let st = obj.as_object();
+    println!("1");
     if let Some(hashmap) = st {
+        println!("2");
         for (key, value) in hashmap {
+            println!("3");
+            println!("key: {}",key);
             if key == element { //TODO check if the value is an array and take the array as response
-                println!("the key {:?} result: {:?}",key, value);
+                println!("In the recusice function the key from the json {:?} and the param name: {:?} finally the value : {}",key, element, value);
+               
                 if let Some(val) = value.as_str(){
+                    println!("\nFROM THE RECURSIVE FUNC is string  : {} ", val.to_string());
                     return Some(val.to_string());
                 }
-             
+                if let Some(val) = value.as_u64(){
+                    println!("\nFROM THE RECURSIVE FUNC is int: {} ", val);
+                    return Some(val.to_string());
+                }
                // collection_of_values.add
             //    for i in &value.as_array(){
             //     for x in i.into_iter(){
@@ -26,27 +139,27 @@ pub fn read_json_func(obj: &Value, element: &String) -> Option<String> {
             //     }
             //    }
             }
-            println!("keyy {}, value {}", key, value);
-            if value.is_object() {
-                println!("Isss object");
-            }
-            read_json_func(value,element);
+         //   println!("keyy {}, value {}", key, value);
+          if ret.is_none(){
+          ret =  read_json_func(value,element);
+          }
         }
     }
-    return None;
+    return ret;
 }
 
 pub async fn send_req(path: String, base: &String, element: &String) -> Vec<String> {
+    println!("#############################");
     let mut serv = "".to_string();
     let mut collection_of_values:Vec<String> = Vec::new();
     let base_url = Url::parse(&base.to_string()).expect("hardcoded URL is known to be valid");
     let joined = base_url.join(&path);
     match joined {
         Ok(url) => {
-            println!("URL {}", url);
+         //   println!("URL {}", url);
             let request = Client::new();
             let response = request.get(url)
-              .bearer_auth("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwb3BAZ21haWwuY29tIiwiaWF0IjoxNjY3NDgwMzEwLCJleHAiOjE2Njc1NjY3MTB9.gG00kvavn4Pq1ohFAJw9wwQAt4k4SP0IWAfDYB9Mn_ZqQfcoZ9wVMsv1BDrYDFtBTkwjEJDlooZB8yPsc3T-bA")
+             .bearer_auth("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwb3BAZ21haWwuY29tIiwiaWF0IjoxNjY3OTI0NTk5LCJleHAiOjE2NjgwMTA5OTl9.KGw_hh3mGXTsdbw0_O51SUdYHfe4hSNaUCRXD0fKlG6OrAwv1gVpj1_cnR7xyBm2iTRr-fPHib6UnZo-Zw7jEA")
              .send()
              .await
              .expect("failed to get response")
@@ -54,10 +167,18 @@ pub async fn send_req(path: String, base: &String, element: &String) -> Vec<Stri
              .await
              .expect("failed to get payload");
             let mut object: Value = serde_json::from_str(&response).unwrap();
-            for i in object.as_array() {
+            for i in object.as_array() { // take jsonresponse as array 
                 for x in i.into_iter() {
-                    println!("Printed object {:?}", x);
-                    collection_of_values.push(read_json_func(&x, element).unwrap_or_default());
+                     println!("Printed object {:?}", x);
+                    let elem  = read_json_func(&x, element); // check the value fo the key
+                    println!("The elem : {:?} ", elem);
+                    println!("-------------------");
+                    if let Some(val) = elem {
+                        println!("key : {:?}, Value : {:?} ", element, val);
+                        println!("-------------------");
+                        collection_of_values.push(val);
+                    }
+                  
                 }
             }
         }
@@ -65,6 +186,8 @@ pub async fn send_req(path: String, base: &String, element: &String) -> Vec<Stri
         
         Err(_) => println!("error"),
     }
+    println!("--------Collections of values before send the main function: {:?}------", collection_of_values);
+    println!("##################################");
     collection_of_values
 }
 
