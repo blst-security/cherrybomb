@@ -151,13 +151,40 @@ impl AttackRequest {
             .map(|h| (h.name.clone(), h.value.clone()))
             .collect()
     }
+    pub async fn send_request_with_response(&self) -> (String, bool) {
+        let client = reqwest::Client::new();
+        let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
+        let (req_payload, req_query, path, headers1) = self.params_to_payload();
+        let mut h = self.get_headers(&headers1);
+        //   h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
+        let req = client
+            .request(method1, &format!("{}{}", path, req_query))
+            .body(req_payload.clone())
+            .headers((&h).try_into().expect("not valid headers"))
+            .header("content-type", "application/json")
+            .send()
+            .await
+            .expect("Failed to send")
+            .text()
+            .await;
+
+        match req {
+            Ok(res) => {
+                return (res, true);
+            }
+            Err(e) => {
+                println!("{}: {}", "FAILED TO EXECUTE".red().bold().blink(), self);
+                return (e.to_string(), false);
+            }
+        }
+    }
 
     pub async fn send_request(&self, print: bool) -> Result<AttackResponse, reqwest::Error> {
         let client = reqwest::Client::new();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let mut h = self.get_headers(&headers1);
-        h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
+        //   h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let req = client
             .request(method1, &format!("{}{}", path, req_query))
             .body(req_payload.clone())
