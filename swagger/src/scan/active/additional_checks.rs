@@ -3,35 +3,20 @@ use crate::active::utils::{recursive_func_to_find_param, send_req};
 ///use super::utils::create_payload_for_get;
 use super::*;
 use colored::*;
-use futures::TryFutureExt;
-use reqwest::Client;
-use reqwest::{self, Url};
-use serde::ser::Error;
-use serde_json::json;
-use utils;
-pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
-    let mut change = &mut json!(null);
-    let mut ret = orig.clone();
-    for path_part in path.iter() {
-        change = &mut ret[path_part];
-    }
-    *change = new_val;
-    ret.clone()
-}
+
 impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_broken_object(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-        let mut vec_param_values: Vec<RequestParameter> = Vec::new();
+        //let  vec_param_values: Vec<RequestParameter> = Vec::new();
         let mut vec_param: Vec<String> = Vec::new();
-
         let server = &self.oas.servers();
-        let mut UUID_HASH: HashMap<String, Vec<String>> = HashMap::new();
+        let mut uuid_hash: HashMap<String, Vec<String>> = HashMap::new();
         for (path, item) in &self.oas.get_paths() {
             let mut flag = false;
-            for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+            for (_m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
                 for i in op.params() {
                     if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
-                        == "path".to_string()
+                        == *"path".to_string()
                     {
                         flag = true;
                         break;
@@ -54,15 +39,14 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 .inner(&self.oas_value)
                                 .schema_type
                                 .unwrap_or_default()
-                                .to_string()
-                                == "array".to_string()
+                                == "array"
                             {
                                 let schema = i.schema.unwrap();
 
                                 //if array in response
                                 let val = schema.inner(&self.oas_value).items.unwrap_or_default();
 
-                                let var_name: Vec<String> = val
+                                let _var_name: Vec<String> = val
                                     .inner(&self.oas_value)
                                     .properties
                                     .unwrap()
@@ -73,22 +57,18 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     &self.oas_value,
                                     schema,
                                     &mut vec_param,
+                                    &"id".to_string(),
                                 );
                                 let set: HashSet<_> = vec_param.drain(..).collect(); // dedup
                                 vec_param.extend(set.into_iter());
                                 for value in &vec_param {
-                                    let mut vec_of_values = send_req(
-                                        path.to_string(),
-                                        &"http://localhost:8888/".to_string(),
-                                        &value,
-                                        &auth,
-                                        &server.clone(),
-                                    )
-                                    .await;
-                                    if let Some(V) = UUID_HASH.get_mut(value) {
-                                        V.append(&mut vec_of_values);
+                                    let mut vec_of_values =
+                                        send_req(path.to_string(), value, auth, &server.clone())
+                                            .await;
+                                    if let Some(v) = uuid_hash.get_mut(value) {
+                                        v.append(&mut vec_of_values);
                                     } else {
-                                        UUID_HASH.insert(value.clone(), vec_of_values.clone());
+                                        uuid_hash.insert(value.clone(), vec_of_values.clone());
                                     }
                                 }
                             }
@@ -97,22 +77,28 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 }
             }
         }
-        UUID_HASH.retain(|_, v| v.len() != 0); // remove all pair with 0 length
+        uuid_hash.retain(|_, v| !v.is_empty()); // remove all pair with 0 length
         let mut vec_of_keys = Vec::new(); // get all the key in a vec
-        for key in UUID_HASH.keys() {
+        for key in uuid_hash.keys() {
             vec_of_keys.push(key.clone());
         }
-     //   println!("THIS IS THE FINAL HASHMAP : {:?}", UUID_HASH);
+        //   println!("THIS IS THE FINAL HASHMAP : {:?}", UUID_HASH);
         for (path, item) in &self.oas.get_paths() {
-            for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+            for (_m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
                 let mut vec_params: Vec<RequestParameter> = Vec::new();
                 for i in op.params() {
                     //TODO Check if there is only one param
-                    let mut type_param;
-                    match &i.inner(&self.oas_value).param_in.to_lowercase() {
-                        path => type_param = QuePay::Path,
-                        query => type_param = QuePay::Query,
-                    }
+                    let type_param = match i
+                        .inner(&self.oas_value)
+                        .param_in
+                        .to_lowercase()
+                        .to_owned()
+                        .as_str()
+                    {
+                        "path" => QuePay::Path,
+                        "query" => QuePay::Query,
+                        &_ => todo!(),
+                    };
                     let param_name = &i.inner(&self.oas_value).name;
                     let mut flag = false;
                     let mut elem_to_search = "".to_string();
@@ -123,18 +109,19 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         }
                     }
                     if flag {
-                        let value_to_send = &UUID_HASH.get(&elem_to_search).unwrap()[0];
-                        vec_params.push(RequestParameter {
-                            // TODO check if others values are ok
-                            name: param_name.to_string(),
-                            value: value_to_send.to_string(),
-                            dm: type_param,
-                        });
+                        if let Some(value_to_send) = &uuid_hash.get(&elem_to_search) {
+                            vec_params.push(RequestParameter {
+                                // TODO check if others values are ok
+                                name: param_name.to_string(),
+                                value: value_to_send[0].to_string(),
+                                dm: type_param,
+                            });
+                        }
 
                         //sending the request
 
                         let req = AttackRequest::builder()
-                            .uri(&server, path)
+                            .uri(server, path)
                             .parameters(vec_params.clone())
                             .auth(auth.clone())
                             .method(Method::GET)
@@ -162,6 +149,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 }
             }
         }
-        return ret_val;
+        ret_val
     }
 }
