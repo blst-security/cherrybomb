@@ -97,7 +97,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     {
                         "path" => QuePay::Path,
                         "query" => QuePay::Query,
-                        &_ => todo!(),
+                         _ => QuePay::None
+                        
                     };
                     let param_name = &i.inner(&self.oas_value).name;
                     let mut flag = false;
