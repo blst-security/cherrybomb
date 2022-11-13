@@ -102,7 +102,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         for key in UUID_HASH.keys() {
             vec_of_keys.push(key.clone());
         }
-        println!("THIS IS THE FINAL HASHMAP : {:?}", UUID_HASH);
+     //   println!("THIS IS THE FINAL HASHMAP : {:?}", UUID_HASH);
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
                 let mut vec_params: Vec<RequestParameter> = Vec::new();

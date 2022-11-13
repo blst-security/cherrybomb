@@ -102,10 +102,10 @@ pub async fn send_req(
         }
     }
 
-    println!(
-        "--------Collections of values before send the main function: {:?}------",
-        collection_of_values
-    );
+    // println!(
+    //     "--------Collections of values before send the main function: {:?}------",
+    //     collection_of_values
+    // );
     collection_of_values
 }
 
