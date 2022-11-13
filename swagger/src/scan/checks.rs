@@ -119,7 +119,7 @@ impl_passive_checks![
 impl_active_checks![
     (
         CheckIDOR,
-        check_broken_object,
+        func_test,
         is_2xx,
         "BROKEN OBJECT LEVEL AUTHORIZATION",
         "Check if object is vulnerable to level authorization"

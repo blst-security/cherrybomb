@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use super::http_client::RequestParameter;
 use crate::{
@@ -8,25 +8,48 @@ use crate::{
     Authorization, Method, QuePay, Server,
 };
 use reqwest::{Client, Request, RequestBuilder, Url};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, ser::Error};
 use serde_json::Value;
 
-pub fn recursive_func_to_find_param(
+
+ 
+let hash_with_param: HashMap<String, String> =
+pub fn  create_payload( // this function needs to calls the create hash func from here try tp get the value from the hash
+    // then if success build requestParameter else then use the get regular function
+    swagger: &Value,
+    op: &Operation,
+) -> Vec<RequestParameter> 
+{
+    create_hash
+    let mut params_vec : Vec<RequestParameter> = vec![];
+    for i in op.params() {
+        let parameter = i.inner(swagger);
+        let in_var = parameter.param_in;
+        let param_name = parameter.name.to_string();
+        if in_var == "path" {
+
+        }
+    }
+
+    params_vec
+}
+pub fn recursive_func_to_find_param( //find param from the given schema
     swagger: &Value,
     schema: SchemaRef,
     vec_of_param: &mut Vec<String>,
+    param_to_search: &String,
 ) -> Vec<String> {
     let properti_option = schema.inner(swagger).items;
-    if let Some(schemaB) = properti_option {
-        let propertie = schemaB.inner(swagger).properties.unwrap_or_default();
+    if let Some(schemab) = properti_option {
+        let propertie = schemab.inner(swagger).properties.unwrap_or_default();
 
         for (key, value) in propertie {
             let inner_ref = value.inner(swagger).items;
 
-            if key.contains("id") && inner_ref.is_none() {
+            if key.contains(param_to_search) && inner_ref.is_none() {
                 vec_of_param.push(key);
             } else if value.inner(swagger).properties.is_some() {
-                recursive_func_to_find_param(swagger, value, vec_of_param);
+                recursive_func_to_find_param(swagger, value, vec_of_param, param_to_search);
             }
         }
     }
@@ -35,21 +58,21 @@ pub fn recursive_func_to_find_param(
 
     for (key, value) in propertie {
         let inner_ref = value.inner(swagger).items;
-        if key.contains("id") && inner_ref.is_none() {
+        if key.contains(&param_to_search.clone()) && inner_ref.is_none() {
             vec_of_param.push(key);
         } else if value.inner(swagger).properties.is_some() {
-            recursive_func_to_find_param(swagger, value, vec_of_param);
+            recursive_func_to_find_param(swagger, value, vec_of_param, param_to_search);
         }
     }
     vec_of_param.to_vec()
 }
 
 pub fn read_json_func(obj: &Value, element: &String, vector: &mut Vec<String>) -> Vec<String> {
-    let st = obj.as_object();
+     let st = obj.as_object();
     if let Some(hashmap) = st {
         for (key, value) in hashmap {
-            if key.eq(element) {
-                if let Some(array) = value.as_array() {
+             if key.eq(&element.to_lowercase()) {
+                 if let Some(array) = value.as_array() {
                     for i in array {
                         if let Some(val) = i.as_str() {
                             vector.push(val.to_string());
@@ -74,17 +97,17 @@ pub fn read_json_func(obj: &Value, element: &String, vector: &mut Vec<String>) -
     return vector.to_vec();
 }
 
-pub async fn send_req(
+
+pub async fn send_req( //send request and check the value of specific key, return vec of values
     path: String,
-    base: &String,
     element: &String,
     auth: &Authorization,
     server: &Option<Vec<Server>>,
 ) -> Vec<String> {
-    let mut serv = "".to_string();
+    println!("elem : {:?}", element);
     let mut collection_of_values: Vec<String> = Vec::new();
     let req = AttackRequest::builder()
-        .uri(&server, &path)
+        .uri(server, &path)
         .parameters(vec![])
         .auth(auth.clone())
         .method(Method::GET)
@@ -92,22 +115,36 @@ pub async fn send_req(
         .auth(auth.clone())
         .build();
     let res = req.send_request_with_response().await;
-    if res.1 {
-        let mut object: Value = serde_json::from_str(&res.0).unwrap();
-        for i in object.as_array() {
-            // take jsonresponse as array
-            for x in i.into_iter() {
-                read_json_func(&x, element, &mut collection_of_values);
+     if res.1 {
+        let object: Value = serde_json::from_str(&res.0).unwrap_or_default();
+        if let Some(i) = object.as_array() {
+            for x in i.iter() {
+                println!("x: {:?}", x);
+                read_json_func(x, element, &mut collection_of_values);
             }
         }
+       
+    
+                
+        //     }
     }
 
-    println!(
-        "--------Collections of values before send the main function: {:?}------",
-        collection_of_values
-    );
-    collection_of_values
-}
+    println!("Collections: {:?}", collection_of_values);
+            collection_of_values
+
+           
+        }
+       // let object: Value = serde_json::from_str(&res.0).unwrap();
+       
+        // take jsonresponse as array
+    
+
+    // println!(
+    //     "--------Collections of values before send the main function: {:?}------",
+    //     collection_of_values
+    // );
+
+
 
 /// This function is used to create a payload for a GET request parameters
 pub fn create_payload_for_get(
