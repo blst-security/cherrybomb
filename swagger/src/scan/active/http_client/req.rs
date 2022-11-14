@@ -15,7 +15,7 @@ pub struct AttackRequestBuilder {
 
 impl AttackRequestBuilder {
     pub fn uri2(&mut self, server: Server, path: &str, secure: bool) -> &mut Self {
-        self.path = server.domain + path;
+        self.path = server.base_url + path;
         if let Some(vars) = server.variables {
             for (k, v) in vars {
                 self.path = self.path.replace(&format!("{{{}}}", k), v.default.as_str());
@@ -29,7 +29,7 @@ impl AttackRequestBuilder {
     pub fn servers(&mut self, servers: Option<Vec<Server>>, secure: bool) -> &mut Self {
         if let Some(servers) = servers {
             for server in servers {
-                let mut new_server_addr = server.domain.clone();
+                let mut new_server_addr = server.base_url.clone();
                 if let Some(vars) = &server.variables {
                     for (k, v) in vars {
                         new_server_addr = new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
@@ -39,7 +39,7 @@ impl AttackRequestBuilder {
                     new_server_addr.replace_range(0..5, "http")
                 }
                 self.servers.push(Server {
-                    domain: new_server_addr,
+                    base_url: new_server_addr,
                     description: server.description,
                     variables: server.variables,
                 });
@@ -56,7 +56,7 @@ impl AttackRequestBuilder {
     }
 
     pub fn uri_http(&mut self, server: &Server) -> &mut Self { //build base url with http protocol
-        let mut new_url = server.domain.to_string();
+        let mut new_url = server.base_url.to_string();
         if let Some(var) = server.variables.clone() {
             for (key, value) in var {
                 new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
@@ -65,7 +65,7 @@ impl AttackRequestBuilder {
             // new_url.pop();
             self.path = new_url;
         } else {
-            self.path = server.domain.clone();
+            self.path = server.base_url.clone();
         }
         self
     }
@@ -74,7 +74,7 @@ impl AttackRequestBuilder {
         // servers
         if let Some(server_value) = server {
             let server_object = server_value.get(0).unwrap();
-            let mut new_url = server_object.domain.to_string();
+            let mut new_url = server_object.base_url.to_string();
             if let Some(var) = server_object.variables.clone() {
                 for (key, value) in var {
                     new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
@@ -82,7 +82,7 @@ impl AttackRequestBuilder {
                 new_url.pop();
                 self.path = format!("{}{}", new_url, path);
             } else {
-                self.path = format!("{}{}", server_object.domain, path);
+                self.path = format!("{}{}", server_object.base_url, path);
             }
 
             return self;
@@ -233,7 +233,7 @@ impl AttackRequest {
         let mut ret = vec![];
         for server in &self.servers {
             let req = client
-                .request(method1.clone(), &format!("{}{}{}", server.domain, path, req_query))
+                .request(method1.clone(), &format!("{}{}{}", server.base_url, path, req_query))
                 .body(req_payload.clone())
                 .headers((&h).try_into().expect("not valid headers"))
                 .header("content-type", "application/json")

@@ -9,18 +9,18 @@ pub fn check_servers_for_server_url_rule(
 ) -> Vec<Alert> {
     let mut alerts = vec![];
     for server in servers {
-        if prev_addrs.get(&server.domain).is_some() {
+        if prev_addrs.get(&server.base_url).is_some() {
             continue;
         } else {
-            prev_addrs.insert(server.domain.clone());
+            prev_addrs.insert(server.base_url.clone());
         }
-        match Url::parse(&server.domain) {
+        match Url::parse(&server.base_url) {
             Ok(u) => {
                 if u.scheme() == "http" {
                     alerts.push(Alert::new(
                         Level::Low,
                         "Insecure transport, using http instead of https",
-                        format!("{}, address:{}", location, server.domain),
+                        format!("{}, address:{}", location, server.base_url),
                     ));
                 }
             }
@@ -28,7 +28,7 @@ pub fn check_servers_for_server_url_rule(
             Err(_) => alerts.push(Alert::new(
                 Level::Low,
                 "Invalid URL in the server parameter",
-                format!("{}, address:{}", location, server.domain),
+                format!("{}, address:{}", location, server.base_url),
             )),
         };
     }

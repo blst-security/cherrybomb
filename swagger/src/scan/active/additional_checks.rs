@@ -47,7 +47,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .build();
                         let response_vector = req.send_request_all_servers(self.verbosity>0).await;
                         for response in response_vector {
-                            ret_val.1.push(&req, &response,"Testing min/max values".to_string());
+                            ret_val.1.push(&req, &response,"Testing  /max values".to_string());
                             ret_val.0.push((
                                 ResponseData {
                                     location: oas_map.path.path.clone(),
@@ -84,31 +84,29 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     {
                         let param_to_redirect = param_item.name.to_owned();
                         let req = AttackRequest::builder()
-                            .uri(&base_url, path)
+                            .servers(self.oas.servers(),true)
+                            .path(path)
                             .parameters(vec_param.clone())
                             .auth(auth.clone())
                             .method(*m)
                             .headers(vec![])
                             .auth(auth.clone())
                             .build();
-                        if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                            //logging
-                            //logging request/response/description
-                            ret_val
-                                .1
-                                .push(&req, &res, "Testing open-redirect".to_string());
+                        let response_vector = req.send_request_all_servers(self.verbosity>0).await;
+                        for response in response_vector {
+                            ret_val.1.push(&req, &response,"Testing  /max values".to_string());
                             ret_val.0.push((
-                            ResponseData{
-                                location: path.clone(),
-                                alert_text: format!("The parameter {} seems to be vulnerable to open-redirect, location: {}  ",param_to_redirect,path),
-                                serverity: Level::Medium,
-                            },
-                        res.clone(),
-                        ));
-                        } else {
-                            println!("{}", "REQUEST FAILED".red());
+                                ResponseData {
+                                    location: path.clone(),
+                                    alert_text: format!(
+                                        "The parameter {} seems to be vulnerable to open-redirect, location: {}  "
+                                        ,param_to_redirect,path),
+                                    serverity: Level::Medium,
+                                },
+                                response,
+                            ));
                         }
-                        break;
+                        break; // TODO what is this?
                     }
                 }
             }
@@ -138,7 +136,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         let url = self.oas.servers();
                          
                         let req = AttackRequest::builder()
-                            .uri(&url, &oas_map.path.path)
+                            .servers(url,true)
+                            .path(&oas_map.path.path)
                             .method(*m)
                             .headers(vec![])
                             .parameters(vec_param.clone())
@@ -156,26 +155,21 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 .to_string(),
                             )
                             .build();
-
-                        if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                            //logging request/response/description
-                            ret_val
-                                .1
-                                .push(&req, &res, "Testing min/max length".to_string());
+                        let response_vector = req.send_request_all_servers(self.verbosity>0).await;
+                        for response in response_vector {
+                            ret_val.1.push(&req, &response, "Testing  /max values".to_string());
                             ret_val.0.push((
-                                    ResponseData {
-                                        location: oas_map.path.path.clone(),
-                                        alert_text: format!(
-                                            "The {} length limit for {:?} is not enforced by the server",
-                                            max_len,
-                                            json_path
-                                        ),
-                                        serverity: Level::Low,
-                                    },
-                                    res.clone(),
-                                ));
-                        } else {
-                            println!("REQUEST FAILED");
+                                ResponseData {
+                                    location: oas_map.path.path.clone(),
+                                    alert_text: format!(
+                                        "The {} length limit for {:?} is not enforced by the server",
+                                        max_len,
+                                        json_path
+                                    ),
+                                    serverity: Level::Low,
+                                },
+                                response,
+                            ));
                         }
                     }
                 }
@@ -247,7 +241,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let mut ret_val = CheckRetVal::default();
         if let Some(server_list) = self.oas.servers() {
             for server in  server_list {
-                let new_url = server.domain.clone();
+                let new_url = server.base_url.clone();
                 if &new_url[..5] == "https" {
                     let req  = AttackRequest::builder()
                     .uri_http(&server)

@@ -145,7 +145,7 @@ impl PathItem {
                 }
             }
             let servers = if let Some(s) = operation.servers.clone() {
-                s.iter().map(|s1| s1.domain.clone()).collect()
+                s.iter().map(|s1| s1.base_url.clone()).collect()
             } else {
                 vec![]
             };
