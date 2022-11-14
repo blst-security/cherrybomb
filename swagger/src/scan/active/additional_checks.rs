@@ -1,6 +1,6 @@
 use super::utils::create_payload_for_get;
 use super::*;
-use colored::*;
+// use colored::*;
 use serde_json::json;
 
 pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
@@ -34,7 +34,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         let vec_param =
                             create_payload_for_get(&self.oas_value, op, Some("".to_string()));
                         let req = AttackRequest::builder()
-                            .servers(self.oas.servers(),true)
+                            .servers(self.oas.servers(), true)
                             .path(&oas_map.path.path)
                             .method(*m)
                             .headers(vec![])
@@ -45,9 +45,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     .to_string(),
                             )
                             .build();
-                        let response_vector = req.send_request_all_servers(self.verbosity>0).await;
+                        let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
                         for response in response_vector {
-                            ret_val.1.push(&req, &response,"Testing  /max values".to_string());
+                            ret_val.1.push(&req, &response, "Testing  /max values".to_string());
                             ret_val.0.push((
                                 ResponseData {
                                     location: oas_map.path.path.clone(),
@@ -69,7 +69,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
     pub async fn check_open_redirect(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-        let base_url = self.oas.servers();
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
                 let vec_param = create_payload_for_get(
@@ -84,7 +83,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     {
                         let param_to_redirect = param_item.name.to_owned();
                         let req = AttackRequest::builder()
-                            .servers(self.oas.servers(),true)
+                            .servers(self.oas.servers(), true)
                             .path(path)
                             .parameters(vec_param.clone())
                             .auth(auth.clone())
@@ -92,15 +91,15 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .headers(vec![])
                             .auth(auth.clone())
                             .build();
-                        let response_vector = req.send_request_all_servers(self.verbosity>0).await;
+                        let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
                         for response in response_vector {
-                            ret_val.1.push(&req, &response,"Testing  /max values".to_string());
+                            ret_val.1.push(&req, &response, "Testing  /max values".to_string());
                             ret_val.0.push((
                                 ResponseData {
                                     location: path.clone(),
                                     alert_text: format!(
                                         "The parameter {} seems to be vulnerable to open-redirect, location: {}  "
-                                        ,param_to_redirect,path),
+                                        , param_to_redirect, path),
                                     serverity: Level::Medium,
                                 },
                                 response,
@@ -134,9 +133,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             create_payload_for_get(&self.oas_value, op, Some("".to_string()));
 
                         let url = self.oas.servers();
-                         
+
                         let req = AttackRequest::builder()
-                            .servers(url,true)
+                            .servers(url, true)
                             .path(&oas_map.path.path)
                             .method(*m)
                             .headers(vec![])
@@ -152,10 +151,10 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     json_path,
                                     json!(new_string),
                                 )
-                                .to_string(),
+                                    .to_string(),
                             )
                             .build();
-                        let response_vector = req.send_request_all_servers(self.verbosity>0).await;
+                        let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
                         for response in response_vector {
                             ret_val.1.push(&req, &response, "Testing  /max values".to_string());
                             ret_val.0.push((
@@ -183,14 +182,12 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         auth: &Authorization,
     ) -> (CheckRetVal, Vec<String>) {
         let mut ret_val = CheckRetVal::default();
-        let server = self.oas.servers();
         let vec_polluted = vec!["blstparamtopollute".to_string()];
-     //   let base_url = server.unwrap().get(0).unwrap().clone();
+        //   let base_url = server.unwrap().get(0).unwrap().clone();
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
                 let _text = path.to_string();
                 if m == Method::GET {
-
                     let mut vec_param = create_payload_for_get(&self.oas_value, op, None);
                     let indices = vec_param
                         .iter()
@@ -202,32 +199,28 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         let param_query_pollute = vec_param.get(i).unwrap().clone();
                         vec_param.push(param_query_pollute);
                         let req = AttackRequest::builder()
-                            .uri(&server, path)// base_url
+                            .servers(self.oas.servers(), true)
+                            .path(path)
                             .auth(auth.clone())
                             .parameters(vec_param.clone())
                             .method(m)
                             .headers(vec![])
                             .auth(auth.clone())
                             .build();
-                        if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                            //logging request/response/description
-                            ret_val.1.push(
-                                &req,
-                                &res,
-                                " Testing get parameter pollution ".to_string(),
-                            );
+                        let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                        for response in response_vector {
+                            ret_val.1.push(&req, &response, "Testing get parameter pollution ".to_string());
                             ret_val.0.push((
-                                        ResponseData{
-                                            location: path.clone(),
-                                            alert_text: format!("The endpoint {} seems to be vulerable to parameter pollution on the {} parameter",path,vec_param.last().unwrap().name),
-                                            serverity: Level::Medium,
-                                        },
-                                        res.clone(),
-                                    ));
-                        } else {
-                            println!("REQUEST FAILED");
+                                ResponseData {
+                                    location: path.clone(),
+                                    alert_text: format!(
+                                        "The {} parameter in the {} endpoint seems to be vulnerable to parameter pollution"
+                                        , vec_param.last().unwrap().name, path),
+                                    serverity: Level::Medium,
+                                },
+                                response,
+                            ));
                         }
-
                         vec_param.remove(vec_param.len() - 1);
                     }
                 }
@@ -236,39 +229,32 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         (ret_val, vec_polluted)
     }
 
-   
+
     pub async fn check_ssl(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-        if let Some(server_list) = self.oas.servers() {
-            for server in  server_list {
-                let new_url = server.base_url.clone();
-                if &new_url[..5] == "https" {
-                    let req  = AttackRequest::builder()
-                    .uri_http(&server)
-                    .auth(auth.clone())
-                    .build();
-                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                        //logging request/response/description
-                        ret_val
-                            .1
-                            .push(&req, &res, "Testing non SSL access traffic".to_string());
-                        ret_val.0.push((
-                            ResponseData {
-                                location: new_url.clone(),
-                                alert_text: format!(
-                                    "The server: {} is not secure against https downgrade",
-                                    &new_url
-                                ),
-                                serverity: Level::Medium,
-                            },
-                            res.clone(),
-                        ));
-                    } else {
-                        println!("REQUEST FAILED");
-                    }
-                
-            }
-            }
+        let req = AttackRequest::builder()
+            .servers(self.oas.servers(), false)
+            .path("/")
+            .auth(auth.clone())
+            .parameters(vec![])
+            .method(Method::GET)
+            .headers(vec![])
+            .auth(auth.clone())
+            .build();
+        let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+        for (response,server) in response_vector.iter().zip(req.servers.iter()) {
+            ret_val.1.push(&req, response, "Testing SSL".to_string());
+            ret_val.0.push((
+                ResponseData {
+                    location: server.base_url.clone(),
+                    alert_text: format!(
+                        "The server does not seem to be using SSL, status code: {}",
+                        response.status
+                    ),
+                    serverity: Level::Low,
+                },
+                response.clone(),
+            ));
         }
         ret_val
     }
@@ -276,47 +262,45 @@ impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_authentication(&self, _auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         for oas_map in self.payloads.iter() {
-            //for (_json_path, _schema) in &oas_map.payload.map {
-            for _schema in oas_map.payload.map.values(){
+            for _schema in oas_map.payload.map.values() {
                 for (m, op) in oas_map.path.path_item.get_ops().iter() {
                     let vec_param =
                         create_payload_for_get(&self.oas_value, op, Some("".to_string()));
-                    let url = &self.oas.servers();
                     if let Some(_value) = &op.security {
                         let req: AttackRequest =
-                        if m == &Method::POST {
-                            AttackRequest::builder()
-                                .uri(url, &oas_map.path.path)
-                                .method(*m)
-                                .headers(vec![])
-                                .parameters(vec_param.clone())
-                                //.auth(auth.clone())
-                                .payload(&oas_map.payload.payload.to_string())
-                                .build()
-                        } else {
-                            AttackRequest::builder()
-                                .uri(url, &oas_map.path.path)
-                                .method(*m)
-                                .headers(vec![])
-                                .parameters(vec_param.clone())
-                                .build()
-                        };
-                        if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                            //logging request/response/description
-                            ret_val
-                                .1
-                                .push(&req, &res, "Testing without auth".to_string());
-                            // println!("Status Code : {:?}", res.status);
+                            if m == &Method::POST {
+                                AttackRequest::builder() //TODO THIS IF STATEMENT CAN BE MOVED INTO THE BUILDER
+                                    .servers(self.oas.servers(), true)
+                                    .path(&oas_map.path.path)
+                                    .method(*m)
+                                    .headers(vec![])
+                                    .parameters(vec_param.clone())
+                                    //.auth(auth.clone())
+                                    .payload(&oas_map.payload.payload.to_string())
+                                    .build()
+                            } else {
+                                AttackRequest::builder()
+                                    .servers(self.oas.servers(), true)
+                                    .path(&oas_map.path.path)
+                                    .method(*m)
+                                    .headers(vec![])
+                                    .parameters(vec_param.clone())
+                                    .build()
+                            };
+                        let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                        for response in response_vector {
+                            ret_val.1.push(&req, &response, "Testing authentication".to_string());
                             ret_val.0.push((
-                                ResponseData{
+                                ResponseData {
                                     location: oas_map.path.path.clone(),
-                                    alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", &oas_map.path.path, m ),
-                                    serverity: Level::High,
+                                    alert_text: format!(
+                                        "The {} endpoint does not seem to require authentication",
+                                        oas_map.path.path
+                                    ),
+                                   serverity: Level::High,
                                 },
-                            res.clone(),
-                        ));
-                        } else {
-                            println!("REQUEST FAILED");
+                                response,
+                            ));
                         }
                     }
                 }
@@ -327,7 +311,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
     pub async fn check_method_permissions_active(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-        let server = &self.oas.servers();
         for (path, item) in &self.oas.get_paths() {
             let current_method_set = item
                 .get_ops()
@@ -341,38 +324,33 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
             let all_method_set = HashSet::from(LIST_METHOD);
             for method in all_method_set.difference(&current_method_set).cloned() {
-                    let req = AttackRequest::builder()
-                        .uri(server, path)
-                        .parameters(vec_param.clone())
-                        .auth(auth.clone())
-                        .method(method)
-                        .headers(vec![])
-                        .build();
-                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                        //logging request/response/description
-                        ret_val
-                            .1
-                            .push(&req, &res, "Test method permission".to_string());
-                        ret_val.0.push((
-                            ResponseData {
-                                location: path.clone(),
-                                alert_text: format!(
-                                    "The {} endpoint accepts {:?} although its not documented to",
-                                    path, method
-                                ),
-                                serverity: Level::High,
-                            },
-                            res.clone(),
-                        ));
-                    } else {
-                        println!("REQUEST FAILED");
-                    }
-                
+                let req = AttackRequest::builder()
+                    .servers(self.oas.servers(), true)
+                    .path(path)
+                    .parameters(vec_param.clone())
+                    .auth(auth.clone())
+                    .method(method)
+                    .headers(vec![])
+                    .build();
+                let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                for response in response_vector {
+                    ret_val.1.push(&req, &response, "Testing method permissions".to_string());
+                    ret_val.0.push((
+                        ResponseData {
+                            location: path.clone(),
+                            alert_text: format!(
+                                "The {} endpoint accepts {:?} although its not documented to",
+                                path, method
+                            ),
+                            serverity: Level::High,
+                        },
+                        response,
+                    ));
+                }
             }
         }
         ret_val
     }
-  
 }
 
 const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT];

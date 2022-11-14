@@ -56,7 +56,7 @@ pub async fn run_active_swagger_scan<T>(
     auth: Authorization,
     scan_type: ActiveScanType,
     json: bool,
-    servers: Option<Vec<Server>>,
+    _servers: Option<Vec<Server>>,
 ) -> Result<i8, &'static str>
 where
     T: OAS + Serialize + for<'de> Deserialize<'de> + std::fmt::Debug,
