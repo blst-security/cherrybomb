@@ -1,6 +1,6 @@
 [package]
 name = "cherrybomb-cli"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 description = "A helper package for Cherrybomb"
 license = "Apache-2.0"
