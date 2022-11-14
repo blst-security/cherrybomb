@@ -197,7 +197,7 @@ impl AttackRequest {
         let mut h = self.get_headers(&headers1);
         h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let req = client
-            .request(method1, &format!("{}{}", path, req_query))
+            .request(method1, format!("{}{}", path, req_query))
             .body(req_payload.clone())
             .headers((&h).try_into().expect("not valid headers"))
             .header("content-type", "application/json")
@@ -234,7 +234,7 @@ impl AttackRequest {
         // dbg!(&self.servers);
         for server in &self.servers {
             let req = client
-                .request(method1.clone(), &format!("{}{}{}", server.base_url, path, req_query))
+                .request(method1.clone(), format!("{}{}{}", server.base_url, path, req_query))
                 .body(req_payload.clone())
                 .headers((&h).try_into().expect("not valid headers"))
                 .header("content-type", "application/json")
