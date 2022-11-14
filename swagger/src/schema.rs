@@ -11,7 +11,7 @@ impl Default for SchemaStrInt {
         Self::Int(0)
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum AddProps {
     Bool(bool),
@@ -22,7 +22,7 @@ impl Default for AddProps {
         Self::Bool(true)
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct Schema {
     pub title: Option<String>,
     #[serde(rename = "multipleOf")]

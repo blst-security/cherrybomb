@@ -87,14 +87,14 @@ pub struct Link {
     pub description: Option<String>,
     pub server: Option<Server>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct Response {
     pub description: Option<String>,
     pub headers: Option<HeaderMap>,
     pub content: Option<Content>,
     pub links: Option<Links>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct Header {
     pub description: Option<String>,
     pub required: Option<bool>,
@@ -110,7 +110,7 @@ pub struct Header {
     pub allow_reserved: Option<bool>,
     pub schema: Option<SchemaRef>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct Encoding {
     #[serde(rename = "contentType")]
     pub conent_type: Option<String>,
@@ -120,7 +120,7 @@ pub struct Encoding {
     #[serde(rename = "allowReserved")]
     pub allow_reserved: Option<bool>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct MediaType {
     pub schema: Option<SchemaRef>,
     //Any
@@ -133,7 +133,7 @@ pub struct ExternalDocs {
     pub url: String,
     pub description: Option<String>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct ReqBody {
     pub description: Option<String>,
     pub content: Content,
@@ -191,7 +191,7 @@ pub struct SecScheme {
     pub flows: Option<OAuthFlows>,
     pub openid_connect_url: Option<String>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct Components {
     pub schemas: Option<Schemas>,
     pub responses: Option<Responses>,
@@ -227,7 +227,7 @@ pub trait OAS {
     fn tags(&self) -> Option<Vec<Tag>>;
     fn ext_docs(&self) -> Option<ExternalDocs>;
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct Swagger {
     pub openapi: String,
     pub info: Info,
@@ -239,7 +239,7 @@ pub struct Swagger {
     #[serde(rename = "externalDocs")]
     pub external_docs: Option<ExternalDocs>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct OAS3_1 {
     pub openapi: String,
     pub info: Info,

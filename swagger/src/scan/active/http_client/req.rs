@@ -118,7 +118,7 @@ impl AttackRequestBuilder {
     }
     pub fn build(&self) -> AttackRequest {
         AttackRequest {
-            servers: vec![],
+            servers: self.servers.clone(),
             path: self.path.clone(),
             parameters: self.parameters.clone(),
             auth: self.auth.clone(),
@@ -231,6 +231,7 @@ impl AttackRequest {
         let mut h = self.get_headers(&headers1);
         h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let mut ret = vec![];
+        // dbg!(&self.servers);
         for server in &self.servers {
             let req = client
                 .request(method1.clone(), &format!("{}{}{}", server.base_url, path, req_query))

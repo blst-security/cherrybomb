@@ -234,7 +234,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let mut ret_val = CheckRetVal::default();
         let req = AttackRequest::builder()
             .servers(self.oas.servers(), false)
-            .path("/")
+            .path("")
             .auth(auth.clone())
             .parameters(vec![])
             .method(Method::GET)
