@@ -116,22 +116,10 @@ impl_passive_checks![
     (CheckContainsResponse, check_contains_response, "CONTAINS RESPONSE", "Checks that each operation has a response")
 ];
 
-impl_active_checks![
-    (
-           CheckforSSRF,
-           check_for_ssrf,
-           ssrf_and_2xx,
-           "Server side request forgery GET Req",
-           "Check if the api can be vulerable to SSRF"
-        
-    ),
-    (
-         
-        CheckforSSRFPOST,
-        check_ssrf_post,
-        ssrf_and_2xx,
-        "Server side request forgery POST Req",
-        "Check if the api can be vulerable to SSRF"
-     
- )
-];
+impl_active_checks![(
+    CheckMethodEncoding,
+    check_method_encoding,
+    is_2xx,
+    "Check Content-type header",
+    "Check if the endpoint can be send with other content type"
+)];

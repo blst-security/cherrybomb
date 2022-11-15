@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use swagger::scan::active::{ActiveScan, ActiveScanType};
 use swagger::scan::passive::PassiveSwaggerScan;
 use swagger::scan::Level;
-use swagger::{Authorization, Check, EpTable, ParamTable, PassiveScanType, Swagger, OAS, OAS3_1, Server};
+use swagger::{
+    Authorization, Check, EpTable, ParamTable, PassiveScanType, Server, Swagger, OAS, OAS3_1,
+};
 
 pub fn run_passive_swagger_scan<T>(
     scan_try: Result<PassiveSwaggerScan<T>, &'static str>,
@@ -104,10 +106,13 @@ pub async fn run_swagger(
     no_active: bool,
     active_scan_type: ActiveScanType,
     passive_scan_type: PassiveScanType,
-    json: bool, ) -> i8 {
+    json: bool,
+) -> i8 {
     let (value, version) = if let Some((v1, v2)) = get_oas_value_version(file) {
         (v1, v2)
-    } else { return -1 };
+    } else {
+        return -1;
+    };
     if version.starts_with("3.") {
         if json {
             print!("{{\"passive checks\":");
@@ -126,7 +131,7 @@ pub async fn run_swagger(
         if json {
             print!(",\"active checks\":");
         }
-        let active_result = if !no_active && value.get("servers").is_some()  {
+        let active_result = if !no_active && value.get("servers").is_some() {
             run_active_swagger_scan::<OAS3_1>(
                 ActiveScan::<OAS3_1>::new(value.clone()),
                 verbosity,

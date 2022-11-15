@@ -32,13 +32,11 @@ impl AttackRequestBuilder {
                 let mut new_server_addr = server.base_url.clone();
                 if let Some(vars) = &server.variables {
                     for (k, v) in vars {
-                         new_server_addr = new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
-                        if new_server_addr.ends_with('/'){
+                        new_server_addr =
+                            new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
+                        if new_server_addr.ends_with('/') {
                             new_server_addr.pop();
                         }
-
-                         
-                        
                     }
                 }
                 if !secure & new_server_addr.starts_with("https") {
@@ -51,9 +49,11 @@ impl AttackRequestBuilder {
                 });
             }
         }
-            //TODO implement error here
-        else { println!("No servers supplied") }
- 
+        //TODO implement error here
+        else {
+            println!("No servers supplied")
+        }
+
         self
     }
 
@@ -62,7 +62,8 @@ impl AttackRequestBuilder {
         self
     }
 
-    pub fn uri_http(&mut self, server: &Server) -> &mut Self { //build base url with http protocol
+    pub fn uri_http(&mut self, server: &Server) -> &mut Self {
+        //build base url with http protocol
         let mut new_url = server.base_url.to_string();
         if let Some(var) = server.variables.clone() {
             for (key, value) in var {
@@ -165,7 +166,7 @@ impl AttackRequest {
     pub fn params_to_payload(&self) -> (String, String, String, Vec<MHeader>) {
         let mut query = String::from('?');
         let mut path_ext = self.path.to_string();
-        let mut headers = vec![];
+        let mut headers = self.headers.clone();
         let mut payload = self.payload.clone();
         for param in self.parameters.iter() {
             match param.dm {
@@ -239,12 +240,18 @@ impl AttackRequest {
         h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let mut ret = vec![];
         // dbg!(&self.servers);
+        for i in h.keys() {
+            if i.to_lowercase().eq("content-type") {}
+        }
         for server in &self.servers {
             let req = client
-                .request(method1.clone(), format!("{}{}{}", server.base_url, path, req_query))
+                .request(
+                    method1.clone(),
+                    format!("{}{}{}", server.base_url, path, req_query),
+                )
                 .body(req_payload.clone())
-                .headers((&h).try_into().expect("not valid headers"))
                 .header("content-type", "application/json")
+                .headers((&h).try_into().expect("not valid headers"))
                 .build()
                 .unwrap(); //TODO return builder error
             match client.execute(req).await {
@@ -263,7 +270,13 @@ impl AttackRequest {
                     })
                 }
                 Err(e) => {
-                    println!("{}: {} - {}: {}", "FAILED TO EXECUTE".red().bold(), self, "ERROR".red().bold(), e);
+                    println!(
+                        "{}: {} - {}: {}",
+                        "FAILED TO EXECUTE".red().bold(),
+                        self,
+                        "ERROR".red().bold(),
+                        e
+                    );
                 }
             }
         }
