@@ -32,7 +32,13 @@ impl AttackRequestBuilder {
                 let mut new_server_addr = server.base_url.clone();
                 if let Some(vars) = &server.variables {
                     for (k, v) in vars {
-                        new_server_addr = new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
+                         new_server_addr = new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
+                        if new_server_addr.ends_with('/'){
+                            new_server_addr.pop();
+                        }
+
+                         
+                        
                     }
                 }
                 if !secure & new_server_addr.starts_with("https") {
@@ -47,6 +53,7 @@ impl AttackRequestBuilder {
         }
             //TODO implement error here
         else { println!("No servers supplied") }
+ 
         self
     }
 

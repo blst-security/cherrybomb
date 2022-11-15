@@ -53,4 +53,42 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         (ret_val, check_ret_only.1)
     }
+    pub fn ssrf_and_2xx(check_ret_param: (CheckRetVal, Vec<String>)) -> (Vec<Alert>, AttackLog) {
+        let mut ret_val = vec![];
+        //let check_ret =  check_ret_param.0.0.into_iter();
+        let check_ret_only = check_ret_param.0;
+        let check_ret = check_ret_only.0;
+        for provider in check_ret_param.1 {
+            for (res_data, response) in &check_ret {
+                if (200..300u16).contains(&response.status) {
+                    match provider.as_str() {
+                        "Amazon" => {
+                            if response.payload.contains(&"latest".to_string()) {
+                                ret_val.push(Alert::with_certainty(
+                                    Level::Medium,
+                                    res_data.alert_text.to_string(),
+                                    res_data.location.to_string(),
+                                    Certainty::Certain,
+                                ))
+                            }
+                        }
+                        "google" => {
+                            if response.payload.contains(&"instance".to_string())
+                                || response.payload.contains(&"project".to_string())
+                            {
+                                ret_val.push(Alert::with_certainty(
+                                    Level::Medium,
+                                    res_data.alert_text.to_string(),
+                                    res_data.location.to_string(),
+                                    Certainty::Certain,
+                                ))
+                            }
+                        }
+                        _ => (),
+                    };
+                }
+            }
+        }
+        (ret_val, check_ret_only.1)
+}
 }
