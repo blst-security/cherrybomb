@@ -4,71 +4,38 @@ use super::*;
 use serde_json::json;
 
 impl<T: OAS + Serialize> ActiveScan<T> {
-    pub async fn check_method_encoding(&self, auth: &Authorization) -> CheckRetVal {
+    pub async fn check_authentication_for_post(&self, _auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-
         for oas_map in self.payloads.iter() {
-            for (_json_path, _schema) in &oas_map.payload.map {
-                for (m, op) in oas_map
-                    .path
-                    .path_item
-                    //.filter(|| path_item==p)
-                    .get_ops()
-                    .iter()
-                    .filter(|(m, _)| m == &Method::POST)
-                {
-                    if let Some(value_encod) = op.request_body.clone() {
-                        let encoding = value_encod.inner(&self.oas_value).content;
-                        let encoding = LIST_CONTENT_TYPE
-                            .iter()
-                            .filter_map(|t| {
-                                if !encoding.contains_key(*t) {
-                                    Some(*t)
-                                } else {
-                                    None
-                                }
-                            })
-                            .collect::<Vec<&str>>();
+            for _schema in oas_map.payload.map.values() {
+                for (m, op) in oas_map.path.path_item.get_ops().iter() {
+                    let vec_param =
+                        create_payload_for_get(&self.oas_value, op, Some("".to_string()));
+                    if let Some(_value) = &op.security {
+                        let req = AttackRequest::builder()
+                            .servers(self.oas.servers(), true)
+                            .path(&oas_map.path.path)
+                            .method(*m)
+                            .headers(vec![])
+                            .parameters(vec_param.clone())
+                            //.auth(auth.clone())
+                            .payload(&oas_map.payload.payload.to_string())
+                            .build();
 
-                        for i in encoding {
-                            println!("PAth: {} , encoding : {:?}", oas_map.path.path, i);
-                            let h = MHeader {
-                                name: "Content-type".to_string(),
-                                value: i.to_string(),
-                            };
-                            let vec_param =
-                                create_payload_for_get(&self.oas_value, op, Some("".to_string()));
-                            let req = AttackRequest::builder()
-                                .servers(self.oas.servers(), true)
-                                .method(*m)
-                                //  .payload(&oas_map.payload.payload.to_string())
-                                //TODO! create function that translate json payload to XML and vice versa
-                                .path(&oas_map.path.path)
-                                .parameters(vec_param)
-                                .auth(auth.clone())
-                                .headers(vec![h])
-                                .build();
-                            let response_vector =
-                                req.send_request_all_servers(self.verbosity > 0).await;
-                            for response in response_vector {
-                                ret_val.1.push(
-                                    &req,
-                                    &response,
-                                    "Testing misconfiguration for encoding".to_string(),
-                                );
-                                ret_val.0.push((
-                                    ResponseData {
-                                        location: oas_map.path.path.clone(),
-                                        alert_text: format!(
-                                            "The endpoint: {} is not correctly configured for {} ",
-                                            oas_map.path.path.clone(),
-                                            i
-                                        ),
-                                        serverity: Level::Low,
-                                    },
-                                    response,
-                                ));
-                            }
+                        let response_vector =
+                            req.send_request_all_servers(self.verbosity > 0).await;
+                        for response in response_vector {
+                            ret_val
+                                .1
+                                .push(&req, &response, "Testing without auth".to_string());
+                            ret_val.0.push((
+                                ResponseData {
+                                    location: oas_map.path.path.to_string(),
+                                    alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", &oas_map.path.path, m ),
+                                    serverity: Level::High,
+                                },
+                                response,
+                            ));
                         }
                     }
                 }
@@ -76,87 +43,39 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         ret_val
     }
-    /*
-    pub async fn check_method_encoding(&self, auth: &Authorization) -> CheckRetVal {
-        //roblem with order ouput
-        //TODO FIX BUG ABOUT OUTPUT
-        // if let Some(compo) = &self.oas.components().unwrap().parameters {
-        //     for (i, y) in compo {
-        //         println!(
-        //             "parameter i:{:?} ,y{:?}",
-        //             i,
-        //             y.inner(&self.oas_value).examples
-        //         );
-        //     }
-        // }
-
+    pub async fn check_authentication_for_get(&self, _auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
-                if m == Method::POST {
-                    if let Some(value_encod) = op.request_body.clone() {
-                        let encoding = value_encod.inner(&self.oas_value).content;
-                        // let encoding = op
-                        //     .request_body
-                        //     .clone()
-                        //     .unwrap()
-                        //     .inner(&self.oas_value)
-                        //     .content;
-                        /// THIS IS GUY - I USED THE * THINGY BECAUSE I needed an &str and it was only &&str because of the iter
-                        let encoding = LIST_CONTENT_TYPE
-                            .iter()
-                            .filter_map(|t| {
-                                if !encoding.contains_key(*t) {
-                                    Some(*t)
-                                } else {
-                                    None
-                                }
-                            })
-                            .collect::<Vec<&str>>();
-
-                        for i in encoding {
-                            println!("PAth: {} , encoding : {:?}", path, i);
-                            let h = MHeader {
-                                name: "Content-type".to_string(),
-                                value: i.to_string(),
-                            };
-                            let vec_param =
-                            create_payload_for_get(&self.oas_value, op, Some("".to_string()));
-
-                            let req = AttackRequest::builder()
-                                .servers(self.oas.servers(), true)
-                                .path(path)
-                                .parameters(vec_param)
-                                .auth(auth.clone())
-                                .headers(vec![h])
-                                .build();
-                            let response_vector =
-                                req.send_request_all_servers(self.verbosity > 0).await;
-                            for response in response_vector {
-                                ret_val
-                                    .1
-                                    .push(&req, &response, "Testing misconfiguration for encoding".to_string());
-                                ret_val.0.push((
-                                    ResponseData {
-                                        location: path.clone(),
-                                        alert_text: format!(
-                                            "The endpoint: {} is not correctly configured for {} ",
-                                            path, i
-                                        ),
-                                        serverity: Level::Low,
-                                    },
-                                    response,
-                                ));
-                            }
-                        }
+                if m == Method::GET {
+                    let vec_param =
+                        create_payload_for_get(&self.oas_value, op, Some("".to_string()));
+                    let req = AttackRequest::builder()
+                        .servers(self.oas.servers(), true)
+                        .path(&path.clone())
+                        .method(m)
+                        .headers(vec![])
+                        .parameters(vec_param.clone())
+                        .build();
+                    let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                    for response in response_vector {
+                        ret_val
+                            .1
+                            .push(&req, &response, "Testing without auth".to_string());
+                        ret_val.0.push((
+                                        ResponseData {
+                                            location: path.to_string(),
+                                            alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", &path, m ),
+                                            serverity: Level::High,
+                                        },
+                                        response,
+                                    ));
                     }
                 }
             }
         }
         ret_val
     }
-    */
 }
 
 const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT];

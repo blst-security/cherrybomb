@@ -116,10 +116,19 @@ impl_passive_checks![
     (CheckContainsResponse, check_contains_response, "CONTAINS RESPONSE", "Checks that each operation has a response")
 ];
 
-impl_active_checks![(
-    CheckMethodEncoding,
-    check_method_encoding,
-    is_2xx,
-    "Check Content-type header",
-    "Check if the endpoint can be send with other content type"
-)];
+impl_active_checks![
+    (
+        CheckAuthenticationPOST,
+        check_authentication_for_post,
+        is_2xx,
+        "AUTH BY PASS FOR POST",
+        "Check if the auth is correctly configured"
+    ),
+    (
+        CheckAuthenticationGET,
+        check_authentication_for_get,
+        is_2xx,
+        "AUTH BY PASS FOR GET ",
+        "Check if the auth is correctly configured"
+    )
+];
