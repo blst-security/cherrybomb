@@ -118,17 +118,10 @@ impl_passive_checks![
 
 impl_active_checks![
     (
-        CheckAuthenticationPOST,
-        check_authentication_for_post,
+        CheckMethodPermissionsActive,
+        check_method_permissions,
         is_2xx,
-        "AUTH BY PASS FOR POST",
-        "Check if the auth is correctly configured"
-    ),
-    (
-        CheckAuthenticationGET,
-        check_authentication_for_get,
-        is_2xx,
-        "AUTH BY PASS FOR GET ",
-        "Check if the auth is correctly configured"
+        "METHOD PERMISSION",
+        "Check if the endpoint is correctly configured"
     )
 ];

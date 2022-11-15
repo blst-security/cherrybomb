@@ -209,9 +209,10 @@ impl AttackRequest {
             .body(req_payload.clone())
             .headers((&h).try_into().expect("not valid headers"))
             .header("content-type", "application/json")
-            .build()
-            .unwrap();
-        match client.execute(req).await {
+            .build();
+            dbg!(&req);
+      //      .unwrap();
+        match client.execute(req.unwrap()).await {
             Ok(res) => {
                 if print {
                     println!("{}: {}", "Request".bright_blue().bold(), self);

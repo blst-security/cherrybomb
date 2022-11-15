@@ -4,74 +4,49 @@ use super::*;
 use serde_json::json;
 
 impl<T: OAS + Serialize> ActiveScan<T> {
-    pub async fn check_authentication_for_post(&self, _auth: &Authorization) -> CheckRetVal {
+    pub async fn check_method_permissions(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
-        for oas_map in self.payloads.iter() {
-            for _schema in oas_map.payload.map.values() {
-                for (m, op) in oas_map.path.path_item.get_ops().iter() {
-                    let vec_param =
-                        create_payload_for_get(&self.oas_value, op, Some("".to_string()));
-                    if let Some(_value) = &op.security {
-                        let req = AttackRequest::builder()
-                            .servers(self.oas.servers(), true)
-                            .path(&oas_map.path.path)
-                            .method(*m)
-                            .headers(vec![])
-                            .parameters(vec_param.clone())
-                            //.auth(auth.clone())
-                            .payload(&oas_map.payload.payload.to_string())
-                            .build();
+         for (path, item) in &self.oas.get_paths() {
+            let current_method_set = item
+                .get_ops()
+                .iter()
+                .map(|(m, _)| m)
+                .cloned()
+                .collect::<HashSet<_>>();
 
-                        let response_vector =
-                            req.send_request_all_servers(self.verbosity > 0).await;
-                        for response in response_vector {
-                            ret_val
-                                .1
-                                .push(&req, &response, "Testing without auth".to_string());
-                            ret_val.0.push((
-                                ResponseData {
-                                    location: oas_map.path.path.to_string(),
-                                    alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", &oas_map.path.path, m ),
-                                    serverity: Level::High,
-                                },
-                                response,
-                            ));
-                        }
-                    }
-                }
-            }
-        }
-        ret_val
-    }
-    pub async fn check_authentication_for_get(&self, _auth: &Authorization) -> CheckRetVal {
-        let mut ret_val = CheckRetVal::default();
-        for (path, item) in &self.oas.get_paths() {
-            for (m, op) in item.get_ops() {
-                if m == Method::GET {
-                    let vec_param =
-                        create_payload_for_get(&self.oas_value, op, Some("".to_string()));
+            let vec_param =
+                create_payload_for_get(&self.oas_value, item.get_ops()[0].1, Some("".to_string()));
+
+            let all_method_set = HashSet::from(LIST_METHOD);
+            for method in all_method_set.difference(&current_method_set).cloned() {
                     let req = AttackRequest::builder()
-                        .servers(self.oas.servers(), true)
-                        .path(&path.clone())
-                        .method(m)
-                        .headers(vec![])
+                        .servers( self.oas.servers(), true)
+                        .path(path)
                         .parameters(vec_param.clone())
+                        .auth(auth.clone())
+                        .method(method)
+                        .headers(vec![])
                         .build();
-                    let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
-                    for response in response_vector {
+                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
+                        //logging request/response/description
                         ret_val
                             .1
-                            .push(&req, &response, "Testing without auth".to_string());
+                            .push(&req, &res, "Test method permission".to_string());
                         ret_val.0.push((
-                                        ResponseData {
-                                            location: path.to_string(),
-                                            alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", &path, m ),
-                                            serverity: Level::High,
-                                        },
-                                        response,
-                                    ));
+                            ResponseData {
+                                location: path.clone(),
+                                alert_text: format!(
+                                    "The {} endpoint accepts {:?} although its not documented to",
+                                    path, method
+                                ),
+                                serverity: Level::High,
+                            },
+                            res.clone(),
+                        ));
+                    } else {
+                        println!("REQUEST FAILED");
                     }
-                }
+                
             }
         }
         ret_val
