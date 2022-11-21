@@ -61,6 +61,7 @@ where
     pub checks: Vec<ActiveChecks>,
     payloads: Vec<OASMap>,
     logs: AttackLog,
+   // path_params: HashMap<String,String>,
 }
 
 impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
@@ -72,6 +73,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                 return Err("Failed at deserializing swagger value to a swagger struct, please check the swagger definition");
             }
         };
+    //    let path_params = function(mashu);
         let payloads = Self::payloads_generator(&oas, &oas_value);
         Ok(ActiveScan {
             oas,
@@ -80,6 +82,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             verbosity: 0,
             payloads,
             logs: AttackLog::default(),
+          //  path_params 
         })
     }
     pub async fn run(&mut self, tp: ActiveScanType, auth: &Authorization) {
@@ -118,10 +121,6 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             _ => (),
         }
     }
-    pub fn print_to_file_string(&self) -> String {
-        String::new()
-    }
-
     fn payloads_generator(oas: &T, oas_value: &Value) -> Vec<OASMap> {
         let mut payloads = vec![];
         for (path, path_item) in oas.get_paths() {

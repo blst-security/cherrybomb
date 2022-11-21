@@ -198,41 +198,41 @@ impl AttackRequest {
             .collect()
     }
 
-    pub async fn send_request(&self, print: bool) -> Result<AttackResponse, reqwest::Error> {
-        let client = reqwest::Client::new();
-        let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
-        let (req_payload, req_query, path, headers1) = self.params_to_payload();
-        let mut h = self.get_headers(&headers1);
-        h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
-        let req = client
-            .request(method1, format!("{}{}", path, req_query))
-            .body(req_payload.clone())
-            .headers((&h).try_into().expect("not valid headers"))
-            .header("content-type", "application/json")
-            .build();
-            dbg!(&req);
-      //      .unwrap();
-        match client.execute(req.unwrap()).await {
-            Ok(res) => {
-                if print {
-                    println!("{}: {}", "Request".bright_blue().bold(), self);
-                }
-                Ok(AttackResponse {
-                    status: res.status().into(),
-                    headers: res
-                        .headers()
-                        .iter()
-                        .map(|(n, v)| (n.to_string(), format!("{:?}", v)))
-                        .collect(),
-                    payload: res.text().await.unwrap_or_default(),
-                })
-            }
-            Err(e) => {
-                println!("{}: {}", "FAILED TO EXECUTE".red().bold().blink(), self);
-                Err(e)
-            }
-        }
-    }
+    // pub async fn send_request(&self, print: bool) -> Result<AttackResponse, reqwest::Error> {
+    //     let client = reqwest::Client::new();
+    //     let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
+    //     let (req_payload, req_query, path, headers1) = self.params_to_payload();
+    //     let mut h = self.get_headers(&headers1);
+    //     h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
+    //     let req = client
+    //         .request( method1, format!("{}{}", path,req_query))
+    //         .body(dbg!(req_payload.clone()))
+    //         .headers(h.try_into().expect("not valid headers"))
+    //         .header("content-type", "application/json")
+    //         .build();
+    //         dbg!(&req);
+    //   //      .unwrap();
+    //     match client.execute(req.unwrap()).await {
+    //         Ok(res) => {
+    //             if print {
+    //                 println!("{}: {}", "Request".bright_blue().bold(), self);
+    //             }
+    //             Ok(AttackResponse {
+    //                 status: res.status().into(),
+    //                 headers: res
+    //                     .headers()
+    //                     .iter()
+    //                     .map(|(n, v)| (n.to_string(), format!("{:?}", v)))
+    //                     .collect(),
+    //                 payload: res.text().await.unwrap_or_default(),
+    //             })
+    //         }
+    //         Err(e) => {
+    //             println!("{}: {}", "FAILED TO EXECUTE".red().bold().blink(), self);
+    //             Err(e)
+    //         }
+    //     }
+    // }
     pub async fn send_request_all_servers(&self, print: bool) -> Vec<AttackResponse> {
         let client = reqwest::Client::new();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();

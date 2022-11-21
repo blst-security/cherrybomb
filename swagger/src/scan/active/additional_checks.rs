@@ -1,8 +1,7 @@
 use super::utils::create_payload_for_get;
 use super::*;
 // use colored::*;
-use serde_json::json;
-
+ 
 impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_method_permissions(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
@@ -19,33 +18,27 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
             let all_method_set = HashSet::from(LIST_METHOD);
             for method in all_method_set.difference(&current_method_set).cloned() {
-                    let req = AttackRequest::builder()
-                        .servers( self.oas.servers(), true)
-                        .path(path)
-                        .parameters(vec_param.clone())
-                        .auth(auth.clone())
-                        .method(method)
-                        .headers(vec![])
-                        .build();
-                    if let Ok(res) = req.send_request(self.verbosity > 0).await {
-                        //logging request/response/description
-                        ret_val
-                            .1
-                            .push(&req, &res, "Test method permission".to_string());
-                        ret_val.0.push((
-                            ResponseData {
-                                location: path.clone(),
-                                alert_text: format!(
-                                    "The {} endpoint accepts {:?} although its not documented to",
-                                    path, method
-                                ),
-                                serverity: Level::High,
-                            },
-                            res.clone(),
-                        ));
-                    } else {
-                        println!("REQUEST FAILED");
-                    }
+                let req = AttackRequest::builder()
+                .servers(self.oas.servers(), true)
+                .path(&path.clone())
+                .method(method)
+                .headers(vec![])
+                .parameters(vec_param.clone())
+                .build();
+            let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+            for response in response_vector {
+                ret_val
+                    .1
+                    .push(&req, &response, "Testing method permission".to_string());
+                ret_val.0.push((
+                                ResponseData {
+                                    location: path.to_string(),
+                                    alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {} ", &path, method ),
+                                    serverity: Level::High,
+                                },
+                                response,
+                            ));
+            }
                 
             }
         }
