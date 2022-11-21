@@ -27,38 +27,32 @@ jobs:
           command: fmt
 
   cargo-clippy:
-    name: clippy
+    name: Clippy
     runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: -D warnings
     steps:
       - uses: actions/checkout@v2
-      - name: Install nightly
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
           components: clippy
-      
-      - name: cargo-clippy
-        env:
-          RUSTFLAGS: "-D warnings"
-        uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1
         with:
           command: clippy
 
   cargo-build:
     name: build
     runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: -D warnings
     steps:
       - uses: actions/checkout@v2
-      - name: Install nightly
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
-      
-      - name: cargo-build
-        env:
-          RUSTFLAGS: "-A warnings"
-        uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1
         with:
           command: build

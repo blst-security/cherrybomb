@@ -25,16 +25,16 @@ pub struct ParamForTable {
     pub name: String,
     //probably will become an Enum
     #[serde(rename = "type")]
-    pub param_type:String,
-    pub statuses:Vec<String>,
+    pub param_type: String,
+    pub statuses: Vec<String>,
     //probably will become an Enum
     //from:String,
-    pub dms:Vec<QuePay>,
-    pub eps:Vec<String>,
-    pub parents:Vec<String>,
-    pub children:Vec<String>,
-    pub max:Option<i64>,
-    pub min:Option<i64>,
+    pub dms: Vec<QuePay>,
+    pub eps: Vec<String>,
+    pub parents: Vec<String>,
+    pub children: Vec<String>,
+    pub max: Option<i64>,
+    pub min: Option<i64>,
     //default:Option<SchemaStrInt>,
 }
 //value_from_vec
@@ -210,10 +210,10 @@ impl ParamTable {
                 .servers()
                 .unwrap_or_default()
                 .iter()
-                .map(|s| s.url.clone())
+                .map(|s| s.base_url.clone())
                 .collect(),
             params: Self::get_params(&oas, value),
-            eps: oas.get_paths().iter().map(|(p, _)| p).cloned().collect(),
+            eps: oas.get_paths().keys().cloned().collect(),
         }
     }
     fn get_all_possible_schemas(schema: &Schema) -> Vec<SchemaRef> {
