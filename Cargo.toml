@@ -33,6 +33,7 @@ members = [
 	"swagger",
 ]
 [dependencies]
+
 cherrybomb-cli = "^0.7.1"
 cherrybomb-swagger = "^0.1.1"
 clap = { version = "^3", features = ["derive"] }
@@ -56,4 +57,6 @@ regex = "1"
 serde_with = "1.11.0"
 
 [profile.release]
+opt-level = 3
+[profile.dev]
 opt-level = 3
