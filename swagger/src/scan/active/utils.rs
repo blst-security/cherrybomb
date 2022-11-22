@@ -10,18 +10,16 @@ use crate::{
 use reqwest::{Client, Request, RequestBuilder, Url};
 use serde::{Deserialize, Serialize, ser::Error};
 use serde_json::Value;
-
-
  
-let hash_with_param: HashMap<String, String> =
-pub fn  create_payload( // this function needs to calls the create hash func from here try tp get the value from the hash
+ 
+ pub fn  create_payload( // this function needs to calls the create hash func from here try tp get the value from the hash
     // then if success build requestParameter else then use the get regular function
     swagger: &Value,
     op: &Operation,
 ) -> Vec<RequestParameter> 
 {
-    create_hash
-    let mut params_vec : Vec<RequestParameter> = vec![];
+     let mut params_vec : Vec<RequestParameter> = vec![];
+    
     for i in op.params() {
         let parameter = i.inner(swagger);
         let in_var = parameter.param_in;
