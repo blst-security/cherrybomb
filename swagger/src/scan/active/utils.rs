@@ -8,30 +8,51 @@ use crate::{
     Authorization, Method, QuePay, Server,
 };
 use reqwest::{Client, Request, RequestBuilder, Url};
-use serde::{Deserialize, Serialize, ser::Error};
+use serde::{ser::Error, Deserialize, Serialize};
 use serde_json::Value;
- 
- 
- pub fn  create_payload( // this function needs to calls the create hash func from here try tp get the value from the hash
+
+pub fn create_payload(
+    // this function needs to calls the create hash func from here try tp get the value from the hash
     // then if success build requestParameter else then use the get regular function
     swagger: &Value,
     op: &Operation,
-) -> Vec<RequestParameter> 
-{
-     let mut params_vec : Vec<RequestParameter> = vec![];
-    
+    hash_map: &HashMap<String, String>,
+    placeholder: Option<String>,
+) -> Vec<RequestParameter> {
+    let mut params_vec: Vec<RequestParameter> = vec![];
+
     for i in op.params() {
         let parameter = i.inner(swagger);
         let in_var = parameter.param_in;
         let param_name = parameter.name.to_string();
-        if in_var == "path" {
-
+        if in_var.trim().eq("path") {
+            if let Some(the_key) = hash_map.iter().find_map(|(key, _val)| {
+                if key.to_lowercase().eq(&param_name.to_lowercase()) {
+                    Some(key)
+                } else {
+                    None
+                }
+            }) {
+                let param_value = hash_map.get(the_key).unwrap();
+                let mut params_vec = vec![];
+                params_vec.push(RequestParameter {
+                    name: param_name,
+                    value: param_value.to_string(),
+                    dm: QuePay::Path,
+                });
+                if placeholder.is_none() {
+                    return params_vec;
+                }
+            } else {
+                return create_payload_for_get(swagger, op, None, &mut params_vec);
+            }
         }
     }
 
     params_vec
 }
-pub fn recursive_func_to_find_param( //find param from the given schema
+pub fn recursive_func_to_find_param(
+    //find param from the given schema
     swagger: &Value,
     schema: SchemaRef,
     vec_of_param: &mut Vec<String>,
@@ -66,11 +87,11 @@ pub fn recursive_func_to_find_param( //find param from the given schema
 }
 
 pub fn read_json_func(obj: &Value, element: &String, vector: &mut Vec<String>) -> Vec<String> {
-     let st = obj.as_object();
+    let st = obj.as_object();
     if let Some(hashmap) = st {
         for (key, value) in hashmap {
-             if key.eq(&element.to_lowercase()) {
-                 if let Some(array) = value.as_array() {
+            if key.eq(&element.to_lowercase()) {
+                if let Some(array) = value.as_array() {
                     for i in array {
                         if let Some(val) = i.as_str() {
                             vector.push(val.to_string());
@@ -92,17 +113,16 @@ pub fn read_json_func(obj: &Value, element: &String, vector: &mut Vec<String>) -
             read_json_func(value, element, vector);
         }
     }
-    return vector.to_vec();
+    vector.to_vec()
 }
 
-
-pub async fn send_req( //send request and check the value of specific key, return vec of values
+pub async fn send_req(
+    //send request and check the value of specific key, return vec of values
     path: String,
     element: &String,
     auth: &Authorization,
     server: &Option<Vec<Server>>,
 ) -> Vec<String> {
-    println!("elem : {:?}", element);
     let mut collection_of_values: Vec<String> = Vec::new();
     let req = AttackRequest::builder()
         .uri(server, &path)
@@ -113,109 +133,94 @@ pub async fn send_req( //send request and check the value of specific key, retur
         .auth(auth.clone())
         .build();
     let res = req.send_request_with_response().await;
-     if res.1 {
+    if res.1 {
         let object: Value = serde_json::from_str(&res.0).unwrap_or_default();
         if let Some(i) = object.as_array() {
             for x in i.iter() {
-                println!("x: {:?}", x);
                 read_json_func(x, element, &mut collection_of_values);
             }
         }
-       
-    
-                
+
         //     }
     }
 
-    println!("Collections: {:?}", collection_of_values);
-            collection_of_values
-
-           
-        }
-       // let object: Value = serde_json::from_str(&res.0).unwrap();
-       
-        // take jsonresponse as array
-    
-
-    // println!(
-    //     "--------Collections of values before send the main function: {:?}------",
-    //     collection_of_values
-    // );
-
-
+    collection_of_values
+}
 
 /// This function is used to create a payload for a GET request parameters
 pub fn create_payload_for_get(
     swagger: &Value,
     op: &Operation,
     test_value: Option<String>,
+    params_vec: &mut Vec<RequestParameter>,
 ) -> Vec<RequestParameter> {
-    let mut params_vec = vec![];
+    // let mut params_vec = vec![];
     for i in op.params() {
         let parameter = i.inner(swagger);
         let in_var = parameter.param_in;
         let param_name = parameter.name.to_string();
         match in_var.as_str().to_lowercase().trim() {
             "path" => {
-                let mut option_example_value = None;
-                if let Some(value) = parameter.examples {
-                    if let Some((_ex, val)) = value.into_iter().next() {
-                        option_example_value = Some(val.value.to_string());
-                    }
-                }
-                if let Some(schema_ref) = parameter.schema {
-                    // dbg!(&schema_ref);
-                    if let Some(schema_type) = schema_ref.inner(swagger).schema_type {
-                        // let val_to_path:String;
-                        match schema_type.as_str() {
-                            "string" => {
-                                let mut example_value = "randomString".to_string();
-                                if let Some(val) = option_example_value {
-                                    example_value = val;
-                                }
-
-                                params_vec.push(RequestParameter {
-                                    name: param_name,
-                                    value: example_value,
-                                    dm: QuePay::Path,
-                                });
-                            }
-                            "integer" => {
-                                let mut example_value = "123".to_string();
-                                if let Some(val) = option_example_value {
-                                    example_value = val;
-                                }
-                                params_vec.push(RequestParameter {
-                                    name: param_name,
-                                    value: example_value,
-                                    dm: QuePay::Path,
-                                });
-                            }
-                            "boolean" => {
-                                let mut example_value = "true".to_string();
-                                if let Some(val) = option_example_value {
-                                    example_value = val;
-                                }
-
-                                params_vec.push(RequestParameter {
-                                    name: param_name,
-                                    value: example_value,
-                                    dm: QuePay::Path,
-                                });
-                            }
-                            _ => (),
-                        };
-                    } else {
-                        let mut example_value = "randomString".to_string();
-                        if let Some(val) = option_example_value {
-                            example_value = val;
+                if params_vec.is_empty() {
+                    let mut option_example_value = None;
+                    if let Some(value) = parameter.examples {
+                        if let Some((_ex, val)) = value.into_iter().next() {
+                            option_example_value = Some(val.value.to_string());
                         }
+                    }
+                    if let Some(schema_ref) = parameter.schema {
+                        // dbg!(&schema_ref);
+                        if let Some(schema_type) = schema_ref.inner(swagger).schema_type {
+                            match schema_type.as_str() {
+                                "string" => {
+                                    let mut example_value = "randomString".to_string();
+                                    if let Some(val) = option_example_value {
+                                        example_value = val;
+                                    }
 
-                        params_vec.push(RequestParameter {
-                            name: param_name,
-                            value: example_value,
-                            dm: QuePay::Path,
-                        });
+                                    params_vec.push(RequestParameter {
+                                        name: param_name,
+                                        value: example_value,
+                                        dm: QuePay::Path,
+                                    });
+                                }
+                                "integer" => {
+                                    let mut example_value = "123".to_string();
+                                    if let Some(val) = option_example_value {
+                                        example_value = val;
+                                    }
+                                    params_vec.push(RequestParameter {
+                                        name: param_name,
+                                        value: example_value,
+                                        dm: QuePay::Path,
+                                    });
+                                }
+                                "boolean" => {
+                                    let mut example_value = "true".to_string();
+                                    if let Some(val) = option_example_value {
+                                        example_value = val;
+                                    }
+
+                                    params_vec.push(RequestParameter {
+                                        name: param_name,
+                                        value: example_value,
+                                        dm: QuePay::Path,
+                                    });
+                                }
+                                _ => (),
+                            };
+                        } else {
+                            let mut example_value = "randomString".to_string();
+                            if let Some(val) = option_example_value {
+                                example_value = val;
+                            }
+
+                            params_vec.push(RequestParameter {
+                                name: param_name,
+                                value: example_value,
+                                dm: QuePay::Path,
+                            });
+                        }
                     }
                 }
             }
@@ -247,5 +252,5 @@ pub fn create_payload_for_get(
             _ => (),
         };
     }
-    params_vec
+    params_vec.to_vec()
 }
