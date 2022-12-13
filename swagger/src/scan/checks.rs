@@ -113,8 +113,9 @@ impl_passive_checks![
     (CheckContainsOperation, check_contains_operation, "CONTAINS OPERATION", "Checks that each path contains at least one operation"),
     (CheckValidEncodings, check_valid_encoding, "VALID ENCODINGS", "Checks that all content types are valid"),
     (CheckDescription, check_description, "DESCRIPTION", "Checks that all operations have a description"),
-    (CheckContainsResponse, check_contains_response, "CONTAINS RESPONSE", "Checks that each operation has a response")
-];
+    (CheckContainsResponse, check_contains_response, "CONTAINS RESPONSE", "Checks that each operation has a response"),
+    (CheckIntergertype, check_int_type, "INTEGER TYPE", "Checks that int has the correct type")
+    ];
 
 impl_active_checks![
     (

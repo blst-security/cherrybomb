@@ -75,7 +75,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                 return Err("Failed at deserializing swagger value to a swagger struct, please check the swagger definition");
             }
         };
-        let  path_params: HashMap<String, String> = HashMap::new();
+        let path_params: HashMap<String, String> = HashMap::new();
         //  let path_params = Self::create_hash(&auth_p);
         let payloads = Self::payloads_generator(&oas, &oas_value);
         Ok(ActiveScan {
@@ -282,25 +282,22 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         let mut hash_map: HashMap<String, String> = HashMap::new();
 
         let server = self.oas.servers();
-        for item in self.oas.get_paths().values(){
-             for (_m, _op) in item.get_ops().iter() {
+        for item in self.oas.get_paths().values() {
+            for (_m, _op) in item.get_ops().iter() {
                 for i in _op.params() {
-                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
-                        == *"path"
-                    {
+                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase() == *"path" {
                         hash_set.insert(i.inner(&self.oas_value).name);
-                         break;
+                        break;
                     }
                 }
             }
         }
 
         for (path, item) in &self.oas.get_paths() {
-             for (_m, _op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+            for (_m, _op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
                 // if  path param
                 for element in &hash_set {
-                    
-                    let  vec_values = send_req(path.to_string(), element, auth, &server).await;
+                    let vec_values = send_req(path.to_string(), element, auth, &server).await;
                     if !vec_values.is_empty() {
                         if let Some(value) = vec_values.get(0) {
                             hash_map.insert(element.to_string(), value.to_string());

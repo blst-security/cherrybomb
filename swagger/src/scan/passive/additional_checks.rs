@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use super::*;
 
 impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
@@ -174,6 +176,133 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                         "Operation has no responses",
                         format!("swagger path:{} operation:{}", path, m),
                     ));
+                }
+            }
+        }
+        alerts
+    }
+
+    fn check_schema(&self, schema: SchemaRef, alerts: &mut Vec<Alert>, path: String) {
+        if let Some(format_value) = schema.inner(&self.swagger_value).format {
+            if format_value.eq("int32") || format_value.eq("int64") {
+                if let Some(schema_type) = schema.inner(&self.swagger_value).schema_type {
+                    if schema_type.as_str() == "number" {
+                        let _ = &alerts.push(Alert::new(
+                            Level::Info,
+                            "Type has to be an integer",
+                            format!("swagger path:{} schema:{:?}", path, schema),
+                        ));
+                    };
+                }
+            }
+        }
+        
+    }
+
+    pub fn check_int_type(&self) -> Vec<Alert> {
+        /// this function check  the get paramter schema all component and response and request body that does not use component
+        let mut hashset_compo_name: HashSet<String> = HashSet::new();
+
+        let mut alerts: Vec<Alert> = vec![];
+        let schemas = &self
+            .swagger
+            .components()
+            .unwrap()
+            .schemas
+            .unwrap_or_default();
+        for (key, value) in schemas {
+            let name = format!("#/components/schemas/{}", key);
+            hashset_compo_name.insert(key.to_string());
+            println!("THis is the key {:?}", name);
+            if let Some(propert) = value.inner(&self.swagger_value).properties {
+                for (key, schemaref) in propert {
+                    if let Some(format_value) = schemaref.inner(&self.swagger_value).format {
+                        if format_value.eq("int32") || format_value.eq("int64") {
+                            if let Some(schema_type) =
+                                schemaref.inner(&self.swagger_value).schema_type
+                            {
+                                if schema_type.as_str() == "number" {
+                                    alerts.push(Alert::new(
+                                        Level::Info,
+                                        "Type has to be an integer",
+                                        format!("component name: {:?}", key),
+                                    ));
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for (path, item) in &self.swagger.get_paths() {
+            for (_m, op) in item.get_ops() {
+                for i in op.params() {
+                    //schema get parameter
+
+                    let o = i.inner(&self.swagger_value).schema.unwrap();
+                    let p = match o {
+                        SchemaRef::Ref(value_ref) => value_ref.param_ref.to_string(),
+                        SchemaRef::Schema(_v) => "None".to_string(),
+                    };
+                    if !hashset_compo_name.contains(&p) {
+                        //if op param and not reference to copmenebt
+
+                        if let Some(schema) = i.inner(&self.swagger_value).schema {
+                            self.check_schema(schema, &mut alerts, path.clone());
+                        }
+                    }
+                }
+
+                for (_key, value) in op.responses() {
+                    if let Some(schema) = value.inner(&self.swagger_value).content {
+                        for (_key, mediatype) in schema {
+                            if let Some(schema) = mediatype.schema {
+                                match &schema {
+                                    SchemaRef::Ref(_) => (),
+
+                                    SchemaRef::Schema(_) => {
+                                        if let Some(propertie) =
+                                            schema.inner(&self.swagger_value).properties
+                                        {
+                                            for (_key, schema_ref) in propertie {
+                                                self.check_schema(
+                                                    schema_ref,
+                                                    &mut alerts,
+                                                    path.clone(),
+                                                );
+                                            }
+                                        }
+                                    }
+                                };
+
+                                // self.check_schema(schema, &mut alerts, path.clone());
+                            }
+                        }
+                    }
+                }
+
+                if let Some(request_body) = op.request_body.as_ref() {
+                    //request body
+                    for (_key, value) in request_body.inner(&self.swagger_value).content {
+                        if let Some(schema) = value.schema {
+                            match &schema {
+                                SchemaRef::Ref(_) => (),
+                                SchemaRef::Schema(_) => {
+                                    if let Some(propertie) =
+                                        schema.inner(&self.swagger_value).properties
+                                    {
+                                        for (_key, schema_ref) in propertie {
+                                            self.check_schema(
+                                                schema_ref,
+                                                &mut alerts,
+                                                path.clone(),
+                                            );
+                                        }
+                                    }
+                                }
+                            };
+                        }
+                    }
                 }
             }
         }
