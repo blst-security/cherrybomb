@@ -213,7 +213,6 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
         for (key, value) in schemas {
             let name = format!("#/components/schemas/{}", key);
             hashset_compo_name.insert(key.to_string());
-            println!("THis is the key {:?}", name);
             if let Some(propert) = value.inner(&self.swagger_value).properties {
                 for (key, schemaref) in propert {
                     if let Some(format_value) = schemaref.inner(&self.swagger_value).format {
