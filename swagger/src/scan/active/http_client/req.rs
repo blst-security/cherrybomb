@@ -60,7 +60,7 @@ impl AttackRequestBuilder {
 
     pub fn uri_http(&mut self, server: &Server) -> &mut Self {
         //build base url with http protocol
-        let mut new_url = server.url.to_string();
+        let mut new_url = server.base_url.to_string();
         if let Some(var) = server.variables.clone() {
             for (key, value) in var {
                 new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
