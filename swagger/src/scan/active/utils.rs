@@ -12,10 +12,12 @@ use serde::{ser::Error, Deserialize, Serialize};
 use serde_json::Value;
 
 pub fn create_payload(
-    // this function needs to calls the create hash func from here try tp get the value from the hash
+    // this function needs to calls the create hash func from here try to get the value from the hash
     // then if success build requestParameter else then use the get regular function
     swagger: &Value,
     op: &Operation,
+    hash_map: &HashMap<String, String>,
+    placeholder: Option<String>,
 ) -> Vec<RequestParameter> {
     let mut params_vec: Vec<RequestParameter> = vec![];
 
@@ -23,7 +25,31 @@ pub fn create_payload(
         let parameter = i.inner(swagger);
         let in_var = parameter.param_in;
         let param_name = parameter.name.to_string();
-        if in_var == "path" {}
+        if in_var.trim().eq("path") {
+            if let Some(the_key) = hash_map.iter().find_map(|(key, _val)| {
+                if key.to_lowercase().eq(&param_name.to_lowercase()) {
+                    Some(key)
+                } else {
+                    None
+                }
+            }) {
+                let param_value = hash_map.get(the_key).unwrap();
+                let mut params_vec = vec![];
+                params_vec.push(RequestParameter {
+                    name: param_name,
+                    value: param_value.to_string(),
+                    dm: QuePay::Path,
+                });
+                if placeholder.is_none() { // if there is no placeholder and just to construct a paylaod and it's match with hashmap so return it
+                    return params_vec;
+                }
+                else { //if there is  placeholder and  the value  exist in the hashmap so let's call the second method for paylaod redirection or pollution.
+                    return create_payload_for_get(swagger, op , placeholder, &mut params_vec);
+                }
+            } else { // if the param name does not exist in the hashmap so call the sec method to get default values
+                return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
+            }
+        }
     }
 
     params_vec
@@ -126,22 +152,19 @@ pub async fn send_req(
     println!("Collections: {:?}", collection_of_values);
     collection_of_values
 }
-// let object: Value = serde_json::from_str(&res.0).unwrap();
-
-// take jsonresponse as array
-
-// println!(
-//     "--------Collections of values before send the main function: {:?}------",
-//     collection_of_values
-// );
+ 
 
 /// This function is used to create a payload for a GET request parameters
+/// 
+
+///THIS FUNCTION NEEDS TO BE REWiED BECAUSE WHEN THERE IS AN PATH ASLREADY IN PARAMS_VEC BUT NEED TO USE FOR REDIRECT OF POLLUTION
 pub fn create_payload_for_get(
     swagger: &Value,
     op: &Operation,
     test_value: Option<String>,
+    params_vec: &mut Vec<RequestParameter>,
 ) -> Vec<RequestParameter> {
-    let mut params_vec = vec![];
+ //   let mut params_vec = vec![];
     for i in op.params() {
         let parameter = i.inner(swagger);
         let in_var = parameter.param_in;
@@ -238,5 +261,5 @@ pub fn create_payload_for_get(
             _ => (),
         };
     }
-    params_vec
+    params_vec.to_vec()
 }

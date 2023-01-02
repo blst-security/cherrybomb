@@ -9,7 +9,10 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
     let mut change = &mut json!(null);
     let mut ret = orig.clone();
     for path_part in path.iter() {
-        change = &mut ret[path_part];
+        change 
+        
+        
+        = &mut ret[path_part];
     }
     *change = new_val;
     ret.clone()
@@ -26,16 +29,7 @@ for (_path, item) in &self.oas.get_paths() {
        }
        */
 
-pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
-    let mut change = &mut json!(null);
-    let mut ret = orig.clone();
-    for path_part in path.iter() {
-        change = &mut ret[path_part];
-    }
-    *change = new_val;
-    ret.clone()
-}
-
+ 
 impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_min_max(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
@@ -54,7 +48,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .filter(|(m, _)| m == &Method::POST)
                     {
                         let vec_param =
-                            create_payload_for_get(&self.oas_value, op, Some("".to_string()));
+                            create_payload(&self.oas_value, op,&self.path_params ,Some("".to_string()));
                         let req = AttackRequest::builder()
                             .servers(self.oas.servers(), true)
                             .path(&oas_map.path.path)
@@ -96,11 +90,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let mut ret_val = CheckRetVal::default();
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
-                let vec_param = create_payload_for_get(
-                    &self.oas_value,
-                    op,
-                    Some("http://www.google.com".to_string()),
-                );
+                 
+                let vec_param = create_payload(&self.oas_value, op,&self.path_params , Some("http://www.google.com".to_string()));
+
                 for param_item in &vec_param {
                     // dbg!(&param_item);
                     if param_item.dm == QuePay::Query

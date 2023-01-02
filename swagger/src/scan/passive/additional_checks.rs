@@ -1,6 +1,159 @@
+use std::collections::HashSet;
+
 use super::*;
 
 impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
+    fn check_schema(&self, schema: SchemaRef, alerts: &mut Vec<Alert>, path: String) {         /// The purpose of the check is to ensure that the type number correspond to "integer" format and type number has a "float" format
+
+    //this function check the correct format for corresponding types
+    if let Some(format_value) = schema.inner(&self.swagger_value).format {
+        if format_value.eq("int32") || format_value.eq("int64") {
+            if let Some(schema_type) = schema.inner(&self.swagger_value).schema_type {
+                if schema_type.as_str() != "integer" {
+                    &alerts.push(Alert::new(
+                        Level::Info,
+                        "Type integer must have a int32 or int64 format",
+                        format!("swagger path:{} schema:{:?}", path, schema),
+                    ));
+                };
+            }
+        }
+        else if format_value.eq("float") || format_value.eq("double"){ //check if the float or double format has a number type
+            if let Some(schema_type) = schema.inner(&self.swagger_value).schema_type {
+                if schema_type.as_str().to_lowercase() != "number" {
+                     &alerts.push(Alert::new(
+                        Level::Info,
+                        "Type number must have a float or double format",
+                        format!("swagger path:{} schema:{:?}", path, schema),
+                    ));
+                }
+            }
+        }
+    }
+    
+}
+
+pub fn check_int_type(&self) -> Vec<Alert> {
+    /// this function check  the get paramter schema all component and response and request body that does not use component
+    /// The purpose of the check is to ensure that the type number correspond to integer format and type number has a float format
+    let mut hashset_compo_name: HashSet<String> = HashSet::new();
+
+    let mut alerts: Vec<Alert> = vec![];
+    let schemas = &self
+        .swagger
+        .components()
+        .unwrap()
+        .schemas
+        .unwrap_or_default();
+    for (key, value) in schemas { //dive into schema
+        let name = format!("#/components/schemas/{}", key);  // building the whole components value
+        hashset_compo_name.insert(key.to_string()); // insert the key of the schema into hashset 
+        if let Some(propert) = value.inner(&self.swagger_value).properties { //if there is properties
+            for (key, schemaref) in propert {
+                if let Some(format_value) = schemaref.inner(&self.swagger_value).format {
+                    if format_value.eq("int32") || format_value.eq("int64") { // check if the format is int32 or int64
+                        if let Some(schema_type) =
+                            schemaref.inner(&self.swagger_value).schema_type
+                        {
+                            if schema_type.as_str() == "number" { // int32 or int 64 has to be "integer" as type so the alert is raised
+                                alerts.push(Alert::new(
+                                    Level::Info,
+                                    "Type integer must have a int32 or int64 format",
+                                    format!("component name: {:?}", key),
+                                ));
+                            };
+                        }
+                    }
+                    else if format_value.eq("float") || format_value.eq("double"){ //check if the float or double format has a number type
+                        if let Some(schema_type) = schemaref.inner(&self.swagger_value).schema_type {
+                            if schema_type.as_str().to_lowercase() != "number" {
+                                 &alerts.push(Alert::new(
+                                    Level::Info,
+                                    "Type number must have a float or double format",
+                                    format!("component name: {:?}", key),
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for (path, item) in &self.swagger.get_paths() { // dive into all path from the OAS file
+        for (_m, op) in item.get_ops() {
+            for i in op.params() { // dive into schema of GET requests which is implemented into operation section
+                //schema get parameter
+
+                let o = i.inner(&self.swagger_value).schema.unwrap(); 
+                let p = match o {
+                    SchemaRef::Ref(value_ref) => value_ref.param_ref.to_string(),
+                    SchemaRef::Schema(_v) => "None".to_string(),
+                };
+                if !hashset_compo_name.contains(&p) { // check if we not already check it in the previous loop 
+                    //if op param and not reference to component
+
+                    if let Some(schema) = i.inner(&self.swagger_value).schema {
+                        self.check_schema(schema, &mut alerts, path.clone()); //send the schema to the check schema function 
+                    }
+                }
+            }
+
+            for (_key, value) in op.responses() { //dive into the schema responses
+                if let Some(schema) = value.inner(&self.swagger_value).content {
+                    for (_key, mediatype) in schema {
+                        if let Some(schema) = mediatype.schema {
+                            match &schema {
+                                SchemaRef::Ref(_) => (),
+
+                                SchemaRef::Schema(_) => {
+                                    if let Some(propertie) =
+                                        schema.inner(&self.swagger_value).properties
+                                    {
+                                        for (key, schema_ref) in propertie {
+                                          
+                                            self.check_schema(
+                                                schema_ref,
+                                                &mut alerts,
+                                                path.clone(),
+                                            );
+                                        
+                                        }
+                                    }
+                                }
+                            };
+
+                        }
+                    }
+                }
+            }
+
+            if let Some(request_body) = op.request_body.as_ref() {
+                // check schema in the request body
+                for (_key, value) in request_body.inner(&self.swagger_value).content {
+                    if let Some(schema) = value.schema {
+                        match &schema {
+                            SchemaRef::Ref(_) => (),
+                            SchemaRef::Schema(_) => {
+                                if let Some(propertie) =
+                                    schema.inner(&self.swagger_value).properties
+                                {
+                                    for (_key, schema_ref) in propertie {
+                                        self.check_schema(
+                                            schema_ref,
+                                            &mut alerts,
+                                            path.clone(),
+                                        );
+                                    }
+                                }
+                            }
+                        };
+                    }
+                }
+            }
+        }
+    }
+    alerts
+}
     pub fn check_valid_responses(&self) -> Vec<Alert> {
         let mut alerts: Vec<Alert> = vec![];
         for (path, item) in &self.swagger.get_paths() {
