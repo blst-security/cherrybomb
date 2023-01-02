@@ -118,8 +118,8 @@ impl_passive_checks![
 
 impl_active_checks![
     (
-        CheckIDOR,
-        func_test,
+        CheckMinMax,
+        check_min_max,
         is_2xx,
         "NUMBER LIMITS ENFORCED",
         "checks that the api enforces the number limits in the OAS"
