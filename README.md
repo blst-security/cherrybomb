@@ -4,8 +4,8 @@
 
   <h1>Stop half-done API specifications</h1>
   
-[![Maintained by blst security](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/) 
-[![docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://www.blstsecurity.com/cherrybomb/Documentation)
+[![Maintained by blst security](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/?promo=blst&domain=github_maintained_shield) 
+[![docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://www.blstsecurity.com/cherrybomb?promo=blst&domain=github_docs_shield)
 [![Discord Shield](https://discordapp.com/api/guilds/914846937327497307/widget.png?style=shield)](https://discord.gg/WdHhv4DqwU)
 </div>
 
@@ -35,7 +35,7 @@ cargo install cherrybomb
 If you don't have cargo installed, you can install it from [here](https://doc.rust-lang.org/cargo/getting-started/installation.html)
 
 #### Docker container
-You can use our docker container that we host on our public repo in aws, though we require an API key for it, you can get it at [our CI pipeline integration builder](https://www.blstsecurity.com/CICD)(after you sign up)
+You can use our docker container that we host on our public repo in aws, though we require an API key for it, you can get it at [our CI pipeline integration wizard](https://www.blstsecurity.com/Loading?redirect=/CICD&promo=blst&domain=github_wiz_docker)(after you sign up)
 ```
 docker run --mount type=bind,source=PATH_TO_OAS_DIR,destination=/home public.ecr.aws/t1d5k0l0/cherrybomb:latest cherrybomb oas -f home/OAS_NAME --api-key=API-KEY
 ```
@@ -94,7 +94,7 @@ cherrybomb ep-table --file <PATH> --name <SINGLE PARAM NAME(OPTIONAL)>
 
 # 🍻 Integration
 
-You can embed it into your CI pipeline, and If you plan on doing that I would recommend that you go to our [website](https://www.blstsecurity.com/), sign up, go through the [CI pipeline integration builder](https://www.blstsecurity.com/CICD), and copy the groovy/GitHub actions snippet built for you. 
+You can embed it into your CI pipeline, and If you plan on doing that I would recommend that you go to our [website](https://www.blstsecurity.com/?promo=blst&domain=github_integration_link), sign up, go through the [CI pipeline integration wizard](https://www.blstsecurity.com/Loading?redirect=/CICD&promo=blst&domain=github_wiz_integration), and copy the groovy/GitHub actions snippet built for you. 
 </br>Example:
 ![CI pipeline builder output](/images/ci_output.png)
 # 💪 Support

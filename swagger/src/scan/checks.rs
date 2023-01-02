@@ -119,16 +119,52 @@ impl_passive_checks![
 
 impl_active_checks![
     (
-        CheckIDOR,
-        func_test,
+        CheckMinMax,
+        check_min_max,
         is_2xx,
-        "BROKEN OBJECT LEVEL AUTHORIZATION",
-        "Check if object is vulnerable to level authorization"
-    ) // (
-      //     CheckTest,
-      //     check_of_param,
-      //     is_2xx,
-      //     "TESTING",
-      //     "BLAH"
-      // )
+        "NUMBER LIMITS ENFORCED",
+        "checks that the api enforces the number limits in the OAS"
+    ),
+    (
+        CheckOpenRedirect,
+        check_open_redirect,
+        is_2xx,
+        "OPEN REDIRECT",
+        "Check if the API may be vulnerable to open redirect"
+    ),
+    (
+        CheckStringMaxLength,
+        check_string_length_max,
+        is_2xx,
+        "STRING LENGTH ENFORCED",
+        "check that the api validate the String length"
+    ),
+    (
+        CheckParameterPollution,
+        check_parameter_pollution,
+        reflected_and_2xx,
+        "PARAMETER POLLUTION",
+        "Check if the endpoint is vulnerable to http pollution"
+    ),
+    (
+        CheckSSL,
+        check_ssl,
+        is_2xx,
+        "SSL ENFORCED",
+        "Check if the connection is secure"
+    ),
+    (
+        CheckMethodPermissionsActive,
+        check_method_permissions_active,
+        is_2xx,
+        "METHOD PERMISSION",
+        "Check if the endpoint is correctly configured"
+    ),
+    (
+        CheckAuthentication,
+        check_authentication,
+        is_2xx,
+        "BROKEN FUNCTION LEVEL AUTHENTICATION",
+        "Check if the auth is correctly configured"
+    )
 ];

@@ -28,31 +28,31 @@ pub enum ActiveScanType {
 
 type PayloadMap = HashMap<Vec<String>, Schema>;
 
-#[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Default, PartialEq)]
 pub struct Payload {
     pub payload: Value,
     pub map: PayloadMap,
 }
-#[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Default, PartialEq)]
 pub struct Path {
     pub path_item: PathItem,
     pub path: String,
 }
 
-#[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Default, PartialEq)]
 struct OASMap {
     pub path: Path,
     pub payload: Payload,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ResponseData {
     location: String,
     alert_text: String,
     serverity: Level,
 }
 
-#[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Default, PartialEq)]
 pub struct ActiveScan<T>
 where
     T: Serialize,
@@ -75,7 +75,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                 return Err("Failed at deserializing swagger value to a swagger struct, please check the swagger definition");
             }
         };
-        let path_params: HashMap<String, String> = HashMap::new();
+        let mut path_params: HashMap<String, String> = HashMap::new();
         //  let path_params = Self::create_hash(&auth_p);
         let payloads = Self::payloads_generator(&oas, &oas_value);
         Ok(ActiveScan {
@@ -85,12 +85,12 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             verbosity: 0,
             payloads,
             logs: AttackLog::default(),
-            path_params, // hashmap with param value
+            path_params,
         })
     }
 
     pub async fn run(&mut self, tp: ActiveScanType, auth: &Authorization) {
-        self.path_params = Self::create_hash(self, auth).await; // call the create hash function
+        self.path_params = Self::create_hash(self, auth).await;
         match tp {
             ActiveScanType::Full => {
                 for check in ActiveChecks::iter() {
@@ -278,15 +278,24 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
     }
 
     pub async fn create_hash(&self, auth: &Authorization) -> HashMap<String, String> {
+        let mut ret_val = CheckRetVal::default();
         let mut hash_set: HashSet<String> = HashSet::new();
         let mut hash_map: HashMap<String, String> = HashMap::new();
+        let mut vec_param: Vec<String> = Vec::new();
 
         let server = self.oas.servers();
-        for item in self.oas.get_paths().values() {
-            for (_m, _op) in item.get_ops().iter() {
-                for i in _op.params() {
-                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase() == *"path" {
+        let mut UUID_HASH: HashMap<String, Vec<String>> = HashMap::new();
+        for (path, item) in &self.oas.get_paths() {
+            let mut flag = false;
+            for (m, op) in item.get_ops().iter() {
+                for i in op.params() {
+                    let mut paramtr;
+                    paramtr = i.inner(&self.oas_value);
+                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
+                        == "path".to_string()
+                    {
                         hash_set.insert(i.inner(&self.oas_value).name);
+                        flag = true;
                         break;
                     }
                 }
