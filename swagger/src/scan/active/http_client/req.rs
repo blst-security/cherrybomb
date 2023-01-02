@@ -172,7 +172,7 @@ impl AttackRequest {
             Ok(res) => {
                 if res.status() == 200 {
                     match res.text().await {
-                        Ok(final_resp) => (final_resp, true),
+                        Ok(final_resp) =>   (final_resp, true) ,
                         Err(e) => (e.to_string(), false),
                     }
                 } else {
@@ -186,11 +186,12 @@ impl AttackRequest {
         }
     }
 
+
     pub async fn send_request(&self, print: bool) -> Result<AttackResponse, reqwest::Error> {
         let client = reqwest::Client::new();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
-        let h = self.get_headers(&headers1);
+        let mut h = self.get_headers(&headers1);
         //   h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let req = client
             .request(method1, &format!("{}{}", path, req_query))
