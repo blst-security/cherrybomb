@@ -1,6 +1,6 @@
 [package]
 name = "cherrybomb-swagger"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "A helper package for cherrybomb"
 license = "Apache-2.0"

@@ -33,6 +33,7 @@ pub struct AttackResponse {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct AttackRequest {
+    pub servers: Vec<Server>,
     pub path: String,
     pub parameters: Vec<RequestParameter>,
     pub payload: String,

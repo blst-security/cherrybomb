@@ -28,31 +28,31 @@ pub enum ActiveScanType {
 
 type PayloadMap = HashMap<Vec<String>, Schema>;
 
-#[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Default, PartialEq)]
 pub struct Payload {
     pub payload: Value,
     pub map: PayloadMap,
 }
-#[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Default, PartialEq)]
 pub struct Path {
     pub path_item: PathItem,
     pub path: String,
 }
 
-#[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Default, PartialEq)]
 struct OASMap {
     pub path: Path,
     pub payload: Payload,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ResponseData {
     location: String,
     alert_text: String,
     serverity: Level,
 }
 
-#[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Default, PartialEq)]
 pub struct ActiveScan<T>
 where
     T: Serialize,
