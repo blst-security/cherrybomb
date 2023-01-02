@@ -32,7 +32,8 @@ impl AttackRequestBuilder {
                 let mut new_server_addr = server.base_url.clone();
                 if let Some(vars) = &server.variables {
                     for (k, v) in vars {
-                        new_server_addr = new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
+                        new_server_addr =
+                            new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
                     }
                 }
                 if !secure & new_server_addr.starts_with("https") {
@@ -45,8 +46,10 @@ impl AttackRequestBuilder {
                 });
             }
         }
-            //TODO implement error here
-        else { println!("No servers supplied") }
+        //TODO implement error here
+        else {
+            println!("No servers supplied")
+        }
         self
     }
 
@@ -55,8 +58,9 @@ impl AttackRequestBuilder {
         self
     }
 
-    pub fn uri_http(&mut self, server: &Server) -> &mut Self { //build base url with http protocol
-        let mut new_url = server.base_url.to_string();
+    pub fn uri_http(&mut self, server: &Server) -> &mut Self {
+        //build base url with http protocol
+        let mut new_url = server.url.to_string();
         if let Some(var) = server.variables.clone() {
             for (key, value) in var {
                 new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
@@ -189,13 +193,47 @@ impl AttackRequest {
             .map(|h| (h.name.clone(), h.value.clone()))
             .collect()
     }
+    pub async fn send_request_with_response(&self) -> (String, bool) {
+        let client = reqwest::Client::new();
+        let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
+        let (req_payload, req_query, path, headers1) = self.params_to_payload();
+        let h = self.get_headers(&headers1);
+        //   h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
+        let req = client
+            .request(method1, &format!("{}{}", path, req_query))
+            .body(req_payload.clone())
+            .headers((&h).try_into().expect("not valid headers"))
+            .header("content-type", "application/json")
+            .send();
+        // .await
+        // .expect("Failed to send")
+        // .text()
+        // .await;
+
+        match req.await {
+            Ok(res) => {
+                if res.status() == 200 {
+                    match res.text().await {
+                        Ok(final_resp) => (final_resp, true),
+                        Err(e) => (e.to_string(), false),
+                    }
+                } else {
+                    ("error".to_string(), false)
+                }
+            }
+            Err(e) => {
+                println!("{}: {}", "FAILED TO EXECUTE".red().bold().blink(), self);
+                (e.to_string(), false)
+            }
+        }
+    }
 
     pub async fn send_request(&self, print: bool) -> Result<AttackResponse, reqwest::Error> {
         let client = reqwest::Client::new();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let mut h = self.get_headers(&headers1);
-        h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
+        //   h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let req = client
             .request(method1, format!("{}{}", path, req_query))
             .body(req_payload.clone())
@@ -234,7 +272,10 @@ impl AttackRequest {
         // dbg!(&self.servers);
         for server in &self.servers {
             let req = client
-                .request(method1.clone(), format!("{}{}{}", server.base_url, path, req_query))
+                .request(
+                    method1.clone(),
+                    format!("{}{}{}", server.base_url, path, req_query),
+                )
                 .body(req_payload.clone())
                 .headers((&h).try_into().expect("not valid headers"))
                 .header("content-type", "application/json")
@@ -256,7 +297,13 @@ impl AttackRequest {
                     })
                 }
                 Err(e) => {
-                    println!("{}: {} - {}: {}", "FAILED TO EXECUTE".red().bold(), self, "ERROR".red().bold(), e);
+                    println!(
+                        "{}: {} - {}: {}",
+                        "FAILED TO EXECUTE".red().bold(),
+                        self,
+                        "ERROR".red().bold(),
+                        e
+                    );
                 }
             }
         }

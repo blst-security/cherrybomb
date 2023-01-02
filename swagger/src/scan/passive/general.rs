@@ -45,11 +45,7 @@ impl<T: OAS + Serialize> PassiveGeneralScan for PassiveSwaggerScan<T> {
         let mut alerts = vec![];
         for (path, item) in &self.swagger.get_paths() {
             for (m, op) in item.get_ops() {
-                let statuses = op
-                    .responses()
-                    .keys()
-                    .cloned()
-                    .collect::<Vec<String>>();
+                let statuses = op.responses().keys().cloned().collect::<Vec<String>>();
                 let mut found = false;
                 for status in statuses {
                     if let Ok(s) = status.parse::<u16>() {
