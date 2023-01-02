@@ -13,8 +13,8 @@ pub fn print_err(err: &str) {
     println!("Error: {}", err.red());
 }
 
-pub fn read_file(mut file_name: &str) -> Option<String> {
-    let mut file = match File::open(&mut file_name) {
+pub fn read_file(file_name: &str) -> Option<String> {
+    let mut file = match File::open(file_name) {
         Ok(f) => f,
         Err(_) => {
             print_err(&format!("File \"{}\" not found", file_name));

@@ -194,7 +194,7 @@ impl EpForTable {
                 .as_ref()
                 .unwrap_or(&vec![])
                 .iter()
-                .map(|s| s.url.clone())
+                .map(|s| s.base_url.clone())
                 .collect(),
             ops: ops1.iter().map(|(m, _)| m).cloned().collect(),
             query_params,
@@ -270,7 +270,7 @@ impl EpTable {
                 .as_ref()
                 .unwrap_or(&vec![])
                 .iter()
-                .map(|s| s.url.clone())
+                .map(|s| s.base_url.clone())
                 .collect(),
         }
     }
