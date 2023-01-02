@@ -10,6 +10,15 @@ use serde_json::json;
 use utils;
 
 impl<T: OAS + Serialize> ActiveScan<T> {
+    pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
+        let mut change = &mut json!(null);
+        let mut ret = orig.clone();
+        for path_part in path.iter() {
+            change = &mut ret[path_part];
+        }
+        *change = new_val;
+        ret.clone()
+    }
     pub async fn func_test(&self, _auth: &Authorization) -> CheckRetVal {
         let values_path = self.path_params.clone();
         let mut ret_val = CheckRetVal::default();
@@ -24,4 +33,5 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
         ret_val
     }
-}
+ 
+            }
