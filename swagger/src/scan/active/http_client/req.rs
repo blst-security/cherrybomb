@@ -32,7 +32,8 @@ impl AttackRequestBuilder {
                 let mut new_server_addr = server.base_url.clone();
                 if let Some(vars) = &server.variables {
                     for (k, v) in vars {
-                        new_server_addr = new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
+                        new_server_addr =
+                            new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
                     }
                 }
                 if !secure & new_server_addr.starts_with("https") {
@@ -45,8 +46,10 @@ impl AttackRequestBuilder {
                 });
             }
         }
-            //TODO implement error here
-        else { println!("No servers supplied") }
+        //TODO implement error here
+        else {
+            println!("No servers supplied")
+        }
         self
     }
 
@@ -211,7 +214,7 @@ impl AttackRequest {
             Ok(res) => {
                 if res.status() == 200 {
                     match res.text().await {
-                        Ok(final_resp) =>   (final_resp, true) ,
+                        Ok(final_resp) => (final_resp, true),
                         Err(e) => (e.to_string(), false),
                     }
                 } else {
@@ -224,7 +227,6 @@ impl AttackRequest {
             }
         }
     }
-
 
     pub async fn send_request(&self, print: bool) -> Result<AttackResponse, reqwest::Error> {
         let client = reqwest::Client::new();
@@ -270,7 +272,10 @@ impl AttackRequest {
         // dbg!(&self.servers);
         for server in &self.servers {
             let req = client
-                .request(method1.clone(), format!("{}{}{}", server.base_url, path, req_query))
+                .request(
+                    method1.clone(),
+                    format!("{}{}{}", server.base_url, path, req_query),
+                )
                 .body(req_payload.clone())
                 .headers((&h).try_into().expect("not valid headers"))
                 .header("content-type", "application/json")
@@ -292,7 +297,13 @@ impl AttackRequest {
                     })
                 }
                 Err(e) => {
-                    println!("{}: {} - {}: {}", "FAILED TO EXECUTE".red().bold(), self, "ERROR".red().bold(), e);
+                    println!(
+                        "{}: {} - {}: {}",
+                        "FAILED TO EXECUTE".red().bold(),
+                        self,
+                        "ERROR".red().bold(),
+                        e
+                    );
                 }
             }
         }
