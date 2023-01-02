@@ -1,12 +1,10 @@
-use clap::{Parser,Subcommand,ArgAction};
+use clap::{ArgAction, Parser, Subcommand};
+use cli::*;
+use colored::*;
+use std::fmt;
+use std::str::FromStr;
 use swagger::ActiveChecks;
 use swagger::PassiveChecks;
-use std::str::FromStr;
-use std::fmt;
-use colored::*;
-use cli::*;
-
-
 
 const SWAGGER_OUTPUT_FILE: &str = "results.txt";
 
@@ -44,8 +42,8 @@ impl fmt::Display for OutputFormat {
 #[clap(name = "auth")]
 pub struct AuthOpt {
     ///Sets the authorization type, 0 - Basic, 1 - Bearer, 2 - JWT, 3 - API Key, 4 - Cookie, 5 - Custom
-    #[clap(short,long="type")]
-    tp:String,
+    #[clap(short, long = "type")]
+    tp: String,
     ///Sets the authorization token
     ///If it's of type basic then username:password
     ///If it's Custom then the scheme is delivery method,name,value->headers,X-CUSTOM-HEADER,value
@@ -59,7 +57,7 @@ pub enum AuthCmd {
     ///Adds an auth token to the Attacker's requests, for auth based apps
     Auth(AuthOpt),
 }
-#[derive(Parser, Debug,Clone)]
+#[derive(Parser, Debug, Clone)]
 #[clap(name = "oas")]
 pub struct OASOpt {
     ///The output's verbosity level, 0 - check table and alert table, 1 - full check table, 2 - only failed checks(table)
@@ -160,13 +158,15 @@ struct Cli {
 
 pub async fn parse_oas(oas: OASOpt) {
     match oas.format {
-        OutputFormat::Json => {},
-        _=> { println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n", "https://www.blstsecurity.com".bold().underline())}
+        OutputFormat::Json => {}
+        _ => {
+            println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n", "https://www.blstsecurity.com".bold().underline())
+        }
     }
-    if oas.no_active{
-        try_send_telemetry(oas.no_telemetry,"passive oas scan").await;
-    }else{
-        try_send_telemetry(oas.no_telemetry,"passive and active oas scan").await;
+    if oas.no_active {
+        try_send_telemetry(oas.no_telemetry, "passive oas scan").await;
+    } else {
+        try_send_telemetry(oas.no_telemetry, "passive and active oas scan").await;
     }
     if let OutputFormat::Web = oas.format {
         std::process::exit(0);
@@ -207,25 +207,23 @@ pub async fn parse_oas(oas: OASOpt) {
     std::process::exit(res.into());
 }
 
-pub async fn parse_param_table(p_table:ParamTableOpt){
-    try_send_telemetry(p_table.no_telemetry,"param_table").await;
-    param_table(&p_table.file,p_table.name); 
+pub async fn parse_param_table(p_table: ParamTableOpt) {
+    try_send_telemetry(p_table.no_telemetry, "param_table").await;
+    param_table(&p_table.file, p_table.name);
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
-pub async fn parse_ep_table(e_table:EpTableOpt){
-    try_send_telemetry(e_table.no_telemetry,"ep_table").await;
-    ep_table(&e_table.file,e_table.path);
+pub async fn parse_ep_table(e_table: EpTableOpt) {
+    try_send_telemetry(e_table.no_telemetry, "ep_table").await;
+    ep_table(&e_table.file, e_table.path);
     println!("\n\nFor a WebUI version of the scan you can go to {} and run the OAS scan on the main page!\n","https://www.blstsecurity.com".bold().underline());
 }
-
 
 #[tokio::main]
 async fn main() {
     let opt = Cli::parse();
-    match opt.command{
-        Commands::Oas(opt)=>parse_oas(opt).await,
-        Commands::ParamTable(opt)=>parse_param_table(opt).await,
-        Commands::EpTable(opt)=>parse_ep_table(opt).await,
+    match opt.command {
+        Commands::Oas(opt) => parse_oas(opt).await,
+        Commands::ParamTable(opt) => parse_param_table(opt).await,
+        Commands::EpTable(opt) => parse_ep_table(opt).await,
     }
 }
-

@@ -12,7 +12,6 @@ impl Reference {
             + Clone
             + Serialize
             + PartialEq
-            + Eq
             + Default
             + for<'de> serde::Deserialize<'de>,
     {
@@ -28,7 +27,7 @@ impl Reference {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum ParamRef {
     Ref(Reference),
@@ -48,7 +47,7 @@ impl ParamRef {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum ReqRef {
     Ref(Reference),
@@ -68,7 +67,7 @@ impl ReqRef {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum SchemaRef {
     Ref(Reference),
@@ -91,7 +90,7 @@ impl SchemaRef {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum HeaderRef {
     Ref(Reference),
@@ -111,7 +110,7 @@ impl HeaderRef {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum ResponseRef {
     Ref(Reference),
@@ -171,7 +170,7 @@ impl SecSchemeRef {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum CallbackRef {
     Ref(Reference),

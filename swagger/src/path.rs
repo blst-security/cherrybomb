@@ -3,7 +3,7 @@ use crate::param::*;
 
 pub type Paths = HashMap<String, PathItem>;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct Operation {
     pub tags: Option<Vec<String>>,
     pub summary: Option<String>,
@@ -76,7 +76,7 @@ impl Operation {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct PathItem {
     #[serde(rename = "$ref")]
     pub item_ref: Option<String>,
@@ -145,7 +145,7 @@ impl PathItem {
                 }
             }
             let servers = if let Some(s) = operation.servers.clone() {
-                s.iter().map(|s1| s1.url.clone()).collect()
+                s.iter().map(|s1| s1.base_url.clone()).collect()
             } else {
                 vec![]
             };
