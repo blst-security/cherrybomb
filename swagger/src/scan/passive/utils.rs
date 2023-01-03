@@ -51,7 +51,7 @@ where
         ret.extend(item.get_ops().iter().map(|(m, op)| {
             (
                 op.responses(),
-                format!("swagger path:{} operation:{}", path, m),
+                format!("swagger path:{path} operation:{m}"),
             )
         }));
     }
@@ -98,8 +98,7 @@ where
                 (
                     param.clone(),
                     format!(
-                        "swagger path:{} request body, payload type:{:?}",
-                        path, req_payload_type
+                        "swagger path:{path} request body, payload type:{req_payload_type:?}" 
                     ),
                 )
             }));
@@ -110,9 +109,8 @@ where
                             (
                                 Param::schema_rec(swagger_value, s.inner(swagger_value), true),
                                 format!(
-                                    "swagger path:{} status:{} response body, media type:{}",
-                                    path, status, name
-                                ),
+                                    "swagger path:{path} status:{status} response body, media type:{name}"
+                                )
                             )
                         })
                     }));
@@ -321,7 +319,7 @@ where
                 if let Some(content) = response.content {
                     for (name, m_t) in content {
                         if let Some(s) = m_t.schema {
-                            schemas.extend(get_all_params_by_type(&s.inner(swagger_value),swagger_value,tp,format!("swagger rooot path:{} method:{} response status:{}  media type:{}",path,m,status,name)));
+                            schemas.extend(get_all_params_by_type(&s.inner(swagger_value),swagger_value,tp,format!("swagger rooot path:{path} method:{m} response status:{status}  media type:{name}")));
                         }
                     }
                 }
@@ -381,7 +379,7 @@ pub fn get_all_params_by_type(
                     &p.inner(swagger_value),
                     swagger_value,
                     tp,
-                    format!("{} prop:{}", location, name),
+                    format!("{location} prop:{name}"),
                 )
             }));
         }

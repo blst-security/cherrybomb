@@ -15,7 +15,7 @@ impl<T: OAS + Serialize> PassiveAuthScan for PassiveSwaggerScan<T> {
                 alerts.push(Alert::new(
                     Level::Low,
                     "Operation has security defined, but no 401 response defined",
-                    format!("swagger root path:{} method:{}", path, method),
+                    format!("swagger root path:{path} method:{method}"),
                 ));
             }
         }
@@ -28,7 +28,7 @@ impl<T: OAS + Serialize> PassiveAuthScan for PassiveSwaggerScan<T> {
                 alerts.push(Alert::new(
                     Level::Low,
                     "Operation has security defined, but no 403 response defined",
-                    format!("swagger root path:{} method:{}", path, method),
+                    format!("swagger root path:{path} method:{method}"),
                 ));
             }
         }
@@ -45,7 +45,7 @@ impl<T: OAS + Serialize> PassiveAuthScan for PassiveSwaggerScan<T> {
                         alerts.push(Alert::new(
                             Level::High,
                             "The API uses BASIC authentication, which is highly unrecommended",
-                            format!("swagger root components scheme:{}", s_name),
+                            format!("swagger root components scheme:{s_name}"),
                         ));
                     }
                 }
@@ -82,7 +82,7 @@ impl<T: OAS + Serialize> PassiveAuthScan for PassiveSwaggerScan<T> {
                     alerts.push(Alert::new(
                         Level::Medium,
                         "Endpoint does not use any security scheme",
-                        format!("swagger root path:{} method:{}", path, m),
+                        format!("swagger root path:{path} method:{m}"),
                     ));
                     continue;
                 }
@@ -90,14 +90,14 @@ impl<T: OAS + Serialize> PassiveAuthScan for PassiveSwaggerScan<T> {
                     if let Some(scheme) = general_auths.get(sec) {
                         if let Some(s) = &scheme.scheme {
                             if s == "basic" {
-                                alerts.push(Alert::new(Level::High,"The API uses BASIC authentication, which is highly unrecommended",format!("swagger root path:{} method:{} scheme:{}",path,m,sec)));
+                                alerts.push(Alert::new(Level::High,"The API uses BASIC authentication, which is highly unrecommended",format!("swagger root path:{path} method:{m} scheme:{sec}")));
                             }
                         }
                     } else {
                         alerts.push(Alert::new(
                             Level::Medium,
                             "Endpoint with a security scheme that does not exist",
-                            format!("swagger root path:{} method:{}", path, m),
+                            format!("swagger root path:{path} method:{m}"),
                         ));
                     }
                 }

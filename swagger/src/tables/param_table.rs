@@ -81,7 +81,7 @@ impl fmt::Display for ParamForTable {
         } else {
             "NULL".to_string()
         };
-        let min_max = format!("{}-{}", min, max);
+        let min_max = format!("{min}-{max}");
         let lines = *([
             self.statuses.len(),
             self.dms.len(),
@@ -131,7 +131,7 @@ impl fmt::Display for ParamForTable {
             ));
         }
         string.push_str(&format!("{:-<210}", ""));
-        write!(f, "{}", string)
+        write!(f, "{string}")
     }
 }
 impl ParamForTable {
@@ -181,7 +181,7 @@ impl ParamTable {
             if i % 50usize == 0 {
                 println!("{}\n{:-<210}", head, "");
             }
-            println!("{}", param);
+            println!("{param}");
         }
         //println!("{}",head);
     }

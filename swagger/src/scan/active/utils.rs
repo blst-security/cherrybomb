@@ -1,14 +1,12 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap};
 
 use super::http_client::RequestParameter;
 use crate::{
     active::http_client::AttackRequest,
     path::Operation,
-    refs::{ResponseRef, SchemaRef},
+    refs::{SchemaRef},
     Authorization, Method, QuePay, Server,
 };
-use reqwest::{Client, Request, RequestBuilder, Url};
-use serde::{ser::Error, Deserialize, Serialize};
 use serde_json::Value;
 
 pub fn create_payload(
@@ -26,7 +24,9 @@ pub fn create_payload(
         let in_var = parameter.param_in;
         let param_name = parameter.name.to_string();
         if in_var.trim().eq("path") {
+            // if param is in path
             if let Some(the_key) = hash_map.iter().find_map(|(key, _val)| {
+                //if is match the hashmap
                 if key.to_lowercase().eq(&param_name.to_lowercase()) {
                     Some(key)
                 } else {
@@ -36,17 +36,20 @@ pub fn create_payload(
                 let param_value = hash_map.get(the_key).unwrap();
                 let mut params_vec = vec![];
                 params_vec.push(RequestParameter {
+                    //push the parameter in the req vec
                     name: param_name,
                     value: param_value.to_string(),
                     dm: QuePay::Path,
                 });
-                if placeholder.is_none() { // if there is no placeholder and just to construct a paylaod and it's match with hashmap so return it
+                if placeholder.is_none() {
+                    // if there is no placeholder  and it's match with hashmap so return the vec param
                     return params_vec;
+                } else {
+                    //if there is  placeholder and  the value  exist in the hashmap so let's call the second method for paylaod redirection or pollution.
+                    return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
                 }
-                else { //if there is  placeholder and  the value  exist in the hashmap so let's call the second method for paylaod redirection or pollution.
-                    return create_payload_for_get(swagger, op , placeholder, &mut params_vec);
-                }
-            } else { // if the param name does not exist in the hashmap so call the sec method to get default values
+            } else {
+                // if the param name does not exist in the hashmap so call the sec method to get default values
                 return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
             }
         }
@@ -116,7 +119,7 @@ pub fn read_json_func(obj: &Value, element: &String, vector: &mut Vec<String>) -
             read_json_func(value, element, vector);
         }
     }
-    return vector.to_vec();
+    vector.to_vec()
 }
 
 pub async fn send_req(
@@ -126,7 +129,6 @@ pub async fn send_req(
     auth: &Authorization,
     server: &Option<Vec<Server>>,
 ) -> Vec<String> {
-    println!("elem : {:?}", element);
     let mut collection_of_values: Vec<String> = Vec::new();
     let req = AttackRequest::builder()
         .uri(server, &path)
@@ -141,7 +143,7 @@ pub async fn send_req(
         let object: Value = serde_json::from_str(&res.0).unwrap_or_default();
         if let Some(i) = object.as_array() {
             for x in i.iter() {
-                println!("x: {:?}", x);
+                println!("x: {x:?}");
                 read_json_func(x, element, &mut collection_of_values);
             }
         }
@@ -149,13 +151,12 @@ pub async fn send_req(
         //     }
     }
 
-    println!("Collections: {:?}", collection_of_values);
+    println!("Collections: {collection_of_values:?}");
     collection_of_values
 }
- 
 
 /// This function is used to create a payload for a GET request parameters
-/// 
+///
 
 ///THIS FUNCTION NEEDS TO BE REWiED BECAUSE WHEN THERE IS AN PATH ASLREADY IN PARAMS_VEC BUT NEED TO USE FOR REDIRECT OF POLLUTION
 pub fn create_payload_for_get(
@@ -164,98 +165,127 @@ pub fn create_payload_for_get(
     test_value: Option<String>,
     params_vec: &mut Vec<RequestParameter>,
 ) -> Vec<RequestParameter> {
- //   let mut params_vec = vec![];
+    //   let mut params_vec = vec![];
     for i in op.params() {
         let parameter = i.inner(swagger);
         let in_var = parameter.param_in;
         let param_name = parameter.name.to_string();
         match in_var.as_str().to_lowercase().trim() {
             "path" => {
-                let mut option_example_value = None;
-                if let Some(value) = parameter.examples {
-                    if let Some((_ex, val)) = value.into_iter().next() {
-                        option_example_value = Some(val.value.to_string());
-                    }
-                }
-                if let Some(schema_ref) = parameter.schema {
-                    // dbg!(&schema_ref);
-                    if let Some(schema_type) = schema_ref.inner(swagger).schema_type {
-                        // let val_to_path:String;
-                        match schema_type.as_str() {
-                            "string" => {
-                                let mut example_value = "randomString".to_string();
-                                if let Some(val) = option_example_value {
-                                    example_value = val;
-                                }
-
-                                params_vec.push(RequestParameter {
-                                    name: param_name,
-                                    value: example_value,
-                                    dm: QuePay::Path,
-                                });
-                            }
-                            "integer" => {
-                                let mut example_value = "123".to_string();
-                                if let Some(val) = option_example_value {
-                                    example_value = val;
-                                }
-                                params_vec.push(RequestParameter {
-                                    name: param_name,
-                                    value: example_value,
-                                    dm: QuePay::Path,
-                                });
-                            }
-                            "boolean" => {
-                                let mut example_value = "true".to_string();
-                                if let Some(val) = option_example_value {
-                                    example_value = val;
-                                }
-
-                                params_vec.push(RequestParameter {
-                                    name: param_name,
-                                    value: example_value,
-                                    dm: QuePay::Path,
-                                });
-                            }
-                            _ => (),
-                        };
-                    } else {
-                        let mut example_value = "randomString".to_string();
-                        if let Some(val) = option_example_value {
-                            example_value = val;
+                // if the param is in the path
+                if !params_vec.iter().any(|s| s.name == param_name) {
+                    //  check if there is not  a path parameter already configured so
+                    //cwe heck if param_name is not exist in the params_vec
+                    let mut option_example_value = None;
+                    if let Some(value) = parameter.examples {
+                        if let Some((_ex, val)) = value.into_iter().next() {
+                            option_example_value = Some(val.value.to_string());
                         }
+                    }
+                    if let Some(schema_ref) = parameter.schema {
+                        // dbg!(&schema_ref);
+                        if let Some(schema_type) = schema_ref.inner(swagger).schema_type {
+                            // let val_to_path:String;
+                            match schema_type.as_str() {
+                                "string" => {
+                                    let mut example_value = "randomString".to_string();
+                                    if let Some(val) = option_example_value {
+                                        example_value = val;
+                                    }
 
-                        params_vec.push(RequestParameter {
-                            name: param_name,
-                            value: example_value,
-                            dm: QuePay::Path,
-                        });
+                                    params_vec.push(RequestParameter {
+                                        name: param_name,
+                                        value: example_value,
+                                        dm: QuePay::Path,
+                                    });
+                                }
+                                "integer" => {
+                                    let mut example_value = "123".to_string();
+                                    if let Some(val) = option_example_value {
+                                        example_value = val;
+                                    }
+                                    params_vec.push(RequestParameter {
+                                        name: param_name,
+                                        value: example_value,
+                                        dm: QuePay::Path,
+                                    });
+                                }
+                                "boolean" => {
+                                    let mut example_value = "true".to_string();
+                                    if let Some(val) = option_example_value {
+                                        example_value = val;
+                                    }
+
+                                    params_vec.push(RequestParameter {
+                                        name: param_name,
+                                        value: example_value,
+                                        dm: QuePay::Path,
+                                    });
+                                }
+                                _ => (),
+                            };
+                        } else {
+                            let mut example_value = "randomString".to_string();
+                            if let Some(val) = option_example_value {
+                                example_value = val;
+                            }
+
+                            params_vec.push(RequestParameter {
+                                name: param_name,
+                                value: example_value,
+                                dm: QuePay::Path,
+                            });
+                        }
                     }
                 }
             }
             "query" => {
                 //todo support type
-                let mut final_value = "blstpollute".to_string();
+                let final_value = "blstpollute".to_string(); //random string use to parameter pollution
                 if let Some(ref value) = test_value {
+                    // in case of ssrf of redirection there is Some(value)
                     if !value.eq(&"".to_string()) {
-                        if test_value.as_ref().is_none() {
-                            // let mut example_value = "randomString".to_string();
-                            //let mut  option_example_value= None  ;
-                            if let Some(values) = parameter.examples {
-                                if let Some((_ex, val)) = values.into_iter().next() {
-                                    final_value = val.value.to_string();
-                                }
-                            }
-                        } else {
-                            // unwrap - else clause of is_none
-                            final_value = value.to_string();
-                        }
+                        //
+                        //    if test_value.as_ref().is_none() {
                         params_vec.push(RequestParameter {
                             name: param_name,
                             dm: QuePay::Query,
-                            value: final_value,
+                            value: value.to_string(),
                         });
+                    } else {
+                        //if the value is empty string means that want to insert example of default values
+                        if parameter.required.unwrap_or(false) {
+                            //check if the query parameter is mandatory
+                            if let Some(values) = parameter.examples {
+                                if let Some((_ex, val)) = values.into_iter().next() {
+                                    //take example as value
+                                    params_vec.push(RequestParameter {
+                                        name: param_name,
+                                        dm: QuePay::Query,
+                                        value: val.value.to_string(),
+                                    });
+                                } else {
+                                    //if no examples insert randonstring
+                                    params_vec.push(RequestParameter {
+                                        name: param_name,
+                                        dm: QuePay::Query,
+                                        value: "radomString".to_string(),
+                                    });
+                                }
+                            }
+                        }
                     }
+                } else {
+                    //if value to test is none, meaning test for pollution
+
+                    // unwrap - else clause of is_none
+                    // final_value = value.to_string();
+
+                    params_vec.push(RequestParameter {
+                        name: param_name,
+                        dm: QuePay::Query,
+                        value: final_value,
+                    });
                 }
             }
             _ => (),

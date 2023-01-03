@@ -274,7 +274,7 @@ impl Param {
             String::new()
         };
         let format = if let Some(f) = schema.format {
-            println!("{}", f);
+            println!("{f}");
             f
         } else {
             String::new()
@@ -332,7 +332,7 @@ impl Param {
                 Self::simple_to_param(schema, String::from("string"), required)
             }
             _ => {
-                println!("{:?}", p_type);
+                println!("{p_type:?}");
                 Param::default()
             }
         }

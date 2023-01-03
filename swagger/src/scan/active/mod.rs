@@ -71,11 +71,11 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         let oas = match serde_json::from_value::<T>(oas_value.clone()) {
             Ok(oas) => oas,
             Err(e) => {
-                println!("{:?}", e);
+                println!("{e:?}");
                 return Err("Failed at deserializing swagger value to a swagger struct, please check the swagger definition");
             }
         };
-        let mut path_params: HashMap<String, String> = HashMap::new();
+        let  path_params: HashMap<String, String> = HashMap::new();
         //  let path_params = Self::create_hash(&auth_p);
         let payloads = Self::payloads_generator(&oas, &oas_value);
         Ok(ActiveScan {
@@ -276,47 +276,43 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             String::new()
         }
     }
-    pub async fn create_hash(&self, auth: &Authorization) -> HashMap<String, String> { //this function it is called once time and return a hashmap with 
+    pub async fn create_hash(&self, auth: &Authorization) -> HashMap<String, String> {
+        //this function it is called once time and return a hashmap with
         //UUID as key and token as string
-        let mut ret_val = CheckRetVal::default();
         let mut hash_set: HashSet<String> = HashSet::new();
-        let  mut hash_map: HashMap<String, String> = HashMap::new();
-        let mut vec_param: Vec<String> = Vec::new();
+        let mut hash_map: HashMap<String, String> = HashMap::new();
 
         let server = self.oas.servers();
-        let mut UUID_HASH: HashMap<String, Vec<String>> = HashMap::new();
-        for (_path, _item) in &self.oas.get_paths() { 
-            let mut flag = false; 
-            for (m, op) in _item.get_ops().iter() {
+        for  _item in self.oas.get_paths().values() {
+            for (_m, op) in _item.get_ops().iter() {
                 for i in op.params() {
-                    let mut paramtr;
-                    paramtr = i.inner(&self.oas_value);
                     if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
-                        == "path".to_string()
+                        == *"path"
                     {
                         hash_set.insert(i.inner(&self.oas_value).name); // insert all path parameter name
-                        flag = true;
                         break;
                     }
                 }
             }
         }
 
-        for (path, item) in &self.oas.get_paths() { //loop over all paths in OAS
-            let mut flag = false;
-            for (_m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+        for (path, item) in &self.oas.get_paths() {
+            //loop over all paths in OAS
+            for (_m, _op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
                 // if  path param
-                for element in &hash_set { //loop over all path parameters 
-                    let mut vec_values = send_req(path.to_string(), &element, auth, &server).await; // send request with parameter and return value
+                for element in &hash_set {
+                    //loop over all path parameters
+                    let vec_values = send_req(path.to_string(), element, auth, &server).await; // send request with parameter and return value
                     if !vec_values.is_empty() {
                         if let Some(value) = vec_values.get(0) {
-                            hash_map.insert(element.to_string(), value.to_string()); //then add the values  into the hashmap
+                            hash_map.insert(element.to_string(), value.to_string());
+                            //then add the values  into the hashmap
                         }
                     }
                 }
             }
         }
-         hash_map
+        hash_map
     }
 }
 
