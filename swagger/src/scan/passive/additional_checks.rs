@@ -10,7 +10,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
             if format_value.eq("int32") || format_value.eq("int64") {
                 if let Some(schema_type) = schema.inner(&self.swagger_value).schema_type {
                     if schema_type.as_str() != "integer" {
-                        let _= &alerts.push(Alert::new(
+                        let _ = &alerts.push(Alert::new(
                             Level::Info,
                             "Type integer must have a int32 or int64 format",
                             format!("swagger path:{path} schema:{schema:?}"),
@@ -21,7 +21,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                 //check if the float or double format has a number type
                 if let Some(schema_type) = schema.inner(&self.swagger_value).schema_type {
                     if schema_type.as_str().to_lowercase() != "number" {
-                        let _= &alerts.push(Alert::new(
+                        let _ = &alerts.push(Alert::new(
                             Level::Info,
                             "Type number must have a float or double format",
                             format!("swagger path:{path} schema:{schema:?}"),
@@ -72,7 +72,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                                 schemaref.inner(&self.swagger_value).schema_type
                             {
                                 if schema_type.as_str().to_lowercase() != "number" {
-                                    let _= &alerts.push(Alert::new(
+                                    let _ = &alerts.push(Alert::new(
                                         Level::Info,
                                         "Type number must have a float or double format",
                                         format!("component name: {key:?}"),

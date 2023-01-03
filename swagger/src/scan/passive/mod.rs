@@ -42,7 +42,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
                 verbosity: 0,
             }),
             Err(e) => {
-                println!("{e:?}", );
+                println!("{e:?}",);
                 Err("Failed at deserializing swagger value to a swagger struct, please check the swagger definition")
             }
         }

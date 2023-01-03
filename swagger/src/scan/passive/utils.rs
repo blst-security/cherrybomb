@@ -48,12 +48,11 @@ where
         }
     }
     for (path, item) in &swagger.get_paths() {
-        ret.extend(item.get_ops().iter().map(|(m, op)| {
-            (
-                op.responses(),
-                format!("swagger path:{path} operation:{m}"),
-            )
-        }));
+        ret.extend(
+            item.get_ops()
+                .iter()
+                .map(|(m, op)| (op.responses(), format!("swagger path:{path} operation:{m}"))),
+        );
     }
     ret
 }
@@ -97,9 +96,7 @@ where
             params.extend(req_payload_params.iter().map(|param| {
                 (
                     param.clone(),
-                    format!(
-                        "swagger path:{path} request body, payload type:{req_payload_type:?}" 
-                    ),
+                    format!("swagger path:{path} request body, payload type:{req_payload_type:?}"),
                 )
             }));
             for (status, payload) in operation.responses() {

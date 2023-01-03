@@ -1,11 +1,9 @@
-use std::collections::{HashMap};
+use std::collections::HashMap;
 
 use super::http_client::RequestParameter;
 use crate::{
-    active::http_client::AttackRequest,
-    path::Operation,
-    refs::{SchemaRef},
-    Authorization, Method, QuePay, Server,
+    active::http_client::AttackRequest, path::Operation, refs::SchemaRef, Authorization, Method,
+    QuePay, Server,
 };
 use serde_json::Value;
 
@@ -156,7 +154,6 @@ pub async fn send_req(
 }
 
 /// This function is used to create a payload for a GET request parameters
-///
 
 ///THIS FUNCTION NEEDS TO BE REWiED BECAUSE WHEN THERE IS AN PATH ASLREADY IN PARAMS_VEC BUT NEED TO USE FOR REDIRECT OF POLLUTION
 pub fn create_payload_for_get(

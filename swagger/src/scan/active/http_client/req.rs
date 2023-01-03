@@ -33,7 +33,7 @@ impl AttackRequestBuilder {
                 if let Some(vars) = &server.variables {
                     for (k, v) in vars {
                         new_server_addr =
-                        new_server_addr.replace(&format!("{{{k}}}"), v.default.as_str());
+                            new_server_addr.replace(&format!("{{{k}}}"), v.default.as_str());
                     }
                 }
                 if !secure & new_server_addr.starts_with("https") {
@@ -232,7 +232,7 @@ impl AttackRequest {
         let client = reqwest::Client::new();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
-        let  h = self.get_headers(&headers1);
+        let h = self.get_headers(&headers1);
         //   h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let req = client
             .request(method1, format!("{path}{req_query}"))

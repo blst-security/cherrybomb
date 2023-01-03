@@ -137,7 +137,7 @@ impl<T: OAS + Serialize> PassiveGeneralScan for PassiveSwaggerScan<T> {
         if let Some(comps) = &self.swagger.components() {
             if let Some(schemas) = &comps.schemas {
                 for name in schemas.keys() {
-                    let schema_path = format!("#/components/schemas/{name}" );
+                    let schema_path = format!("#/components/schemas/{name}");
                     if !swagger_str.contains(&schema_path) {
                         alerts.push(Alert::new(
                             Level::Info,
