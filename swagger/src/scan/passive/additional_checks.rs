@@ -57,12 +57,12 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                             if let Some(schema_type) =
                                 schemaref.inner(&self.swagger_value).schema_type
                             {
-                                if schema_type.as_str() == "number" {
+                                if schema_type.as_str().to_lowercase() != "integer" {
                                     // int32 or int 64 has to be "integer" as type so the alert is raised
                                     alerts.push(Alert::new(
                                         Level::Info,
                                         "Type integer must have a int32 or int64 format",
-                                        format!("component name: {key:?}"),
+                                        format!("component name: {key}"),
                                     ));
                                 };
                             }

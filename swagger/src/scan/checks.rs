@@ -113,8 +113,11 @@ impl_passive_checks![
     (CheckContainsOperation, check_contains_operation, "CONTAINS OPERATION", "Checks that each path contains at least one operation"),
     (CheckValidEncodings, check_valid_encoding, "VALID ENCODINGS", "Checks that all content types are valid"),
     (CheckDescription, check_description, "DESCRIPTION", "Checks that all operations have a description"),
-    (CheckContainsResponse, check_contains_response, "CONTAINS RESPONSE", "Checks that each operation has a response")
-];
+    (CheckContainsResponse, check_contains_response, "CONTAINS RESPONSE", "Checks that each operation has a response"),
+    (CheckIntegerType, check_int_type, "CHECK FORMAT", "Checks that each integer/number has a correct format")   
+
+
+    ];
 
 impl_active_checks![
     (
@@ -160,10 +163,31 @@ impl_active_checks![
         "Check if the endpoint is correctly configured"
     ),
     (
-        CheckAuthentication,
-        check_authentication,
+        CheckAuthenticationPOST,
+        check_authentication_for_post,
         is_2xx,
-        "BROKEN FUNCTION LEVEL AUTHENTICATION",
+        "AUTH BY PASS",
         "Check if the auth is correctly configured"
-    )
+   ),
+   (
+        CheckAuthenticationGET, 
+        check_authentication_for_get,
+        is_2xx,
+        "AUTH BY PASS", 
+        "Check if the auth is correctly configured"
+   ),
+   (
+    CheckSsrfPOST,
+    check_ssrf_post,
+    ssrf_and_2xx,
+    "SSRF POST",
+    "Check if the endpoint is vulnerable to SSRF"
+),
+(
+    CheckSsrfGET,
+    check_for_ssrf,
+    ssrf_and_2xx,
+    "SSRF GET",
+    "Check if the endpoint is vulnerable to SSRF"
+)
 ];
