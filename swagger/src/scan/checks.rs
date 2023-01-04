@@ -189,5 +189,26 @@ impl_active_checks![
     ssrf_and_2xx,
     "SSRF GET",
     "Check if the endpoint is vulnerable to SSRF"
-)
+),
+(
+    CheckBOLA,
+    check_broken_object_level_authorization,
+    is_2xx,
+    "BROKEN OBJECT LEVEL AUTHORIZATION",
+    "Check if object is vulnerable to level authorization"
+),
+(
+    CheckMethodEncoding,
+    check_method_encoding,
+    is_2xx,
+    "Check Content-type header",
+    "Check if the endpoint can be send with other content type"
+),
+(
+    CheckIDOR,
+    check_broken_object,
+    is_2xx,
+    "BROKEN OBJECT LEVEL AUTHORIZATION",
+    "Check if object is vulnerable to level authorization"
+) 
 ];

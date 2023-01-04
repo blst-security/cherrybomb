@@ -1,4 +1,4 @@
-use super::utils::create_payload;
+use super::utils::{create_payload, recursive_func_to_find_param};
 ///use super::utils::create_payload_for_get;
 use super::*;
 use serde_json::json;
@@ -11,19 +11,314 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
     *change = new_val;
     ret.clone()
 }
-/*pub async fn func_test(&self, _auth: &Authorization) -> CheckRetVal {
-let values_path = self.path_params.clone();
-let ret_val = CheckRetVal::default();
-for (_path, item) in &self.oas.get_paths() {
-    for (_m, op) in item.get_ops().iter() {
-        self.oas.servers();
-        // create_payload(&self.oas_value, op);
 
-        //dbg!(create_payload(&self.oas_value, op, &values_path, None));
-       }
-       */
 
 impl<T: OAS + Serialize> ActiveScan<T> {
+    pub async fn check_broken_object(&self, auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        //let  vec_param_values: Vec<RequestParameter> = Vec::new();
+        let mut vec_param: Vec<String> = Vec::new();
+        let server = &self.oas.servers();
+        let mut uuid_hash: HashMap<String, Vec<String>> = HashMap::new();
+        for (path, item) in &self.oas.get_paths() {
+            let mut flag = false;
+            for (_m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+                for i in op.params() {
+                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
+                        == *"path".to_string()
+                    {
+                        flag = true;
+                        break;
+                    }
+                }
+                if !flag {
+                    // if no path param
+                    let responses = op.responses();
+                    let data_resp = responses.get(&"200".to_string());
+                    if let Some(v) = data_resp {
+                        let values = v
+                            .inner(&self.oas_value)
+                            .content
+                            .unwrap_or_default()
+                            .into_values();
+                        for i in values {
+                            if i.schema
+                                .as_ref()
+                                .unwrap()
+                                .inner(&self.oas_value)
+                                .schema_type
+                                .unwrap_or_default()
+                                == "array"
+                            {
+                                let schema = i.schema.unwrap();
+
+                                //if array in response
+                                let val = schema.inner(&self.oas_value).items.unwrap_or_default();
+
+                                let _var_name: Vec<String> = val
+                                    .inner(&self.oas_value)
+                                    .properties
+                                    .unwrap()
+                                    .keys()
+                                    .cloned()
+                                    .collect();
+                                recursive_func_to_find_param(
+                                    &self.oas_value,
+                                    schema,
+                                    &mut vec_param,
+                                    &"id".to_string(),
+                                );
+                                let set: HashSet<_> = vec_param.drain(..).collect(); // dedup
+                                vec_param.extend(set.into_iter());
+                                for value in &vec_param {
+                                    let mut vec_of_values =
+                                        send_req(path.to_string(), value, auth, &server.clone())
+                                            .await;
+                                    if let Some(v) = uuid_hash.get_mut(value) {
+                                        v.append(&mut vec_of_values);
+                                    } else {
+                                        uuid_hash.insert(value.clone(), vec_of_values.clone());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        uuid_hash.retain(|_, v| !v.is_empty()); // remove all pair with 0 length
+        let mut vec_of_keys = Vec::new(); // get all the key in a vec
+        for key in uuid_hash.keys() {
+            vec_of_keys.push(key.clone());
+        }
+        //   println!("THIS IS THE FINAL HASHMAP : {:?}", UUID_HASH);
+        for (path, item) in &self.oas.get_paths() {
+            for (_m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+                let mut vec_params: Vec<RequestParameter> = Vec::new();
+                for i in op.params() {
+                    //TODO Check if there is only one param
+                    let type_param = match i
+                        .inner(&self.oas_value)
+                        .param_in
+                        .to_lowercase()
+                        .to_owned()
+                        .as_str()
+                    {
+                        "path" => QuePay::Path,
+                        "query" => QuePay::Query,
+                         _ => QuePay::None
+                        
+                    };
+                    let param_name = &i.inner(&self.oas_value).name;
+                    let mut flag = false;
+                    let mut elem_to_search = "".to_string();
+                    for i in &vec_param {
+                        if param_name.to_lowercase() == i.to_lowercase() {
+                            flag = true;
+                            elem_to_search = i.to_string();
+                        }
+                    }
+                    if flag {
+                        if let Some(value_to_send) = &uuid_hash.get(&elem_to_search) {
+                            vec_params.push(RequestParameter {
+                                // TODO check if others values are ok
+                                name: param_name.to_string(),
+                                value: value_to_send[0].to_string(),
+                                dm: type_param,
+                            });
+                        }
+
+                        //sending the request
+
+                        let req = AttackRequest::builder()
+                            .uri(server, path)
+                            .parameters(vec_params.clone())
+                            .auth(auth.clone())
+                            .method(Method::GET)
+                            .headers(vec![])
+                            .auth(auth.clone())
+                            .build();
+                        let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                        for res in response_vector {
+                            //logging
+                            //logging request/response/description
+                            ret_val
+                                .1
+                                .push(&req, &res, "Testing for Broken level authorization".to_string());
+                            ret_val.0.push((
+                                      ResponseData{
+                                          location: path.clone(),
+                                          alert_text: format!("The parameter {elem_to_search} seems to be vulnerable to BOLA, location: {path} ."),
+                                          serverity: Level::High,
+                                      },
+                                  res.clone(),
+                                  ));
+                        }
+                    }
+                }
+            }
+        }
+        ret_val
+    }
+    pub async fn check_broken_object_level_authorization(
+        &self,
+        auth: &Authorization,
+    ) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        let mut vec_param: Vec<RequestParameter> = Vec::new();
+        let server = &self.oas.servers();
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item
+                .get_ops()
+                .iter()
+                .filter(|(m, _)| m != &Method::POST || m != &Method::PUT)
+            {
+                for i in op.params() {
+                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
+                        == *"path".to_string()
+                    {
+                        break;
+                    }
+                    if i.inner(&self.oas_value).param_in.to_string().to_lowercase()
+                        == *"query".to_string()
+                    {
+                        if i.inner(&self.oas_value)
+                            .name
+                            .to_lowercase()
+                            .contains(&"id".to_string())
+                        {
+                            if let Some(types) = i
+                                .inner(&self.oas_value)
+                                .schema()
+                                .inner(&self.oas_value)
+                                .schema_type
+                            {
+                                let mut value_to_send = "2".to_string();
+                                let mut var_int: i32 = 2;
+                                if types == *"integer".to_string() {
+                                    if let Some(val) = i.inner(&self.oas_value).examples {
+                                        if let Some((_ex, val)) = val.into_iter().next() {
+                                            value_to_send = val.value.to_string();
+                                            var_int = value_to_send.parse::<i32>().unwrap();
+                                        }
+                                        for n in var_int - 1..var_int + 1 {
+                                            println!("PATH {:?}", path);
+                                            let param_to_send: RequestParameter =
+                                                RequestParameter {
+                                                    name: i.inner(&self.oas_value).name.to_string(),
+                                                    value: n.to_string(),
+                                                    dm: QuePay::Query,
+                                                };
+                                            vec_param.push(param_to_send);
+                                            let req = AttackRequest::builder()
+                                                .uri(server, path)
+                                                .method(*m)
+                                                .auth(auth.clone())
+                                                .build();
+                                                let response_vector =
+                                                req.send_request_all_servers(self.verbosity > 0).await;
+                                                for res in response_vector
+                                            {
+                                                //logging request/response/description
+                                                ret_val.1.push(
+                                                    &req,
+                                                    &res,
+                                                    "Testing for BOLA".to_string(),
+                                                );
+                                                ret_val.0.push((
+                                                    ResponseData {
+                                                        location: path.clone(),
+                                                        alert_text: format!(
+                                    "The endpoint {path} seems  to broken in context of authorization with parameter {var_int:?}."
+                                ),
+                                                        serverity: Level::Medium,
+                                                    },
+                                                    res.clone(),
+                                                ));
+                                            } 
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ret_val
+    }
+
+    pub async fn check_method_encoding(&self, auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+
+        for oas_map in self.payloads.iter() {
+            for (_json_path, _schema) in &oas_map.payload.map {
+                for (m, op) in oas_map
+                    .path
+                    .path_item
+                    .get_ops()
+                    .iter()
+                    .filter(|(m, _)| m == &Method::POST)
+                {
+                    if let Some(value_encod) = op.request_body.clone() {
+                        let encoding = value_encod.inner(&self.oas_value).content;
+                        let encoding = LIST_CONTENT_TYPE
+                            .iter()
+                            .filter_map(|t| {
+                                if !encoding.contains_key(*t) {
+                                    Some(*t)
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect::<Vec<&str>>();
+
+                        for i in encoding {
+                            // println!("PAth: {} , encoding : {:?}", oas_map.path.path, i);
+                            let h = MHeader {
+                                name: "Content-type".to_string(),
+                                value: i.to_string(),
+                            };
+                            let vec_param =
+                                create_payload(&self.oas_value, op, &self.path_params, Some("".to_string()));
+                            let req = AttackRequest::builder()
+                                .servers(self.oas.servers(), true)
+                                .method(*m)
+                                //  .payload(&oas_map.payload.payload.to_string())
+                                //TODO! create function that translate json payload to XML and vice versa
+                                .path(&oas_map.path.path)
+                                .parameters(vec_param)
+                                .auth(auth.clone())
+                                .headers(vec![h])
+                                .build();
+                            let response_vector =
+                                req.send_request_all_servers(self.verbosity > 0).await;
+                            for response in response_vector {
+                                ret_val.1.push(
+                                    &req,
+                                    &response,
+                                    "Testing misconfiguration for encoding".to_string(),
+                                );
+                                ret_val.0.push((
+                                    ResponseData {
+                                        location: oas_map.path.path.clone(),
+                                        alert_text: format!(
+                                            "The endpoint: {} is not correctly configured for {} ",
+                                            oas_map.path.path.clone(),
+                                            i
+                                        ),
+                                        serverity: Level::Low,
+                                    },
+                                    response,
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ret_val
+    }
     pub async fn check_for_ssrf(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
         println!("-------------------------GET SSRF-----------------------");
 
@@ -557,7 +852,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         
     }
 
-
+    const LIST_CONTENT_TYPE: [&str; 2] = ["application/xml", "application/xml"];
 const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT];
 const LIST_PARAM: [&str; 86] = [
     "photoUrls",
