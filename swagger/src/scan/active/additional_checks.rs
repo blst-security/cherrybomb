@@ -1,3 +1,5 @@
+use std::vec;
+
 use super::utils::{create_payload, recursive_func_to_find_param};
 ///use super::utils::create_payload_for_get;
 use super::*;
@@ -526,9 +528,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     &self.path_params,
                     Some("http://www.google.com".to_string()),
                 );
-
                 for param_item in &vec_param {
-                    // dbg!(&param_item);
                     if param_item.dm == QuePay::Query
                         && LIST_PARAM.contains(&param_item.name.as_str())
                     {
@@ -560,7 +560,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 response,
                             ));
                         }
-                        break; // TODO what is this?
+                      //  break; // TODO what is this?
                     }
                 }
             }
@@ -618,7 +618,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         for response in response_vector {
                             ret_val
                                 .1
-                                .push(&req, &response, "Testing  /max values".to_string());
+                                .push(&req, &response, "Testing Max length String".to_string());
                             ret_val.0.push((
                                 ResponseData {
                                     location: oas_map.path.path.clone(),

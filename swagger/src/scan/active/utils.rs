@@ -39,19 +39,26 @@ pub fn create_payload(
                     value: param_value.to_string(),
                     dm: QuePay::Path,
                 });
-                if placeholder.is_none() {
-                    // if there is no placeholder  and it's match with hashmap so return the vec param
+                if placeholder.is_some()  {
+                    if placeholder.clone().unwrap().eq(""){
+                    // if there is a empty placeholder  and it's match with hashmap so return the vec param
                     return params_vec;
-                } else {
-                    //if there is  placeholder and  the value  exist in the hashmap so let's call the second method for paylaod redirection or pollution.
-                    return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
-                }
-            } else {
-                // if the param name does not exist in the hashmap so call the sec method to get default values
-                return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
-            }
+                    }
+                } 
+            } 
         }
     }
+    if placeholder.as_ref().is_some() { // if there is a placeholder value, used  in ssrf or redirection for example
+        if !placeholder.clone().unwrap().eq(""){ //empty quote in placeholder are used only to create a path parameter payload.
+        //if there is  placeholder and the value  exist in the hashmap so let's call the second method for paylaod redirection or pollution.
+        return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
+    }
+    else {
+        return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
+
+    }
+}
+   
 
     params_vec
 }

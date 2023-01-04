@@ -19,9 +19,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
     pub fn is_3xx(check_ret: CheckRetVal) -> (Vec<Alert>, AttackLog) {
         let mut ret_val = vec![];
-        dbg!(&check_ret);
         for (res_data, response) in check_ret.0.into_iter() {
-            if (300..300u16).contains(&response.status) {
+            if (300..310).contains(&response.status) {
                 ret_val.push(Alert::with_certainty(
                     res_data.serverity,
                     res_data.alert_text,
