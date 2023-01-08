@@ -41,6 +41,8 @@ pub fn create_payload(
                 });
                 if placeholder.is_some()  {
                     if placeholder.clone().unwrap().eq(""){
+                        println!("The placeholder is some ");
+
                     // if there is a empty placeholder  and it's match with hashmap so return the vec param
                     return params_vec;
                     }
@@ -48,16 +50,23 @@ pub fn create_payload(
             } 
         }
     }
-    if placeholder.as_ref().is_some() { // if there is a placeholder value, used  in ssrf or redirection for example
+    println!("checking ");
+
+    if placeholder.as_ref().is_some() { 
+        println!("THe placeholder is some");
+        // if there is a placeholder value, used  in ssrf or redirection for example
         if !placeholder.clone().unwrap().eq(""){ //empty quote in placeholder are used only to create a path parameter payload.
         //if there is  placeholder and the value  exist in the hashmap so let's call the second method for paylaod redirection or pollution.
         return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
     }
+}
     else {
+        println!("The placeholder is none for pollution ");
         return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
 
     }
-}
+    println!("END");
+
    
 
     params_vec
@@ -170,6 +179,7 @@ pub fn create_payload_for_get(
     params_vec: &mut Vec<RequestParameter>,
 ) -> Vec<RequestParameter> {
     //   let mut params_vec = vec![];
+    let mut final_value = "blstparamtopollute".to_string(); //random string use to parameter pollution
     for i in op.params() {
         let parameter = i.inner(swagger);
         let in_var = parameter.param_in;
@@ -245,9 +255,9 @@ pub fn create_payload_for_get(
             }
             "query" => {
                 //todo support type
-                let final_value = "blstpollute".to_string(); //random string use to parameter pollution
+                
                 if let Some(ref value) = test_value {
-                    // in case of ssrf of redirection there is Some(value)
+                    // Here in case of ssrf of redirection there is Some(value)
                     if !value.eq(&"".to_string()) {
                         //
                         //    if test_value.as_ref().is_none() {
@@ -263,6 +273,7 @@ pub fn create_payload_for_get(
                             if let Some(values) = parameter.examples {
                                 if let Some((_ex, val)) = values.into_iter().next() {
                                     //take example as value
+                                    final_value  = val.value.to_string();
                                     params_vec.push(RequestParameter {
                                         name: param_name,
                                         dm: QuePay::Query,
@@ -273,7 +284,7 @@ pub fn create_payload_for_get(
                                     params_vec.push(RequestParameter {
                                         name: param_name,
                                         dm: QuePay::Query,
-                                        value: "radomString".to_string(),
+                                        value: "randomString".to_string(),
                                     });
                                 }
                             }
@@ -288,7 +299,7 @@ pub fn create_payload_for_get(
                     params_vec.push(RequestParameter {
                         name: param_name,
                         dm: QuePay::Query,
-                        value: final_value,
+                        value: final_value.clone(),
                     });
                 }
             }

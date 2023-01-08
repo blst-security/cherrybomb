@@ -16,6 +16,244 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
 
 
 impl<T: OAS + Serialize> ActiveScan<T> {
+    pub async fn check_parameter_pollution(
+        &self,
+        auth: &Authorization,
+    ) -> (CheckRetVal, Vec<String>) {
+        println!("POllution");
+        let mut ret_val = CheckRetVal::default();
+        let mut vec_polluted = vec!["blstparamtopollute".to_string()];
+        //   let base_url = server.unwrap().get(0).unwrap().clone();
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item.get_ops() {
+                let _text = path.to_string();
+                if m == Method::GET {
+                    let mut vec_param =
+                        create_payload(&self.oas_value, op, &self.path_params, None);
+                        dbg!(&vec_param);
+                        for i in &vec_param{
+                           &vec_polluted.push(i.value.clone());
+                        }
+                    let indices = vec_param
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, x)| x.dm == QuePay::Query)
+                        .map(|(index, _)| index)
+                        .collect::<Vec<_>>();
+                    for i in indices {
+                        let param_query_pollute = vec_param.get(i).unwrap().clone();
+                        vec_param.push(param_query_pollute);
+                        let req = AttackRequest::builder()
+                            .servers(self.oas.servers(), true)
+                            .path(path)
+                            .auth(auth.clone())
+                            .parameters(vec_param.clone())
+                            .method(m)
+                            .headers(vec![])
+                            .auth(auth.clone())
+                            .build();
+                        let response_vector =
+                            req.send_request_all_servers(self.verbosity > 0).await;
+                        for response in response_vector {
+                            ret_val.1.push(
+                                &req,
+                                &response,
+                                "Testing get parameter pollution ".to_string(),
+                            );
+                            ret_val.0.push((
+                                ResponseData {
+                                    location: path.clone(),
+                                    alert_text: format!(
+                                        "The {} parameter in the {} endpoint seems to be vulnerable to parameter pollution"
+                                        , vec_param.last().unwrap().name, path),
+                                    serverity: Level::Medium,
+                                },
+                                response,
+                            ));
+                        }
+                        vec_param.remove(vec_param.len() - 1);
+                    }
+                }
+            }
+        }
+        (ret_val, vec_polluted)
+    }
+    pub async fn check_open_redirect(&self, auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+                let vec_param = create_payload(
+                    &self.oas_value,
+                    op,
+                    &self.path_params,
+                    Some("http://www.google.com".to_string()),
+                );
+                for param_item in &vec_param {
+                    if param_item.dm == QuePay::Query
+                        && LIST_PARAM.contains(&param_item.name.as_str())
+                    {
+                        let param_to_redirect = param_item.name.to_owned();
+                        let req = AttackRequest::builder()
+                            .servers(self.oas.servers(), true)
+                            .path(path)
+                            .parameters(vec_param.clone())
+                            .auth(auth.clone())
+                            .method(*m)
+                            .headers(vec![])
+                            .auth(auth.clone())
+                            .build();
+                        let response_vector =
+                            req.send_request_all_servers(self.verbosity > 0).await;
+                        for response in response_vector {
+                            ret_val.1.push(
+                                &req,
+                                &response,
+                                "Checking for Open redirect".to_string(),
+                            );
+                            ret_val.0.push((
+                                ResponseData {
+                                    location: path.clone(),
+                                    alert_text: format!(
+                                        "The parameter {param_to_redirect} seems to be vulnerable to open-redirect, location: {path}" ),
+                                    serverity: Level::Medium,
+                                },
+                                response,
+                            ));
+                        }
+                      //  break; // TODO what is this?
+                    }
+                }
+            }
+        }
+        ret_val
+    }
+    pub async fn check_string_length_max(&self, auth: &Authorization) -> CheckRetVal {
+         let mut ret_val = CheckRetVal::default();
+        for oas_map in self.payloads.iter() {
+            for (json_path, schema) in &oas_map.payload.map {
+                if let Some(max_len) = schema.max_length {
+                    let new_string = iter::repeat(['B', 'L', 'S', 'T'])
+                        .flatten()
+                        .take(max_len.try_into().unwrap())
+                        .collect::<String>();
+                    for (m, op) in oas_map
+                        .path
+                        .path_item
+                        .get_ops()
+                        .iter()
+                        .filter(|(m, _)| m == &Method::POST)
+                    {
+                        let vec_param = create_payload(
+                            &self.oas_value,
+                            op,
+                            &self.path_params,
+                            Some("".to_string()),
+                        );
+
+                        let url = self.oas.servers();
+
+                        let req = AttackRequest::builder()
+                            .servers(url, true)
+                            .path(&oas_map.path.path)
+                            .method(*m)
+                            .headers(vec![])
+                            .parameters(vec_param.clone())
+                            .auth(auth.clone())
+                            .headers(Vec::from([MHeader {
+                                name: "Content-Type".to_string(),
+                                value: "application/json".to_string(),
+                            }]))
+                            .payload(
+                                &change_payload(
+                                    &oas_map.payload.payload,
+                                    json_path,
+                                    json!(new_string),
+                                )
+                                .to_string(),
+                            )
+                            .build();
+                        let response_vector =
+                            req.send_request_all_servers(self.verbosity > 0).await;
+                        for response in response_vector {
+                            ret_val
+                                .1
+                                .push(&req, &response, "Testing Max length String".to_string());
+                            ret_val.0.push((
+                                ResponseData {
+                                    location: oas_map.path.path.clone(),
+                                    alert_text: format!(
+                                        "The {max_len} length limit for {json_path:?} is not enforced by the server"
+                                    ),
+                                    serverity: Level::Low,
+                                },
+                                response,
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        ret_val
+    }
+    pub async fn check_min_max(&self, auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        for oas_map in self.payloads.iter() {
+            for (json_path, schema) in &oas_map.payload.map {
+                let test_vals = Vec::from([
+                    schema.minimum.map(|min| ("minimum", min - 1.0)),
+                    schema.maximum.map(|max| ("maximum", max + 1.0)),
+                ]);
+                // dbg!(&test_vals);
+                for val in test_vals.into_iter().flatten() {
+                    for (m, op) in oas_map
+                        .path
+                        .path_item
+                        .get_ops()
+                        .iter()
+                        .filter(|(m, _)| m == &Method::POST)
+                    {
+                         let vec_param = dbg!(create_payload(
+                            &self.oas_value,
+                            op,
+                            &self.path_params,
+                            Some("".to_string()),
+                        ));
+                         let req = AttackRequest::builder()
+                            .servers(self.oas.servers(), true)
+                            .path(&oas_map.path.path)
+                            .method(*m)
+                            .headers(vec![])
+                            .parameters(vec_param.clone())
+                            .auth(auth.clone())
+                            .payload(
+                                &change_payload(&oas_map.payload.payload, json_path, json!(val.1))
+                                    .to_string(),
+                            )
+                            .build();
+                        let response_vector =
+                            req.send_request_all_servers(self.verbosity > 0).await;
+                        for response in dbg!(response_vector) {
+                            ret_val
+                                .1
+                                .push(&req, &response, "Testing  /max values".to_string());
+                            ret_val.0.push((
+                                ResponseData {
+                                    location: oas_map.path.path.clone(),
+                                    alert_text: format!(
+                                        "The {} for {json_path:?} is not enforced by the server",
+                                        val.0, 
+                                    ),
+                                    serverity: Level::Low,
+                                },
+                                response,
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        ret_val
+    }
     pub async fn check_broken_object(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         //let  vec_param_values: Vec<RequestParameter> = Vec::new();
@@ -459,242 +697,13 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             (ret_val, provider_vec)
 
         }
-    pub async fn check_min_max(&self, auth: &Authorization) -> CheckRetVal {
-        let mut ret_val = CheckRetVal::default();
-        for oas_map in self.payloads.iter() {
-            for (json_path, schema) in &oas_map.payload.map {
-                let test_vals = Vec::from([
-                    schema.minimum.map(|min| ("minimum", min - 1.0)),
-                    schema.maximum.map(|max| ("maximum", max + 1.0)),
-                ]);
-                for val in test_vals.into_iter().flatten() {
-                    for (m, op) in oas_map
-                        .path
-                        .path_item
-                        .get_ops()
-                        .iter()
-                        .filter(|(m, _)| m == &Method::POST)
-                    {
-                        let vec_param = create_payload(
-                            &self.oas_value,
-                            op,
-                            &self.path_params,
-                            Some("".to_string()),
-                        );
-                        let req = AttackRequest::builder()
-                            .servers(self.oas.servers(), true)
-                            .path(&oas_map.path.path)
-                            .method(*m)
-                            .headers(vec![])
-                            .parameters(vec_param.clone())
-                            .auth(auth.clone())
-                            .payload(
-                                &change_payload(&oas_map.payload.payload, json_path, json!(val.1))
-                                    .to_string(),
-                            )
-                            .build();
-                        let response_vector =
-                            req.send_request_all_servers(self.verbosity > 0).await;
-                        for response in response_vector {
-                            ret_val
-                                .1
-                                .push(&req, &response, "Testing  /max values".to_string());
-                            ret_val.0.push((
-                                ResponseData {
-                                    location: oas_map.path.path.clone(),
-                                    alert_text: format!(
-                                        "The {} for {json_path:?} is not enforced by the server",
-                                        val.0, 
-                                    ),
-                                    serverity: Level::Low,
-                                },
-                                response,
-                            ));
-                        }
-                    }
-                }
-            }
-        }
-        ret_val
-    }
+    
 
-    pub async fn check_open_redirect(&self, auth: &Authorization) -> CheckRetVal {
-        let mut ret_val = CheckRetVal::default();
-        for (path, item) in &self.oas.get_paths() {
-            for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
-                let vec_param = create_payload(
-                    &self.oas_value,
-                    op,
-                    &self.path_params,
-                    Some("http://www.google.com".to_string()),
-                );
-                for param_item in &vec_param {
-                    if param_item.dm == QuePay::Query
-                        && LIST_PARAM.contains(&param_item.name.as_str())
-                    {
-                        let param_to_redirect = param_item.name.to_owned();
-                        let req = AttackRequest::builder()
-                            .servers(self.oas.servers(), true)
-                            .path(path)
-                            .parameters(vec_param.clone())
-                            .auth(auth.clone())
-                            .method(*m)
-                            .headers(vec![])
-                            .auth(auth.clone())
-                            .build();
-                        let response_vector =
-                            req.send_request_all_servers(self.verbosity > 0).await;
-                        for response in response_vector {
-                            ret_val.1.push(
-                                &req,
-                                &response,
-                                "Checking for Open redirect".to_string(),
-                            );
-                            ret_val.0.push((
-                                ResponseData {
-                                    location: path.clone(),
-                                    alert_text: format!(
-                                        "The parameter {param_to_redirect} seems to be vulnerable to open-redirect, location: {path}" ),
-                                    serverity: Level::Medium,
-                                },
-                                response,
-                            ));
-                        }
-                      //  break; // TODO what is this?
-                    }
-                }
-            }
-        }
-        ret_val
-    }
+    
 
-    pub async fn check_string_length_max(&self, auth: &Authorization) -> CheckRetVal {
-        let mut ret_val = CheckRetVal::default();
-        for oas_map in self.payloads.iter() {
-            for (json_path, schema) in &oas_map.payload.map {
-                if let Some(max_len) = schema.max_length {
-                    let new_string = iter::repeat(['B', 'L', 'S', 'T'])
-                        .flatten()
-                        .take(max_len.try_into().unwrap())
-                        .collect::<String>();
-                    for (m, op) in oas_map
-                        .path
-                        .path_item
-                        .get_ops()
-                        .iter()
-                        .filter(|(m, _)| m == &Method::POST)
-                    {
-                        let vec_param = create_payload(
-                            &self.oas_value,
-                            op,
-                            &self.path_params,
-                            Some("".to_string()),
-                        );
 
-                        let url = self.oas.servers();
 
-                        let req = AttackRequest::builder()
-                            .servers(url, true)
-                            .path(&oas_map.path.path)
-                            .method(*m)
-                            .headers(vec![])
-                            .parameters(vec_param.clone())
-                            .auth(auth.clone())
-                            .headers(Vec::from([MHeader {
-                                name: "Content-Type".to_string(),
-                                value: "application/json".to_string(),
-                            }]))
-                            .payload(
-                                &change_payload(
-                                    &oas_map.payload.payload,
-                                    json_path,
-                                    json!(new_string),
-                                )
-                                .to_string(),
-                            )
-                            .build();
-                        let response_vector =
-                            req.send_request_all_servers(self.verbosity > 0).await;
-                        for response in response_vector {
-                            ret_val
-                                .1
-                                .push(&req, &response, "Testing Max length String".to_string());
-                            ret_val.0.push((
-                                ResponseData {
-                                    location: oas_map.path.path.clone(),
-                                    alert_text: format!(
-                                        "The {max_len} length limit for {json_path:?} is not enforced by the server"
-                                    ),
-                                    serverity: Level::Low,
-                                },
-                                response,
-                            ));
-                        }
-                    }
-                }
-            }
-        }
-        ret_val
-    }
-
-    pub async fn check_parameter_pollution(
-        &self,
-        auth: &Authorization,
-    ) -> (CheckRetVal, Vec<String>) {
-        println!("POllution");
-        let mut ret_val = CheckRetVal::default();
-        let vec_polluted = vec!["blstparamtopollute".to_string()];
-        //   let base_url = server.unwrap().get(0).unwrap().clone();
-        for (path, item) in &self.oas.get_paths() {
-            for (m, op) in item.get_ops() {
-                let _text = path.to_string();
-                if m == Method::GET {
-                    let mut vec_param =
-                        create_payload(&self.oas_value, op, &self.path_params, None);
-                    let indices = vec_param
-                        .iter()
-                        .enumerate()
-                        .filter(|(_, x)| x.dm == QuePay::Query)
-                        .map(|(index, _)| index)
-                        .collect::<Vec<_>>();
-                    for i in indices {
-                        let param_query_pollute = vec_param.get(i).unwrap().clone();
-                        vec_param.push(param_query_pollute);
-                        let req = AttackRequest::builder()
-                            .servers(self.oas.servers(), true)
-                            .path(path)
-                            .auth(auth.clone())
-                            .parameters(vec_param.clone())
-                            .method(m)
-                            .headers(vec![])
-                            .auth(auth.clone())
-                            .build();
-                        let response_vector =
-                            req.send_request_all_servers(self.verbosity > 0).await;
-                        for response in response_vector {
-                            ret_val.1.push(
-                                &req,
-                                &response,
-                                "Testing get parameter pollution ".to_string(),
-                            );
-                            ret_val.0.push((
-                                ResponseData {
-                                    location: path.clone(),
-                                    alert_text: format!(
-                                        "The {} parameter in the {} endpoint seems to be vulnerable to parameter pollution"
-                                        , vec_param.last().unwrap().name, path),
-                                    serverity: Level::Medium,
-                                },
-                                response,
-                            ));
-                        }
-                        vec_param.remove(vec_param.len() - 1);
-                    }
-                }
-            }
-        }
-        (ret_val, vec_polluted)
-    }
+  
     pub async fn check_ssl(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         let req = AttackRequest::builder()
