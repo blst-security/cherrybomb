@@ -39,34 +39,31 @@ pub fn create_payload(
                     value: param_value.to_string(),
                     dm: QuePay::Path,
                 });
-                if placeholder.is_some()  {
-                    if placeholder.clone().unwrap().eq(""){
+                if placeholder.is_some() {
+                    if placeholder.clone().unwrap().eq("") {
                         println!("The placeholder is empty ");
 
-                    // if there is a empty placeholder  and it's match with hashmap so return the vec param
-                    return params_vec;
+                        // if there is a empty placeholder  and it's match with hashmap so return the vec param
+                        return params_vec;
                     }
-                } 
-            } 
+                }
+            }
         }
     }
- 
-    if placeholder.as_ref().is_some() { 
+
+    if placeholder.as_ref().is_some() {
         println!("THe placeholder is some");
         // if there is a placeholder value, used  in ssrf or redirection for example
-        if !placeholder.clone().unwrap().eq(""){ //empty quote in placeholder are used only to create a path parameter payload.
-        //if there is  placeholder and the value  exist in the hashmap so let's call the second method for paylaod redirection or pollution.
-        return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
-    }
-}
-    else {
+        if !placeholder.clone().unwrap().eq("") {
+            //empty quote in placeholder are used only to create a path parameter payload.
+            //if there is  placeholder and the value  exist in the hashmap so let's call the second method for paylaod redirection or pollution.
+            return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
+        }
+    } else {
         println!("The placeholder is none for pollution ");
         return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
-
     }
     println!("END");
-
-   
 
     params_vec
 }
@@ -192,7 +189,8 @@ pub fn create_payload_for_get(
                     println!("and also does not have a defined value");
 
                     let mut option_example_value = None;
-                    if let Some(value) = parameter.examples { // if there is an example
+                    if let Some(value) = parameter.examples {
+                        // if there is an example
                         if let Some((_ex, val)) = value.into_iter().next() {
                             option_example_value = Some(val.value.to_string());
                         }
@@ -255,7 +253,6 @@ pub fn create_payload_for_get(
                 }
             }
             "query" => {
-                 
                 if let Some(ref value) = test_value {
                     // Here in case of ssrf of redirection there is Some(value)
                     if !value.eq(&"".to_string()) {
@@ -273,7 +270,7 @@ pub fn create_payload_for_get(
                             if let Some(values) = parameter.examples {
                                 if let Some((_ex, val)) = values.into_iter().next() {
                                     //take example as value
-                                    final_value  = val.value.to_string();
+                                    final_value = val.value.to_string();
                                     params_vec.push(RequestParameter {
                                         name: param_name,
                                         dm: QuePay::Query,

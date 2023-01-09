@@ -89,5 +89,5 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             }
         }
         (ret_val, check_ret_only.1)
-}
+    }
 }
