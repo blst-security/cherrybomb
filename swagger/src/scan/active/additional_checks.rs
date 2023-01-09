@@ -16,6 +16,329 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
 
 
 impl<T: OAS + Serialize> ActiveScan<T> {
+    pub async fn check_method_permissions_active(&self, auth: &Authorization) -> CheckRetVal {
+        let mut  h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
+
+        let mut ret_val = CheckRetVal::default();
+        for (path, item) in &self.oas.get_paths() {
+            let current_method_set = item
+                .get_ops()
+                .iter()
+                .map(|(m, _)| m)
+                .cloned()
+                .collect::<HashSet<_>>();
+
+            let vec_param = create_payload(
+                &self.oas_value,
+                item.get_ops()[0].1,
+                &self.path_params,
+                Some("".to_string()),
+            );
+
+            let all_method_set = HashSet::from(LIST_METHOD);
+            for method in all_method_set.difference(&current_method_set).cloned() {
+                if method.eq(&Method::GET) || method.eq(&Method::DELETE){
+                    h.remove(0);
+                }
+
+                let req = AttackRequest::builder()
+                    .servers(self.oas.servers(), true)
+                    .path(path)
+                    .parameters(vec_param.clone())
+                    .auth(auth.clone())
+                    .method(method)
+                    .headers(h.clone())
+                    .build();
+                    let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+            for response in response_vector {
+                ret_val
+                    .1
+                    .push(&req, &response, "Testing method permission".to_string());
+                ret_val.0.push((
+                                ResponseData {
+                                    location: path.to_string(),
+                                    alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {method} ", &path ),
+                                    serverity: Level::High,
+                                },
+                                response,
+                            ));
+                }
+                h.push(MHeader::from("content-type", "application/json"));
+            }
+        }
+        ret_val
+    }
+
+    pub async fn check_method_encoding(&self, auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+
+        for oas_map in self.payloads.iter() {
+            for (_json_path, _schema) in &oas_map.payload.map {
+                for (m, op) in oas_map
+                    .path
+                    .path_item
+                    .get_ops()
+                    .iter()
+                    .filter(|(m, _)| m == &Method::POST)
+                {
+                    if let Some(value_encod) = op.request_body.clone() {
+                        let encoding = value_encod.inner(&self.oas_value).content;
+                        let encoding = LIST_CONTENT_TYPE
+                            .iter()
+                            .filter_map(|t| {
+                                if !encoding.contains_key(*t) {
+                                    Some(*t)
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect::<Vec<&str>>();
+
+                        for i in encoding {
+                            let h = MHeader {
+                                name: "Content-type".to_string(),
+                                value: i.to_string(),
+                            };
+                            let vec_param =
+                                create_payload(&self.oas_value, op, &self.path_params, Some("".to_string()));
+                            let req = AttackRequest::builder()
+                                .servers(self.oas.servers(), true)
+                                .method(*m)
+                                //  .payload(&oas_map.payload.payload.to_string())
+                                //TODO! create function that translate json payload to XML and vice versa
+                                .path(&oas_map.path.path)
+                                .parameters(vec_param)
+                                .auth(auth.clone())
+                                .headers(vec![h])
+                                .build();
+                            let response_vector =
+                                req.send_request_all_servers(self.verbosity > 0).await;
+                            for response in response_vector {
+                                ret_val.1.push(
+                                    &req,
+                                    &response,
+                                    "Testing misconfiguration for encoding".to_string(),
+                                );
+                                ret_val.0.push((
+                                    ResponseData {
+                                        location: oas_map.path.path.clone(),
+                                        alert_text: format!(
+                                            "The endpoint: {} is not correctly configured for {} ",
+                                            oas_map.path.path.clone(),
+                                            i
+                                        ),
+                                        serverity: Level::Low,
+                                    },
+                                    response,
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ret_val
+    }
+    pub async fn check_for_ssrf(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+        println!("-------------------------GET SSRF-----------------------");
+
+        let mut ret_val = CheckRetVal::default();
+        let mut provider_vec = vec![];
+        let provider_hash = HashMap::from([
+            ("Amazon", "http://169.254.169.254/"),
+            ("Google", "http://169.254.169.254/computeMetadata/v1/"),
+            ("Digital", "http://169.254.169.254/metadata/v1.json"),
+            ("Azure", "http://169.254.169.254/metadata/v1/maintenance"),
+        ]);
+ 
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item.get_ops() {
+                if m == Method::GET {
+                    let mut param_is_good_to_send = false;
+
+                    for (provider_item, value_to_send) in &provider_hash {
+                        let mut params_vec = vec![];
+                        let payload_get_param = create_payload(
+                            &self.oas_value,
+                            op,
+                            &self.path_params,
+                            Some(value_to_send.to_string()),
+                        );
+                        for parameter_item in payload_get_param {
+                            if parameter_item.dm == QuePay::Query && LIST_PARAM.contains(&parameter_item.name.as_str()) {
+                                                         param_is_good_to_send = true;
+                                                   } 
+                            params_vec.push(parameter_item);
+
+                        }
+
+                        if param_is_good_to_send {
+                            provider_vec.push(provider_item.to_string());
+                            let req = AttackRequest::builder()
+                                .servers(self.oas.servers(), true)
+                                .path(path)
+                                .parameters(params_vec.clone())
+                                .auth(auth.clone())
+                                .method(m)
+                                .headers(vec![])
+                                .auth(auth.clone())
+                                .build();
+                                let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                                for response in response_vector {
+                                    ret_val.1.push(&req, &response, "Testing SSRF".to_string());
+                                    ret_val.0.push((
+                                        ResponseData {
+                                            location: path.to_string(),
+                                            alert_text: format!(
+                                                "The endpoint {} seems to be vulnerable to SSRF",
+                                                path
+                                            ),
+                                            serverity: Level::Medium,
+                                        },
+                                        response,
+                                    ));
+                                }
+                           
+                        }
+                    }
+                }
+            }
+        }
+        (ret_val, provider_vec)
+    }
+
+    pub async fn check_ssrf_post(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+        println!("-------------------------POST SSRF-----------------------");
+        let h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
+
+        let mut ret_val = CheckRetVal::default();
+        let mut provider_vec = vec![];
+        let provider_hash = HashMap::from([
+            ("Amazon", "http://169.254.169.254/"),
+            ("Google", "http://169.254.169.254/computeMetadata/v1/"),
+            ("Digital", "http://169.254.169.254/metadata/v1.json"),
+            ("Azure", "http://169.254.169.254/metadata/v1/maintenance"),
+        ]);
+        for oas_map in self.payloads.iter() {
+            for json_path in oas_map.payload.map.keys() {
+                for (m, op) in oas_map
+                    .path
+                    .path_item
+                    //.filter(|| path_item==p)
+                    .get_ops()
+                    .iter()
+                    .filter(|(m, _)| m == &Method::POST)
+                //947
+                {
+                    let param_to_test =
+                        &json_path.last().unwrap_or(&"empty".to_string()).to_owned()[..];
+                    if LIST_PARAM.contains(&param_to_test) {
+                        let vec_params = create_payload(&self.oas_value, op, &self.path_params, Some("".to_string())); 
+                         for (provider_item, provider_value) in &provider_hash {
+                            provider_vec.push(provider_item.to_string());
+                            let req = AttackRequest::builder()
+                                .servers(self.oas.servers(), true)
+                                .path(&oas_map.path.path)
+                                .method(*m)
+                                .headers(h.clone())
+                                .parameters(vec_params.clone())
+                                .auth(auth.clone())
+                                .payload(
+                                    &change_payload(
+                                        &oas_map.payload.payload,
+                                        json_path,
+                                        json!(provider_value),
+                                    )
+                                    .to_string(),
+                                )
+                                .build();
+
+                            print!("POST SSRF : ");
+                            let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                            for response in response_vector {
+                                ret_val.1.push(&req, &response, "Testing SSRF".to_string());
+                                ret_val.0.push((
+                                    ResponseData {
+                                        location: oas_map.path.path.to_string(),
+                                        alert_text: format!(
+                                            "The endpoint {} seems to be vulnerable to SSRF",
+                                          &oas_map.path.path.clone()
+                                        ),
+                                        serverity: Level::Medium,
+                                    },
+                                    response,
+                                ));
+                            }
+ 
+                        }
+                    }
+                    // if no param in body req exist in the default array
+                    // so let's check if there is any good param in the query
+                    else {
+
+                        let mut param_is_good_to_send = false;
+
+                        for (provider_item, value_to_send) in &provider_hash {
+                            let mut params_vec = vec![];
+                            let payload_get_param = create_payload(
+                                &self.oas_value,
+                                op,
+                                &self.path_params,
+                                Some(value_to_send.to_string()),
+                            );
+                            for parameter_item in payload_get_param {
+                                if parameter_item.dm == QuePay::Query && LIST_PARAM.contains(&parameter_item.name.as_str()) {
+                                                             param_is_good_to_send = true;
+                                                       } 
+                                params_vec.push(parameter_item);
+    
+                            }
+    
+ 
+                            if param_is_good_to_send {
+                                provider_vec.push(provider_item.to_string());
+                                let req = AttackRequest::builder()
+                                .servers(self.oas.servers(), true)
+                                .path(&oas_map.path.path)
+                                .method(*m)
+                                .headers(h.clone())
+                                .parameters(params_vec.clone())
+                                .auth(auth.clone())
+                                .payload(&oas_map.payload.payload.to_string(),
+                                )
+                                .build();
+                                let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                                print!("POST SSRF : ");
+                                let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                                for response in response_vector {
+                                    ret_val.1.push(&req, &response, "Testing SSRF".to_string());
+                                    ret_val.0.push((
+                                        ResponseData {
+                                            location: oas_map.path.path.to_string(),
+                                            alert_text: format!(
+                                                "The endpoint {} seems to be vulnerable to SSRF",
+                                              &oas_map.path.path.clone()
+                                            ),
+                                            serverity: Level::Medium,
+                                        },
+                                        response,
+                                    )); 
+                                        }
+
+                            }
+                      
+                               
+                            }
+
+                    }
+                }
+            }
+            }
+            (ret_val, provider_vec)
+
+        }
+    
+
     pub async fn check_parameter_pollution(
         &self,
         auth: &Authorization,
@@ -30,7 +353,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 if m == Method::GET {
                     let mut vec_param =
                         create_payload(&self.oas_value, op, &self.path_params, None);
-                        dbg!(&vec_param);
                         for i in &vec_param{
                            &vec_polluted.push(i.value.clone());
                         }
@@ -54,6 +376,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .build();
                         let response_vector =
                             req.send_request_all_servers(self.verbosity > 0).await;
+                      //  dbg!(&response_vector);
                         for response in response_vector {
                             ret_val.1.push(
                                 &req,
@@ -128,6 +451,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
     pub async fn check_string_length_max(&self, auth: &Authorization) -> CheckRetVal {
+        let h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
+
          let mut ret_val = CheckRetVal::default();
         for oas_map in self.payloads.iter() {
             for (json_path, schema) in &oas_map.payload.map {
@@ -156,7 +481,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .servers(url, true)
                             .path(&oas_map.path.path)
                             .method(*m)
-                            .headers(vec![])
+                            .headers(h.clone())
                             .parameters(vec_param.clone())
                             .auth(auth.clone())
                             .headers(Vec::from([MHeader {
@@ -196,6 +521,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
     pub async fn check_min_max(&self, auth: &Authorization) -> CheckRetVal {
+        let h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
+
         let mut ret_val = CheckRetVal::default();
         for oas_map in self.payloads.iter() {
             for (json_path, schema) in &oas_map.payload.map {
@@ -212,17 +539,17 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .iter()
                         .filter(|(m, _)| m == &Method::POST)
                     {
-                         let vec_param = dbg!(create_payload(
+                         let vec_param = create_payload(
                             &self.oas_value,
                             op,
                             &self.path_params,
                             Some("".to_string()),
-                        ));
+                        );
                          let req = AttackRequest::builder()
                             .servers(self.oas.servers(), true)
                             .path(&oas_map.path.path)
                             .method(*m)
-                            .headers(vec![])
+                            .headers(h.clone())
                             .parameters(vec_param.clone())
                             .auth(auth.clone())
                             .payload(
@@ -232,7 +559,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .build();
                         let response_vector =
                             req.send_request_all_servers(self.verbosity > 0).await;
-                        for response in dbg!(response_vector) {
+                        for response in response_vector {
                             ret_val
                                 .1
                                 .push(&req, &response, "Testing  /max values".to_string());
@@ -255,6 +582,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
     pub async fn check_broken_object(&self, auth: &Authorization) -> CheckRetVal {
+        let h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
+
         let mut ret_val = CheckRetVal::default();
         //let  vec_param_values: Vec<RequestParameter> = Vec::new();
         let mut vec_param: Vec<String> = Vec::new();
@@ -331,7 +660,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         for key in uuid_hash.keys() {
             vec_of_keys.push(key.clone());
         }
-        //   println!("THIS IS THE FINAL HASHMAP : {:?}", UUID_HASH);
+         // println!("THIS IS THE FINAL HASHMAP : {:?}", UUID_HASH);
         for (path, item) in &self.oas.get_paths() {
             for (_m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
                 let mut vec_params: Vec<RequestParameter> = Vec::new();
@@ -488,221 +817,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
-    pub async fn check_method_encoding(&self, auth: &Authorization) -> CheckRetVal {
-        let mut ret_val = CheckRetVal::default();
-
-        for oas_map in self.payloads.iter() {
-            for (_json_path, _schema) in &oas_map.payload.map {
-                for (m, op) in oas_map
-                    .path
-                    .path_item
-                    .get_ops()
-                    .iter()
-                    .filter(|(m, _)| m == &Method::POST)
-                {
-                    if let Some(value_encod) = op.request_body.clone() {
-                        let encoding = value_encod.inner(&self.oas_value).content;
-                        let encoding = LIST_CONTENT_TYPE
-                            .iter()
-                            .filter_map(|t| {
-                                if !encoding.contains_key(*t) {
-                                    Some(*t)
-                                } else {
-                                    None
-                                }
-                            })
-                            .collect::<Vec<&str>>();
-
-                        for i in encoding {
-                            // println!("PAth: {} , encoding : {:?}", oas_map.path.path, i);
-                            let h = MHeader {
-                                name: "Content-type".to_string(),
-                                value: i.to_string(),
-                            };
-                            let vec_param =
-                                create_payload(&self.oas_value, op, &self.path_params, Some("".to_string()));
-                            let req = AttackRequest::builder()
-                                .servers(self.oas.servers(), true)
-                                .method(*m)
-                                //  .payload(&oas_map.payload.payload.to_string())
-                                //TODO! create function that translate json payload to XML and vice versa
-                                .path(&oas_map.path.path)
-                                .parameters(vec_param)
-                                .auth(auth.clone())
-                                .headers(vec![h])
-                                .build();
-                            let response_vector =
-                                req.send_request_all_servers(self.verbosity > 0).await;
-                            for response in response_vector {
-                                ret_val.1.push(
-                                    &req,
-                                    &response,
-                                    "Testing misconfiguration for encoding".to_string(),
-                                );
-                                ret_val.0.push((
-                                    ResponseData {
-                                        location: oas_map.path.path.clone(),
-                                        alert_text: format!(
-                                            "The endpoint: {} is not correctly configured for {} ",
-                                            oas_map.path.path.clone(),
-                                            i
-                                        ),
-                                        serverity: Level::Low,
-                                    },
-                                    response,
-                                ));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        ret_val
-    }
-    pub async fn check_for_ssrf(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
-        println!("-------------------------GET SSRF-----------------------");
-
-        let mut ret_val = CheckRetVal::default();
-        let mut provider_vec = vec![];
-        let provider_hash = HashMap::from([
-            ("Amazon", "http://169.254.169.254/"),
-            ("Google", "http://169.254.169.254/computeMetadata/v1/"),
-            ("Digital", "http://169.254.169.254/metadata/v1.json"),
-            ("Azure", "http://169.254.169.254/metadata/v1/maintenance"),
-        ]);
- 
-        for (path, item) in &self.oas.get_paths() {
-            for (m, op) in item.get_ops() {
-                if m == Method::GET {
-                    let mut param_is_good_to_send = false;
-
-                    for (provider_item, value_to_send) in &provider_hash {
-                        let mut params_vec = vec![];
-                        let payload_get_param = create_payload(
-                            &self.oas_value,
-                            op,
-                            &self.path_params,
-                            Some(value_to_send.to_string()),
-                        );
-                        for parameter_item in payload_get_param {
-                            if parameter_item.dm == QuePay::Query && LIST_PARAM.contains(&parameter_item.name.as_str()) {
-                                                         param_is_good_to_send = true;
-                                                   } 
-                            params_vec.push(parameter_item);
-
-                        }
-
-                        if param_is_good_to_send {
-                            provider_vec.push(provider_item.to_string());
-                            println!("SSRF GET: ----");
-                            let req = AttackRequest::builder()
-                                .servers(self.oas.servers(), true)
-                                .path(path)
-                                .parameters(params_vec.clone())
-                                .auth(auth.clone())
-                                .method(m)
-                                .headers(vec![])
-                                .auth(auth.clone())
-                                .build();
-                                let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
-                                for response in response_vector {
-                                    ret_val.1.push(&req, &response, "Testing SSRF".to_string());
-                                    ret_val.0.push((
-                                        ResponseData {
-                                            location: path.to_string(),
-                                            alert_text: format!(
-                                                "The endpoint {} seems to be vulnerable to SSRF",
-                                                path
-                                            ),
-                                            serverity: Level::Medium,
-                                        },
-                                        response,
-                                    ));
-                                }
-                           
-                        }
-                    }
-                }
-            }
-        }
-        (ret_val, provider_vec)
-    }
-
-    pub async fn check_ssrf_post(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
-        println!("-------------------------POST SSRF-----------------------");
-        let mut ret_val = CheckRetVal::default();
-        let mut provider_vec = vec![];
-        let provider_hash = HashMap::from([
-            ("Amazon", "http://169.254.169.254/"),
-            ("Google", "http://169.254.169.254/computeMetadata/v1/"),
-            ("Digital", "http://169.254.169.254/metadata/v1.json"),
-            ("Azure", "http://169.254.169.254/metadata/v1/maintenance"),
-        ]);
-        for oas_map in self.payloads.iter() {
-            for json_path in oas_map.payload.map.keys() {
-                for (m, _) in oas_map
-                    .path
-                    .path_item
-                    //.filter(|| path_item==p)
-                    .get_ops()
-                    .iter()
-                    .filter(|(m, _)| m == &Method::POST)
-                //947
-                {
-                    let param_to_test =
-                        &json_path.last().unwrap_or(&"empty".to_string()).to_owned()[..];
-                
-                    if LIST_PARAM.contains(&param_to_test) {
-                        for (provider_item, provider_value) in &provider_hash {
-                            provider_vec.push(provider_item.to_string());
-                            let req = AttackRequest::builder()
-                                .servers(self.oas.servers(), true)
-                                .path(&oas_map.path.path)
-                                .method(*m)
-                                .headers(vec![])
-                                .parameters(vec![])
-                                .auth(auth.clone())
-                                .payload(
-                                    &change_payload(
-                                        &oas_map.payload.payload,
-                                        json_path,
-                                        json!(provider_value),
-                                    )
-                                    .to_string(),
-                                )
-                                .build();
-
-                            print!("POST SSRF : ");
-                            let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
-                            for response in response_vector {
-                                ret_val.1.push(&req, &response, "Testing SSRF".to_string());
-                                ret_val.0.push((
-                                    ResponseData {
-                                        location: oas_map.path.path.to_string(),
-                                        alert_text: format!(
-                                            "The endpoint {} seems to be vulnerable to SSRF",
-                                          &oas_map.path.path.clone()
-                                        ),
-                                        serverity: Level::Medium,
-                                    },
-                                    response,
-                                ));
-                            }
- 
-                        }
-                    }
-                }
-            }
-            }
-            (ret_val, provider_vec)
-
-        }
-    
-
-    
-
-
-
+   
   
     pub async fn check_ssl(&self, auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
@@ -733,54 +848,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
-    pub async fn check_method_permissions_active(&self, auth: &Authorization) -> CheckRetVal {
-        let mut ret_val = CheckRetVal::default();
-        for (path, item) in &self.oas.get_paths() {
-            let current_method_set = item
-                .get_ops()
-                .iter()
-                .map(|(m, _)| m)
-                .cloned()
-                .collect::<HashSet<_>>();
-
-            let vec_param = create_payload(
-                &self.oas_value,
-                item.get_ops()[0].1,
-                &self.path_params,
-                Some("".to_string()),
-            );
-
-            let all_method_set = HashSet::from(LIST_METHOD);
-            for method in all_method_set.difference(&current_method_set).cloned() {
-                let req = AttackRequest::builder()
-                    .servers(self.oas.servers(), true)
-                    .path(path)
-                    .parameters(vec_param.clone())
-                    .auth(auth.clone())
-                    .method(method)
-                    .headers(vec![])
-                    .build();
-                    let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
-            for response in response_vector {
-                ret_val
-                    .1
-                    .push(&req, &response, "Testing method permission".to_string());
-                ret_val.0.push((
-                                ResponseData {
-                                    location: path.to_string(),
-                                    alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {method} ", &path ),
-                                    serverity: Level::High,
-                                },
-                                response,
-                            ));
-                }
-            }
-        }
-        ret_val
-    }
-
     pub async fn check_authentication_for_post(&self, _auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
+        let h =vec![MHeader::from("content-type", "application/json")];
         for oas_map in self.payloads.iter() {
             //for (_json_path, _schema) in &oas_map.payload.map {
             for _schema in oas_map.payload.map.values() {
@@ -793,7 +863,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .servers(self.oas.servers(),true)
                             .path(&oas_map.path.path)
                             .method(*m)
-                            .headers(vec![])
+                            .headers(h.clone())
                             .parameters(vec_param.clone())
                             //.auth(auth.clone())
                             .payload(&oas_map.payload.payload.to_string())
@@ -802,7 +872,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                       
                             let response_vector =
                             req.send_request_all_servers(self.verbosity > 0).await;
-                        for response in response_vector {
+                       for response in response_vector {
                             ret_val
                                 .1
                                 .push(&req, &response, "Testing without auth".to_string());
@@ -861,7 +931,10 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         
     }
 
-    const LIST_CONTENT_TYPE: [&str; 2] = ["application/xml", "application/xml"];
+
+
+
+const LIST_CONTENT_TYPE: [&str; 2] = ["application/xml", "application/xml"];
 const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT];
 const LIST_PARAM: [&str; 86] = [
     "photoUrls",

@@ -206,7 +206,7 @@ impl AttackRequest {
             .request(method1, format!("{path}{req_query}"))
             .body(req_payload.clone())
             .headers((&h).try_into().expect("not valid headers"))
-            .header("content-type", "application/json")
+           // .header("content-type", "application/json")
             .send();
         // .await
         // .expect("Failed to send")
@@ -241,7 +241,7 @@ impl AttackRequest {
             .request(method1, format!("{path}{req_query}"))
             .body(req_payload.clone())
             .headers((&h).try_into().expect("not valid headers"))
-            .header("content-type", "application/json")
+            //.header("content-type", "application/json")
             .build()
             .unwrap();
         match client.execute(req).await {
@@ -270,7 +270,7 @@ impl AttackRequest {
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let mut h = self.get_headers(&headers1);
-        dbg!(&headers1); 
+    //    dbg!(&headers1); 
         h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let mut ret = vec![];
         // dbg!(&self.servers);
@@ -282,7 +282,6 @@ impl AttackRequest {
                 )
                 .body(req_payload.clone())
                 .headers((&h).try_into().expect("not valid headers"))
-                .header("content-type", "application/json")
                 .build()
                 .unwrap(); //TODO return builder error
             match client.execute(req).await {

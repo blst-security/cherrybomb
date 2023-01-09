@@ -41,7 +41,7 @@ pub fn create_payload(
                 });
                 if placeholder.is_some()  {
                     if placeholder.clone().unwrap().eq(""){
-                        println!("The placeholder is some ");
+                        println!("The placeholder is empty ");
 
                     // if there is a empty placeholder  and it's match with hashmap so return the vec param
                     return params_vec;
@@ -50,8 +50,7 @@ pub fn create_payload(
             } 
         }
     }
-    println!("checking ");
-
+ 
     if placeholder.as_ref().is_some() { 
         println!("THe placeholder is some");
         // if there is a placeholder value, used  in ssrf or redirection for example
@@ -165,7 +164,6 @@ pub async fn send_req(
         //     }
     }
 
-    println!("Collections: {collection_of_values:?}");
     collection_of_values
 }
 
@@ -186,12 +184,15 @@ pub fn create_payload_for_get(
         let param_name = parameter.name.to_string();
         match in_var.as_str().to_lowercase().trim() {
             "path" => {
+                println!("also in path");
                 // if the param is in the path
                 if !params_vec.iter().any(|s| s.name == param_name) {
                     //  check if there is not  a path parameter already configured so
-                    //cwe heck if param_name is not exist in the params_vec
+                    //we check if param_name is not exist in the params_vec
+                    println!("and also does not have a defined value");
+
                     let mut option_example_value = None;
-                    if let Some(value) = parameter.examples {
+                    if let Some(value) = parameter.examples { // if there is an example
                         if let Some((_ex, val)) = value.into_iter().next() {
                             option_example_value = Some(val.value.to_string());
                         }
@@ -254,8 +255,7 @@ pub fn create_payload_for_get(
                 }
             }
             "query" => {
-                //todo support type
-                
+                 
                 if let Some(ref value) = test_value {
                     // Here in case of ssrf of redirection there is Some(value)
                     if !value.eq(&"".to_string()) {
@@ -267,7 +267,7 @@ pub fn create_payload_for_get(
                             value: value.to_string(),
                         });
                     } else {
-                        //if the value is empty string means that want to insert example of default values
+                        //if the placeholder is empty string means that we want to insert example of default values
                         if parameter.required.unwrap_or(false) {
                             //check if the query parameter is mandatory
                             if let Some(values) = parameter.examples {
@@ -288,7 +288,7 @@ pub fn create_payload_for_get(
                                     });
                                 }
                             }
-                        }
+                        } // if no mandatory continue
                     }
                 } else {
                     //if value to test is none, meaning test for pollution

@@ -142,13 +142,13 @@ impl_active_checks![
     //     "STRING LENGTH ENFORCED",
     //     "check that the api validate the String length"
     // )
-    (
-        CheckParameterPollution,
-        check_parameter_pollution,
-        reflected_and_2xx,
-        "PARAMETER POLLUTION",
-        "Check if the endpoint is vulnerable to http pollution"
-    )
+    // (
+    //     CheckParameterPollution,
+    //     check_parameter_pollution,
+    //     reflected_and_2xx,
+    //     "PARAMETER POLLUTION",
+    //     "Check if the endpoint is vulnerable to http pollution"
+    // )
 //     (
 //         CheckSSL,
 //         check_ssl,
@@ -156,34 +156,34 @@ impl_active_checks![
 //         "SSL ENFORCED",
 //         "Check if the connection is secure"
 //     ),
-//     (
-//         CheckMethodPermissionsActive,
-//         check_method_permissions_active,
-//         is_2xx,
-//         "METHOD PERMISSION",
-//         "Check if the endpoint is correctly configured"
-//     ),
+    // (
+    //     CheckMethodPermissionsActive,
+    //     check_method_permissions_active,
+    //     is_2xx,
+    //     "METHOD PERMISSION",
+    //     "Check if the endpoint is correctly configured"
+    // ),
 //     (
 //         CheckAuthenticationPOST,
 //         check_authentication_for_post,
 //         is_2xx,
 //         "AUTH BY PASS",
 //         "Check if the auth is correctly configured"
-//    ),
+//    )
 //    (
 //         CheckAuthenticationGET, 
 //         check_authentication_for_get,
 //         is_2xx,
 //         "AUTH BY PASS", 
 //         "Check if the auth is correctly configured"
-//    ),
+//    )
 //    (
 //     CheckSsrfPOST,
 //     check_ssrf_post,
 //     ssrf_and_2xx,
 //     "SSRF POST",
 //     "Check if the endpoint is vulnerable to SSRF"
-// ),
+// )
 // (
 //     CheckSsrfGET,
 //     check_for_ssrf,
@@ -191,25 +191,25 @@ impl_active_checks![
 //     "SSRF GET",
 //     "Check if the endpoint is vulnerable to SSRF"
 // ),
-// (
-//     CheckBOLA,
-//     check_broken_object_level_authorization,
-//     is_2xx,
-//     "BROKEN OBJECT LEVEL AUTHORIZATION",
-//     "Check if object is vulnerable to level authorization"
-// ),
+ (
+    CheckBOLA,
+    check_broken_object_level_authorization,
+    is_2xx,
+    "BROKEN OBJECT LEVEL AUTHORIZATION",
+    "Check if object is vulnerable to level authorization"
+),
 // (
 //     CheckMethodEncoding,
 //     check_method_encoding,
 //     is_2xx,
 //     "Check Content-type header",
 //     "Check if the endpoint can be send with other content type"
-// ),
-// (
-//     CheckIDOR,
-//     check_broken_object,
-//     is_2xx,
-//     "BROKEN OBJECT LEVEL AUTHORIZATION",
-//     "Check if object is vulnerable to level authorization"
-// ) 
+// )
+(
+    CheckIDOR,
+    check_broken_object,
+    is_2xx,
+    "BROKEN OBJECT LEVEL AUTHORIZATION",
+    "Check if object is vulnerable to level authorization"
+) 
 ];
