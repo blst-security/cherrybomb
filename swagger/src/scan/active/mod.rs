@@ -297,7 +297,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         dbg!(&hash_set);
         for (path, item) in &self.oas.get_paths() {
             //loop over all paths in OAS
-            for (_m, op) in item
+            for (_m, _op) in item
                 .get_ops()
                 .iter()
                 .filter(|(m, _)| m == &Method::GET)

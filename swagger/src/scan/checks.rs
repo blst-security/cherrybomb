@@ -191,13 +191,28 @@ impl_active_checks![
     //     "SSRF GET",
     //     "Check if the endpoint is vulnerable to SSRF"
     // ),
+    // (
+    //     CheckBOLA,
+    //     check_broken_object_level_authorization,
+    //     is_2xx,
+    //     "BROKEN OBJECT LEVEL AUTHORIZATION",
+    //     "Check if object is vulnerable to level authorization"
+    // ),
+    // (
+    //     CheckForSQLInjectionsPOST,
+    //     check_sqli_post,
+    //     reflected_and_2xx,
+    //     "SQL Injection for POST",
+    //     "Check if the endpoint is vulnerable to sql injection"
+    // ) 
     (
-        CheckBOLA,
-        check_broken_object_level_authorization,
-        is_2xx,
-        "BROKEN OBJECT LEVEL AUTHORIZATION",
-        "Check if object is vulnerable to level authorization"
-    ) // (
+        CheckForSQLInjections,
+        check_sqli,
+        reflected_and_2xx,
+        "SQL Injection",
+        "Check if the endpoint is vulnerable to sql injection"
+    )
+    // (
       //     CheckMethodEncoding,
       //     check_method_encoding,
       //     is_2xx,

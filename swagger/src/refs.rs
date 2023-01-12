@@ -23,8 +23,13 @@ impl Reference {
             }
             serde_json::from_value(val.clone()).unwrap()
         } else {
+        
+            dbg!(&self);
+            dbg!(&self.param_ref);
+
             panic!("external ref")
-        }
+           
+         }
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

@@ -1,5 +1,6 @@
 use std::vec;
-
+use reqwest::Client;
+use url::Url;
 use super::utils::{create_payload, recursive_func_to_find_param};
 ///use super::utils::create_payload_for_get;
 use super::*;
@@ -15,6 +16,180 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
 }
 
 impl<T: OAS + Serialize> ActiveScan<T> {
+    pub async fn check_sqli(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+        let vec_payload: Vec<&str> = vec!["\'", "\"", "`", "%00", "\"\"", "\' OR \'1"];
+        let mut h: Vec<MHeader> = vec![MHeader::from("content-type", "text/plain; charset=utf-8")];
+
+        let vec_response_payload: Vec<String> = vec!["Error".to_string(), "Syntax".to_string()];
+        let mut ret_val = CheckRetVal::default();
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+                for i in op.params() {
+                   
+        
+                    if i.inner(&self.oas_value)
+                        .param_in
+                        .to_string()
+                        .eq(&"query".to_string())
+                        && (i.inner(&self.oas_value).name.to_lowercase().contains(&"id")
+                            || LIST_PARAM_SQL.contains(&i.inner(&self.oas_value).name.as_str()))
+                    {
+                        for value in &vec_payload {
+                            let vec_param = create_payload(
+                                &self.oas_value,
+                                op,
+                                &self.path_params,
+                                Some(value.to_string()),
+                            );
+                             
+                            let req = AttackRequest::builder()
+                                .servers(self.oas.servers(), true)
+                                .path(path)
+                                .parameters(vec_param.clone())
+                                .auth(auth.clone())
+                                .method(*m)
+                                .headers(h.clone())
+                                .build();
+
+                            let response_vector =
+                                req.send_request_all_servers(self.verbosity > 0).await;
+                            for response in response_vector {
+                                ret_val.1.push(
+                                    &req,
+                                    &response,
+                                    "Testing method permissions".to_string(),
+                                );
+                                ret_val.0.push((
+                            ResponseData {
+                                location: path.clone(),
+                                alert_text: format!(
+                                    "The  parameter {} seems to be vulenrable to sqli on the endpoint {:?}",
+                                    i.inner(&self.oas_value).name, path
+                                ),
+                                serverity: Level::High,
+                            },
+                            response,
+                        ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        (ret_val, vec_response_payload)
+    }
+
+    /* 
+    pub async fn check_sqli_post(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+        let mut ret_val = CheckRetVal::default();
+        let vec_payload: Vec<&str> = vec!["\'", "\"", "`", "%00", "\"\"", "\' OR \'1"];
+        let vec_response_payload: Vec<String> = vec!["Error".to_string(), "Syntax".to_string()];
+        for oas_map in self.payloads.iter() {
+            for json_path in oas_map.payload.map.keys() {
+                for (m, op) in oas_map
+                    .path
+                    .path_item
+                    //.filter(|| path_item==p)
+                    .get_ops()
+                    .iter()
+                    .filter(|(m, _)| m == &Method::POST)
+                //947
+                {
+                    let mut vec_param: Vec<String> = Vec::new();
+                    let mut vec_payload_for_get = create_payload(
+                        &self.oas_value,
+                        op,
+                        &self.path_params,
+                        Some("".to_string()),
+                    );
+
+                    let responses = op.responses();
+                    let data_resp = responses.get(&"200".to_string());
+                    if let Some(v) = data_resp {
+                        let values = v
+                            .inner(&self.oas_value)
+                            .content
+                            .unwrap_or_default()
+                            .into_values();
+                        for i in values {
+                            //loop over media type
+                            // get schema of response
+                            if let Some(schema) = i.schema{
+                           
+                            if let Some(val) = &schema.inner(&self.oas_value).items{
+                            let _var_name: Vec<String> = val
+                                .inner(&self.oas_value)
+                                .properties
+                                .unwrap()
+                                .keys()
+                                .cloned()
+                                .collect();
+                            
+                            for potential_param in LIST_PARAM_SQL {
+                                recursive_func_to_find_param(
+                                    &self.oas_value,
+                                    schema.clone(),
+                                    &mut vec_param,
+                                    &potential_param.to_lowercase(),
+                                );
+                            }
+                            if !vec_param.is_empty() {
+                                //chek if there is a  relevent parameter
+                                for param in &vec_param {
+                                    ///TODO check how it is possible to insert the different params
+                                    // if ther is more than one vuln parameter
+                                    for payload in &vec_payload {
+                                        //check all the SQLI  payload
+                                        let req = AttackRequest::builder()
+                                            .servers(self.oas.servers(), true)
+                                            .path(&oas_map.path.path)
+                                            .method(*m)
+                                            .headers(vec![])
+                                            .parameters(vec_payload_for_get.clone())
+                                            .auth(auth.clone())
+                                            .payload(
+                                                &change_payload(
+                                                    &oas_map.payload.payload,
+                                                    json_path,
+                                                    json!(payload),
+                                                )
+                                                .to_string(),
+                                            )
+                                            .build();
+
+                                        let response_vector =
+                                            req.send_request_all_servers(self.verbosity > 0).await;
+                                        for response in response_vector {
+                                            ret_val.1.push(
+                                                &req,
+                                                &response,
+                                                "Testing for SQL Injections".to_string(),
+                                            );
+                                            ret_val.0.push((
+                            ResponseData {
+                                location: oas_map.path.path.to_string(),
+                                alert_text: format!(
+                                    "The endpoint {} seems to be vulnerable to SQLI with paramteter {:?}",
+                                  &oas_map.path.path.clone(),payload
+                                ),
+                                serverity: Level::Medium,
+                            },
+                            response,
+                        ));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        }
+                    }
+                    }
+                }
+            }
+        }
+        (ret_val, vec_response_payload)
+    }
+*/
     pub async fn check_method_permissions_active(&self, auth: &Authorization) -> CheckRetVal {
         let mut h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
 
@@ -941,4 +1116,139 @@ const LIST_PARAM: [&str; 86] = [
     "context",
     "returnurl",
     "ref_url",
+];
+
+const LIST_PARAM_SQL: [&str; 132] = [
+    "id",
+    "bbcode",
+    "book",
+    "category",
+    "choice",
+    "class",
+    "cod",
+    "conf",
+    "configFile",
+    "cont",
+    "cont",
+    "cont_title",
+    "corpo",
+    "cvsroot",
+    "d",
+    "da",
+    "date",
+    "debug",
+    "debut",
+    "default",
+    "delete",
+    "destino",
+    "dir",
+    "display",
+    "file",
+    "filepath",
+    "flash",
+    "folder",
+    "for",
+    "form",
+    "formatword",
+    "funcao",
+    "function",
+    "g",
+    "get",
+    "go",
+    "gorumDir",
+    "goto",
+    "h",
+    "headline",
+    "i",
+    "inc",
+    "include",
+    "includedir",
+    "inter",
+    "j",
+    "join",
+    "jojo",
+    "l",
+    "lan",
+    "lang",
+    "link",
+    "load",
+    "loc",
+    "m",
+    "main",
+    "meio",
+    "meio",
+    "menu",
+    "mep",
+    "month",
+    "mostra",
+    "n",
+    "name",
+    "nav",
+    "new",
+    "news",
+    "next",
+    "nextpage",
+    "open",
+    "openparent",
+    "option",
+    "origem",
+    "pageurl",
+    "pagina",
+    "para",
+    "part",
+    "pg  place",
+    "play",
+    "plugin",
+    "pm_path",
+    "pollname",
+    "post",
+    "pr",
+    "prefix",
+    "prefixo",
+    "q",
+    "redirect",
+    "ref",
+    "release",
+    "return",
+    "revista",
+    "root",
+    "rub",
+    "S",
+    "sec",
+    "secao",
+    "sect",
+    "sel",
+    "server",
+    "servico",
+    "sg",
+    "shard",
+    "show",
+    "site",
+    "sn",
+    "sourcedir",
+    "start",
+    "start",
+    "str",
+    "subd",
+    "subdir",
+    "subject",
+    "sufixo",
+    "systempath",
+    "t",
+    "task",
+    "teste",
+    "theme_dir",
+    "title",
+    "to",
+    "type",
+    "u",
+    "url",
+    "urlFrom",
+    "v",
+    "var",
+    "vi",
+    "view",
+    "visual",
+    "wPage",
+    "y",
 ];
