@@ -197,19 +197,18 @@ impl_active_checks![
         is_2xx,
         "BROKEN OBJECT LEVEL AUTHORIZATION",
         "Check if object is vulnerable to level authorization"
-    ),
-    // (
-    //     CheckMethodEncoding,
-    //     check_method_encoding,
-    //     is_2xx,
-    //     "Check Content-type header",
-    //     "Check if the endpoint can be send with other content type"
-    // )
-    (
-        CheckIDOR,
-        check_broken_object,
-        is_2xx,
-        "BROKEN OBJECT LEVEL AUTHORIZATION",
-        "Check if object is vulnerable to level authorization"
-    )
+    ) // (
+      //     CheckMethodEncoding,
+      //     check_method_encoding,
+      //     is_2xx,
+      //     "Check Content-type header",
+      //     "Check if the endpoint can be send with other content type"
+      // )
+      // (
+      //     CheckIDOR,
+      //     check_broken_object,
+      //     is_2xx,
+      //     "BROKEN OBJECT LEVEL AUTHORIZATION",
+      //     "Check if object is vulnerable to level authorization"
+      // )
 ];

@@ -287,17 +287,28 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             for (_m, op) in _item.get_ops().iter() {
                 for i in op.params() {
                     if i.inner(&self.oas_value).param_in.to_string().to_lowercase() == *"path" {
+                        println!("PAth PARAM:{:?}", i.inner(&self.oas_value).name);
                         hash_set.insert(i.inner(&self.oas_value).name); // insert all path parameter name
                         break;
                     }
                 }
             }
         }
-
+        dbg!(&hash_set);
         for (path, item) in &self.oas.get_paths() {
             //loop over all paths in OAS
-            for (_m, _op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+            for (_m, op) in item
+                .get_ops()
+                .iter()
+                .filter(|(m, _)| m == &Method::GET)
+                .filter(|(_m, op)| {
+                    op.params()
+                        .iter()
+                        .all(|p| !p.inner(&self.oas_value).param_in.to_lowercase().eq("path"))
+                })
+            {
                 // if  path param
+
                 for element in &hash_set {
                     //loop over all path parameters
                     let vec_values = send_req(path.to_string(), element, auth, &server).await; // send request with parameter and return value
@@ -310,7 +321,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                 }
             }
         }
-        hash_map
+        dbg!(hash_map)
     }
 }
 

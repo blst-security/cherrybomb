@@ -304,8 +304,7 @@ where
                             swagger_value,
                             "integer",
                             format!(
-                                "swagger rooot path:{} method:{} request body media type:{}",
-                                path, m, name
+                                "swagger rooot path:{path} method:{m} request body media type:{name}"
                             ),
                         ));
                     }

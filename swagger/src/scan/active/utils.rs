@@ -39,13 +39,11 @@ pub fn create_payload(
                     value: param_value.to_string(),
                     dm: QuePay::Path,
                 });
-                if placeholder.is_some() {
-                    if placeholder.clone().unwrap().eq("") {
-                        println!("The placeholder is empty ");
+                if placeholder.is_some() && placeholder.clone().unwrap().eq("") {
+                    println!("The placeholder is empty ");
 
-                        // if there is a empty placeholder  and it's match with hashmap so return the vec param
-                        return params_vec;
-                    }
+                    // if there is a empty placeholder  and it's match with hashmap so return the vec param
+                    return params_vec;
                 }
             }
         }
@@ -153,7 +151,7 @@ pub async fn send_req(
         let object: Value = serde_json::from_str(&res.0).unwrap_or_default();
         if let Some(i) = object.as_array() {
             for x in i.iter() {
-                println!("x: {x:?}");
+                // println!("x: {x:?}");
                 read_json_func(x, element, &mut collection_of_values);
             }
         }

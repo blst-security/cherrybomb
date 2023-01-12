@@ -108,7 +108,7 @@ impl AttackRequestBuilder {
         self
     }
     pub fn parameters(&mut self, parameters: Vec<RequestParameter>) -> &mut Self {
-        self.parameters = parameters;
+        self.parameters.extend(parameters);
         self
     }
     pub fn payload(&mut self, payload: &str) -> &mut Self {
@@ -171,6 +171,7 @@ impl AttackRequest {
                 }
                 QuePay::Query => query.push_str(&format!("{}={}&", param.name, param.value)),
                 QuePay::Path => {
+                    println!("path ext bfore : {path_ext}");
                     path_ext =
                         path_ext.replace(&format!("{}{}{}", '{', param.name, '}'), &param.value)
                 }
@@ -272,7 +273,6 @@ impl AttackRequest {
         //    dbg!(&headers1);
         h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let mut ret = vec![];
-        // dbg!(&self.servers);
         for server in &self.servers {
             let req = client
                 .request(

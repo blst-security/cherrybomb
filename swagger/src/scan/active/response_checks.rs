@@ -10,7 +10,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     res_data.serverity,
                     res_data.alert_text,
                     res_data.location,
-                    Certainty::Certain,
+                    Certainty::Low,
                 ))
             }
         }
