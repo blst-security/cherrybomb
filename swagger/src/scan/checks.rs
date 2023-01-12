@@ -204,15 +204,14 @@ impl_active_checks![
     //     reflected_and_2xx,
     //     "SQL Injection for POST",
     //     "Check if the endpoint is vulnerable to sql injection"
-    // ) 
+    // )
     (
         CheckForSQLInjections,
         check_sqli,
         reflected_and_2xx,
         "SQL Injection",
         "Check if the endpoint is vulnerable to sql injection"
-    )
-    // (
+    ) // (
       //     CheckMethodEncoding,
       //     check_method_encoding,
       //     is_2xx,
