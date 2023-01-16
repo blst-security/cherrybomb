@@ -1,4 +1,4 @@
-use super::utils::{create_payload};
+use super::utils::create_payload;
 ///use super::utils::create_payload_for_get;
 use super::*;
 
@@ -52,11 +52,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             let response_vector =
                                 req.send_request_all_servers(self.verbosity > 0).await;
                             for response in response_vector {
-                                ret_val.1.push(
-                                    &req,
-                                    &response,
-                                    "Testing SQLIcarg".to_string(),
-                                );
+                                ret_val
+                                    .1
+                                    .push(&req, &response, "Testing SQLIcarg".to_string());
                                 ret_val.0.push((
                             ResponseData {
                                 location: path.clone(),
@@ -245,7 +243,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let mut ret_val = CheckRetVal::default();
 
         for oas_map in self.payloads.iter() {
-            for (_json_path, _schema) in &oas_map.payload.map {
+            for _schema in oas_map.payload.map.values() {
                 for (m, op) in oas_map
                     .path
                     .path_item
@@ -857,13 +855,13 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .inner(&self.oas_value)
                             .schema_type
                         {
-                            let mut value_to_send = "2".to_string();
+                            let mut _value_to_send = "2".to_string();
                             let mut var_int: i32 = 2;
                             if types == *"integer".to_string() {
                                 if let Some(val) = i.inner(&self.oas_value).examples {
                                     if let Some((_ex, val)) = val.into_iter().next() {
-                                        value_to_send = val.value.to_string();
-                                        var_int = value_to_send.parse::<i32>().unwrap();
+                                        _value_to_send = val.value.to_string();
+                                        var_int = _value_to_send.parse::<i32>().unwrap();
                                     }
                                 }
                                 for n in var_int - 1..var_int + 1 {

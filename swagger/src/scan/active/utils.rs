@@ -58,14 +58,16 @@ pub fn create_payload(
             return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
         }
     } else {
-        println!("The placeholder is none for pollution ");
+        //The placeholder is none for pollution
         return create_payload_for_get(swagger, op, placeholder, &mut params_vec);
     }
     println!("END");
 
     params_vec
 }
-pub fn recursive_func_to_find_param(
+
+#[allow(dead_code)]
+fn recursive_func_to_find_param(
     //find param from the given schema
     swagger: &Value,
     schema: SchemaRef,
