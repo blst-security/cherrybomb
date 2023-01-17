@@ -18,7 +18,7 @@ impl AttackRequestBuilder {
         self.path = server.base_url + path;
         if let Some(vars) = server.variables {
             for (k, v) in vars {
-                self.path = self.path.replace(&format!("{{{}}}", k), v.default.as_str());
+                self.path = self.path.replace(&format!("{{{k}}}"), v.default.as_str());
             }
         }
         if !secure {
@@ -33,7 +33,7 @@ impl AttackRequestBuilder {
                 if let Some(vars) = &server.variables {
                     for (k, v) in vars {
                         new_server_addr =
-                            new_server_addr.replace(&format!("{{{}}}", k), v.default.as_str());
+                            new_server_addr.replace(&format!("{{{k}}}"), v.default.as_str());
                     }
                 }
                 if !secure & new_server_addr.starts_with("https") {
@@ -60,7 +60,7 @@ impl AttackRequestBuilder {
 
     pub fn uri_http(&mut self, server: &Server) -> &mut Self {
         //build base url with http protocol
-        let mut new_url = server.url.to_string();
+        let mut new_url = server.base_url.to_string();
         if let Some(var) = server.variables.clone() {
             for (key, value) in var {
                 new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
@@ -84,7 +84,7 @@ impl AttackRequestBuilder {
                     new_url = new_url.replace(&format!("{}{}{}", '{', key, '}'), &value.default);
                 }
                 new_url.pop();
-                self.path = format!("{}{}", new_url, path);
+                self.path = format!("{new_url}{path}");
             } else {
                 self.path = format!("{}{}", server_object.base_url, path);
             }
@@ -108,7 +108,7 @@ impl AttackRequestBuilder {
         self
     }
     pub fn parameters(&mut self, parameters: Vec<RequestParameter>) -> &mut Self {
-        self.parameters = parameters;
+        self.parameters.extend(parameters);
         self
     }
     pub fn payload(&mut self, payload: &str) -> &mut Self {
@@ -150,7 +150,7 @@ impl std::fmt::Display for AttackRequest {
             "Payload".green().bold(),
             payload.magenta(),
             "Headers".green().bold(),
-            format!("{:?}", headers).magenta()
+            format!("{headers:?}").magenta()
         )
     }
 }
@@ -171,6 +171,7 @@ impl AttackRequest {
                 }
                 QuePay::Query => query.push_str(&format!("{}={}&", param.name, param.value)),
                 QuePay::Path => {
+                    println!("path ext bfore : {path_ext}");
                     path_ext =
                         path_ext.replace(&format!("{}{}{}", '{', param.name, '}'), &param.value)
                 }
@@ -186,6 +187,7 @@ impl AttackRequest {
         query.pop();
         (payload, query, path_ext, headers)
     }
+
     pub fn get_headers(&self, payload_headers: &[MHeader]) -> HashMap<String, String> {
         self.headers
             .iter()
@@ -198,12 +200,13 @@ impl AttackRequest {
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let h = self.get_headers(&headers1);
+
         //   h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let req = client
-            .request(method1, &format!("{}{}", path, req_query))
+            .request(method1, format!("{path}{req_query}"))
             .body(req_payload.clone())
             .headers((&h).try_into().expect("not valid headers"))
-            .header("content-type", "application/json")
+            // .header("content-type", "application/json")
             .send();
         // .await
         // .expect("Failed to send")
@@ -232,15 +235,16 @@ impl AttackRequest {
         let client = reqwest::Client::new();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
-        let mut h = self.get_headers(&headers1);
+        let h = self.get_headers(&headers1);
         //   h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let req = client
-            .request(method1, format!("{}{}", path, req_query))
+            .request(method1, format!("{path}{req_query}"))
             .body(req_payload.clone())
             .headers((&h).try_into().expect("not valid headers"))
-            .header("content-type", "application/json")
+            //.header("content-type", "application/json")
             .build()
             .unwrap();
+        dbg!(&req);
         match client.execute(req).await {
             Ok(res) => {
                 if print {
@@ -251,7 +255,7 @@ impl AttackRequest {
                     headers: res
                         .headers()
                         .iter()
-                        .map(|(n, v)| (n.to_string(), format!("{:?}", v)))
+                        .map(|(n, v)| (n.to_string(), format!("{v:?}")))
                         .collect(),
                     payload: res.text().await.unwrap_or_default(),
                 })
@@ -267,9 +271,9 @@ impl AttackRequest {
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let mut h = self.get_headers(&headers1);
+        //    dbg!(&headers1);
         h.insert("X-BLST-ATTACKER".to_string(), "true".to_string());
         let mut ret = vec![];
-        // dbg!(&self.servers);
         for server in &self.servers {
             let req = client
                 .request(
@@ -278,7 +282,6 @@ impl AttackRequest {
                 )
                 .body(req_payload.clone())
                 .headers((&h).try_into().expect("not valid headers"))
-                .header("content-type", "application/json")
                 .build()
                 .unwrap(); //TODO return builder error
             match client.execute(req).await {
@@ -291,7 +294,7 @@ impl AttackRequest {
                         headers: res
                             .headers()
                             .iter()
-                            .map(|(n, v)| (n.to_string(), format!("{:?}", v)))
+                            .map(|(n, v)| (n.to_string(), format!("{v:?}")))
                             .collect(),
                         payload: res.text().await.unwrap_or_default(),
                     })

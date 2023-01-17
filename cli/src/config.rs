@@ -52,8 +52,7 @@ impl Config {
                         let c = PassiveChecks::from_string(check);
                         if c.is_none() {
                             println!(
-                                "Check name: {} does not exist, the config will load without it.",
-                                check
+                                "Check name: {check} does not exist, the config will load without it."
                             );
                         }
                         c
@@ -179,8 +178,7 @@ pub async fn try_send_telemetry(no_tel: Option<bool>, action: &str) {
     let _ = client
         .post("https://cherrybomb.blstsecurity.com/tel")
         .body(format!(
-            "{{\"client_token\":\"{}\",\"event\":\"{}\"}}",
-            token, action
+            "{{\"client_token\":\"{token}\",\"event\":\"{action}\"}}"
         ))
         .send()
         .await;

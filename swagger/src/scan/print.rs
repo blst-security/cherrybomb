@@ -104,7 +104,7 @@ fn prep_param(param: &ParamForTable) -> (String, String, String, String, String,
         statuses.push('\n');
     }
     for dm in &param.dms {
-        dms.push_str(&format!("{:?}", dm));
+        dms.push_str(&format!("{dm:?}"));
         dms.push('\n');
     }
     for ep in &param.eps {
@@ -148,7 +148,7 @@ pub fn print_param_table(params: &Vec<ParamForTable>) {
             Cell::new(eps).add_attribute(Attribute::Bold),
             Cell::new(parents).add_attribute(Attribute::Bold),
             Cell::new(children).add_attribute(Attribute::Bold),
-            Cell::new(format!("{}-{}", min, max)).add_attribute(Attribute::Bold),
+            Cell::new(format!("{min}-{max}")).add_attribute(Attribute::Bold),
         ]);
     }
     println!("{table}");

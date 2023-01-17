@@ -32,7 +32,7 @@ impl<T: OAS + Serialize> PassiveGeneralScan for PassiveSwaggerScan<T> {
                 if let Some(servers) = &op.servers {
                     alerts.extend(check_servers_for_server_url_rule(
                         servers,
-                        &format!("swagger {} {} servers", path, m),
+                        &format!("swagger {path} {m} servers"),
                         &mut server_addrs,
                     ));
                 }
@@ -59,7 +59,7 @@ impl<T: OAS + Serialize> PassiveGeneralScan for PassiveSwaggerScan<T> {
                     alerts.push(Alert::new(
                         Level::Low,
                         "Responses have no success status(2XX)",
-                        format!("swagger path:{} operation:{}", path, m),
+                        format!("swagger path:{path} operation:{m}"),
                     ));
                 }
             }
@@ -73,7 +73,7 @@ impl<T: OAS + Serialize> PassiveGeneralScan for PassiveSwaggerScan<T> {
                 for (name, schema) in schemas {
                     alerts.extend(additional_properties_test(
                         &schema.inner(&self.swagger_value),
-                        format!("swagger root components schema:{}", name),
+                        format!("swagger root components schema:{name}"),
                     ))
                 }
             }
@@ -102,7 +102,7 @@ impl<T: OAS + Serialize> PassiveGeneralScan for PassiveSwaggerScan<T> {
                             alerts.push(Alert::new(
                                 Level::Medium,
                                 message,
-                                format!("{} status:{} media type:{}", location, status, name),
+                                format!("{location} status:{status} media type:{name}"),
                             ));
                         }
                     }
@@ -137,12 +137,12 @@ impl<T: OAS + Serialize> PassiveGeneralScan for PassiveSwaggerScan<T> {
         if let Some(comps) = &self.swagger.components() {
             if let Some(schemas) = &comps.schemas {
                 for name in schemas.keys() {
-                    let schema_path = format!("#/components/schemas/{}", name);
+                    let schema_path = format!("#/components/schemas/{name}");
                     if !swagger_str.contains(&schema_path) {
                         alerts.push(Alert::new(
                             Level::Info,
                             "Schema is defined but never used",
-                            format!("swagger root components schema:{}", name),
+                            format!("swagger root components schema:{name}"),
                         ));
                     }
                 }

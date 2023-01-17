@@ -65,12 +65,12 @@ impl Authorization {
             Self::Authorization(Auth::Basic(username, password)) => Some(RequestParameter {
                 dm: QuePay::Headers,
                 name: String::from("Authorization"),
-                value: format!("Basic {}", encode(format!("{}:{}", username, password))),
+                value: format!("Basic {}", encode(format!("{username}:{password}"))),
             }),
             Self::Authorization(Auth::Bearer(token)) => Some(RequestParameter {
                 dm: QuePay::Headers,
                 name: String::from("Authorization"),
-                value: format!("Bearer {}", token),
+                value: format!("Bearer {token}"),
             }),
             Self::JWT(token) => Some(RequestParameter {
                 dm: QuePay::Headers,

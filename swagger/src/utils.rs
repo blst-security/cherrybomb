@@ -248,7 +248,7 @@ where
 }
 //pub type Split= HashMap<String,u8>;
 //pub type HeaderMap = HashMap<String,String>;
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Default,Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Method {
     GET,
     POST,
@@ -258,12 +258,8 @@ pub enum Method {
     DELETE,
     HEAD,
     TRACE,
+    #[default]
     Other,
-}
-impl Default for Method {
-    fn default() -> Self {
-        Method::GET
-    }
 }
 impl Method {
     pub fn method_from_str(s: &str) -> Self {

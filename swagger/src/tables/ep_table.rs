@@ -68,7 +68,7 @@ impl fmt::Display for EpForTable {
             ));
         }
         string.push_str(&format!("{:-<200}\n", ""));
-        write!(f, "{}", string)
+        write!(f, "{string}")
     }
 }
 impl EpForTable {
@@ -237,7 +237,7 @@ impl EpTable {
             if i % 50usize == 0 {
                 println!("{}\n{:-<190}", head, "");
             }
-            print!("{}", ep);
+            print!("{ep}");
         }
         //print_ep_table(&self.eps);
     }

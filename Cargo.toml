@@ -14,12 +14,21 @@ license = "Apache-2.0"
 edition = "2021"
 default-run = "cherrybomb"
 
-
-
 [[bin]]
 name = "cherrybomb"
-path = "main.rs"
+path = "cli/src/main.rs"
 test = false
+
+[[bin]]
+name = "oas"
+path = "swagger/src/main.rs"
+test = false
+
+
+# [[bin]]
+# name = "cherrybomb"
+# path = "main.rs"
+# test = false
 
 #[[bin]]
 #name = "oas"
@@ -34,8 +43,12 @@ members = [
 ]
 [dependencies]
 
-cherrybomb-cli = "^0.7.1"
-cherrybomb-swagger = "^0.1.1"
+cherrybomb-cli = {path="cli"}
+cherrybomb-swagger = {path="swagger"}
+
+# cherrybomb-cli = "^0.7.1"
+# cherrybomb-swagger = "^0.1.1"
+
 clap = { version = "^3", features = ["derive"] }
 uuid = { version = "0.8", features = ["v4","serde"] }
 serde = { version = "^1.0", features = ["derive"] }
