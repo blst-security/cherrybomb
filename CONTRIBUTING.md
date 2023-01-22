@@ -10,7 +10,7 @@ Please take a note of this few things before contributing:
 2. We are looking for contribution of:
    - Passive checks to varify that an OAS file follows the specefication and best practices.
    - Active checks that send requests to the target API to verify the OAS file and test for common vulnerabilities.
-4. We have already implemented a OAS interface that can read and destructure the inputted file (a few OAS files for example are available in the [examples folder](https://github.com/blst-security/cherrybomb/swagger/examples)).
+4. We have already implemented a OAS interface that can read and destructure the inputted file (a few OAS files for example are available in the [examples folder](https://github.com/blst-security/cherrybomb/tree/main/swagger/examples)).
 
 ### Developing
 
