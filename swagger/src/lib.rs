@@ -205,6 +205,7 @@ pub struct Components {
     pub links: Option<Links>,
     pub callbacks: Option<Callbacks>,
 }
+
 //End Components Object
 
 //Tag Object
@@ -252,6 +253,7 @@ pub struct OAS3_1 {
     #[serde(rename = "externalDocs")]
     pub external_docs: Option<ExternalDocs>,
 }
+ 
 impl OAS for Swagger {
     fn get_paths(&self) -> Paths {
         self.paths.clone()

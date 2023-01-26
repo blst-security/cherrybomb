@@ -215,10 +215,11 @@ impl AttackRequest {
 
         match req.await {
             Ok(res) => {
+                let st = res.status();
                 if res.status() == 200 {
-                    match res.text().await {
-                        Ok(final_resp) => (final_resp, true),
-                        Err(e) => (e.to_string(), false),
+                    match &res.text().await {
+                        Ok(final_resp) => (final_resp.to_string(), true),
+                        Err(e) => (format!("{} {:?}", e.to_string(), st), false),
                     }
                 } else {
                     ("error".to_string(), false)

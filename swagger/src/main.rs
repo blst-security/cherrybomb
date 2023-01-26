@@ -3,7 +3,7 @@ use swagger::*;
 #[tokio::main]
 async fn main() {
     // let f_name = "/home/nathan/Documents/POC/Cherry/demo/webinar/unsafe/openapi.json";
-    let f_name = "/home/nathan/Documents/POC/Cherry/Testing/openapi-spec.json";
+    let f_name = "/home/nathan/Documents/POC/Cherry/petstore.json";
     let swagger_value: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(f_name).unwrap()).unwrap();
 

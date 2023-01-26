@@ -120,6 +120,14 @@ impl_passive_checks![
     ];
 
 impl_active_checks![
+     (
+        CheckAuth,
+        check_permission,
+        is_2xx,
+        "AUTH ",
+        "Check if the API may be vulnerable "
+    )
+
     // (
     //     CheckOpenRedirect,
     //     check_open_redirect,
@@ -205,13 +213,13 @@ impl_active_checks![
     //     "SQL Injection for POST",
     //     "Check if the endpoint is vulnerable to sql injection"
     // )
-    (
-        CheckForSQLInjections,
-        check_sqli,
-        reflected_and_2xx,
-        "SQL Injection",
-        "Check if the endpoint is vulnerable to sql injection"
-    ) // (
+    // (
+    //     CheckForSQLInjections,
+    //     check_sqli,
+    //     reflected_and_2xx,
+    //     "SQL Injection",
+    //     "Check if the endpoint is vulnerable to sql injection"
+    // ) // (
       //     CheckMethodEncoding,
       //     check_method_encoding,
       //     is_2xx,

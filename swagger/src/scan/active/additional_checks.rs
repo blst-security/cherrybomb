@@ -16,6 +16,95 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
 }
 
 impl<T: OAS + Serialize> ActiveScan<T> {
+
+    pub async fn attack_status_403(&self, path: String , auth: &Authorization, ret_val : &mut CheckRetVal){
+       let mut vec_headers: Vec<&str> = LIST_HEADERS.into_iter().collect();
+       let original_url = format!("X-Original-URL: {path}");
+       let rewrite_url = format!("X-Rewrite-URL: {path}");
+       vec_headers.push(original_url.as_str());
+       vec_headers.push(rewrite_url.as_str());
+                
+        for element in vec_headers {
+            let header: Vec<&str> = element.split(':').collect();
+            let h: Vec<MHeader> = vec![MHeader::from(header.get(0).unwrap(), header.get(1).unwrap())];
+
+            let req = AttackRequest::builder()
+                                .servers(self.oas.servers(), true)
+                                .path(&path)
+                                .auth(auth.clone())
+                                .method(Method::GET)
+                                .headers(h.clone())
+                                .build();
+            let response_vector =
+                                req.send_request_all_servers(self.verbosity > 0).await;
+                            for response in response_vector {
+                                ret_val
+                                    .1
+                                    .push(&req, &response, "Testing 403 By pass".to_string());
+                                ret_val.0.push((
+                            ResponseData {
+                                location: path.clone(),
+                                alert_text: format!(
+                                    "Unauthorized acces to the endpoint {path}"
+                                    
+                                ),
+                                serverity: Level::High,
+                            },
+                            response,
+                        ));
+
+                    }
+                }
+                
+
+
+
+            }
+
+    
+    pub async fn check_403_by_pass(&self, auth: &Authorization) -> CheckRetVal {
+        let mut ret_val = CheckRetVal::default();
+        for (path , item ) in &self.oas.get_paths(){
+            for ( m , op) in item.get_ops().iter().filter(|(m , _ )|m==&Method::GET) {
+                let req = AttackRequest::builder()
+                .servers(self.oas.servers(), true)
+                .path(path)
+               // .parameters(vec_param.clone())
+                .auth(auth.clone())
+                .method(*m)
+                .build();
+                
+           let res=  req.send_request_with_response().await;
+            if res.0.contains(&"403"){
+                self.attack_status_403(path.to_string(), auth, &mut ret_val).await;
+           }
+            }
+        }
+        ret_val
+    }
+    pub async fn check_permission (&self, auth: &Authorization) -> CheckRetVal{
+        dbg!(&auth);
+        println!("auth compo");
+        dbg!(&self.oas.security());
+        let mut ret_val = CheckRetVal::default();
+        for (path, item) in &self.oas.get_paths() {
+            for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
+                println!("PAth {path}");
+                //dbg!(&op.security);
+                let  sec = &op.security;
+                if let Some(value) = sec {
+                    for elem in value  {
+                        for (key,value) in elem  {
+                            println!("Key {key}");
+                            println!("Value {:?}", value);
+                        }
+                    }
+                }
+
+            }
+        }
+        ret_val
+    }
     pub async fn check_sqli(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
         let vec_payload: Vec<&str> = vec!["\'", "\"", "`", "%00", "\"\"", "\' OR \'1"];
         let h: Vec<MHeader> = vec![MHeader::from("content-type", "text/plain; charset=utf-8")];
@@ -1022,6 +1111,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 }
+const LIST_HEADERS:[&str; 12] =  ["X-Originating-IP: 127.0.0.1", "X-Forwarded-For: 127.0.0.1", "Forwarded-For: 127.0.0.1", "X-Remote-IP: 127.0.0.1", "X-Remote-Addr: 127.0.0.1", "X-ProxyUser-Ip: 127.0.0.1", "X-Original-URL: 127.0.0.1", "Client-IP: 127.0.0.1", "True-Client-IP: 127.0.0.1", "Cluster-Client-IP: 127.0.0.1", "X-ProxyUser-Ip: 127.0.0.1", "Host: localhost"];
+
 
 const LIST_CONTENT_TYPE: [&str; 2] = ["application/xml", "application/xml"];
 const LIST_METHOD: [Method; 3] = [Method::GET, Method::POST, Method::PUT];
