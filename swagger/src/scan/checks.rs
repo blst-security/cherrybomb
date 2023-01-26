@@ -121,11 +121,11 @@ impl_passive_checks![
 
 impl_active_checks![
      (
-        CheckAuth,
-        check_permission,
+        Check403ByPass,
+        check_403_by_pass,
         is_2xx,
-        "AUTH ",
-        "Check if the API may be vulnerable "
+        "UNAUTHORIZED ",
+        "Inspect for unauthorized access."
     )
 
     // (
