@@ -1,110 +1,210 @@
-<div align="center">
-  
-![cherry_bomb_v5_1](https://user-images.githubusercontent.com/12970637/159654379-eaff2dde-ba9c-403b-9f23-d412b4657847.png)
 
-  <h1>Stop half-done API specifications</h1>
+<div  align="center">
+
+![cherry_bomb_v1.0](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/cherrybomb_github_art_v2-1%20(1).png)
+
   
-[![Maintained by blst security](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/?promo=blst&domain=github_maintained_shield) 
+
+<h1>Stop half-done API specifications</h1>
+
+[![Maintained by blst security](https://img.shields.io/badge/maintained%20by-blst%20security-4F46E5)](https://www.blstsecurity.com/?promo=blst&domain=github_maintained_shield)
+
 [![docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://www.blstsecurity.com/cherrybomb?promo=blst&domain=github_docs_shield)
+
 [![Discord Shield](https://discordapp.com/api/guilds/914846937327497307/widget.png?style=shield)](https://discord.gg/WdHhv4DqwU)
+
 </div>
 
-# 💣 What is Cherrybomb?
-Cherrybomb is a CLI tool that helps you avoid undefined user behavior by validating your API specifications and running API security tests.
+  
 
+# 💣 What is Cherrybomb?
+
+Cherrybomb is an CLI tool written  in Rust that helps prevent incorrect code implementation early in development. It works by validating and testing your API using an OpenAPI file. Its main goal is to reduce security errors and ensure your API functions as intended.
+
+  
+  
 
 # 🔨 How does it work?
-Cherrybomb reads your API spec file (Open API Specification) and validates it for best practices and the [OAS specification](https://swagger.io/specification/),
-then it tests to verify that the API follows the OAS file and tests for common vulnerabilities.</br>
-The output is a detailed table with any issues found, guiding you to the exact problem and location to help you solve it quickly.
+
+
+Cherrybomb makes sure your API is working correctly. It checks your API's spec file (OpenAPI Specification) for good practices and makes sure it follows the OAS rules. Then, it tests your API for common issues and vulnerabilities. If any problems are found, Cherrybomb gives you a detailed report with the exact location of the problem so you can fix it easily.
+
+  
 
 # 🐾 Get Started
+
 ## Installation
-#### Using cURL
+
+
+
 ##### Linux/MacOS:
+
 ```
-curl https://cherrybomb.blstsecurity.com/install	| /bin/bash
+
+curl https://cherrybomb.blstsecurity.com/install | /bin/bash
+
 ```
+
 The script requires sudo permissions to move the cherrybomb bin into <b>/usr/local/bin/</b>.</br>
+
 (If you want to view the shell script(or even help to improving it - [/scripts/install.sh](/scripts/install.sh))
 
+  
+
 #### Get it from crates.io
+
 ```bash
+
 cargo install cherrybomb
+
 ```
+
 If you don't have cargo installed, you can install it from [here](https://doc.rust-lang.org/cargo/getting-started/installation.html)
 
-#### Docker container
-You can use our docker container that we host on our public repo in aws, though we require an API key for it, you can get it at [our CI pipeline integration wizard](https://cicd.blstsecurity.com/Loading?redirect=/&promo=blst&domain=github_wiz_docker)(after you sign up)
-```
-docker run --mount type=bind,source=PATH_TO_OAS_DIR,destination=/home public.ecr.aws/t1d5k0l0/cherrybomb:latest cherrybomb oas -f home/OAS_NAME --api-key=API-KEY
-```
-#### Clone
-You can also install Cherrybomb by cloning this repo, and building it using cargo(*only works with the nightly toolchain):
-```
-git clone https://github.com/blst-security/cherrybomb && cd cherrybomb
-cargo build --release
-sudo mv ./target/release/cherrybomb /usr/local/bin
+
+
+#### Building from Sources
+
+You can also build Cherrybomb from sources by cloning this repo, and building it using cargo.
+
 ```
 
-## Usage
-After installing the CLI, verify it's working by running
+git clone https://github.com/blst-security/cherrybomb && cd cherrybomb
+
+```
+The main branch's Cargo.toml file uses `cherrybomb-engine` and `cherrybomb-oas` from crates.io. 
+
+if you want build those from source too, you can change the following files:
+
+(remove the version number and replace with the path to the local repo)
+
+
+
+```
+cherrybomb/Cargo.toml:
+cherrybomb-engine = version => { path = "cherrybomb-engine" }
+```
+ 
+```
+cherrybomb/cherrybomb-engine/Cargo.toml:
+cherrybomb-oas = version => { path = "../cherrybomb-oas" }
+```
+
+```
+cargo build --release
+sudo mv ./target/release/cherrybomb /usr/local/bin # or any other directory in your PATH
+```
+  
+
+  
+### Profile 
+ 
+Profiles allow you to choose the type of check you want to use.
+```
+- info: only generates param and endpoint tables
+- normal:  both active and passive
+- intrusive: active and intrusive [in development]
+- passive: only passive tests
+- full: all the options
+```
+
+### Config 
+
+
+
+With a configuration file, you can easily edit, view, Cherrybomb's options.
+The config file allows you to set the running profile, location of the oas file, the verbosity and ignore the TLS error.
+
+Config also allows you to override the server's URL with an array of servers, and add security to the request [in development]. 
+
+Notice that CLI arguments parameter will override config options if both are set.
+
+You can also add or remove checks from a profile using `passive/active-include/exclude`. [in development]
+
+```
+cherrybomb --config  <CONFIG_FILE>
+```
+
+
+Structure of config file:
+```
+{
+"file" : "open-api.json",
+"verbosity" : "normal, 
+"profile" : " "Normal",
+"passive_include" : ["check1, checks2"],
+"active_include": ["check3, check4"],
+"servers_override" , ["http://server/"],
+"security":  [{
+    "auth_type": "Basic",
+    "auth_value" : token_value,
+    "auth_scope" : scope_name
+    }],
+"ignore_tls_errors" : true, 
+"no_color" : false,
+}
+```
+
+
+
+# Usage
+
+After installing, verify it's working by running
+
 ```
 cherrybomb --version
+
 ```
 
-### OpenAPI specification scan
-```
-cherrybomb oas --file <PATH> --format <cli/txt/json> 
-```
-#### Output example:
-![passive output](/images/passive.png)
-![active output](/images/active.png)
+### OpenAPI specification
 
-### Generate Parameter Table
-```
-cherrybomb param-table --file <PATH> --name <SINGLE PARAM NAME(OPTIONAL)>
-```
 
-#### Table output example:
-![param_table](/images/param_table.png)
+``` cherrybomb --file <PATH> --profile passive ```
 
-### Generate Endpoint Table
+Passive Output example:
+
+![passive_output](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/passive1_0.png)
+
+
+### Generate Info Table
+
+
 ```
-cherrybomb ep-table --file <PATH> --name <SINGLE PARAM NAME(OPTIONAL)>
+cherrybomb --file <PATH> --profile info
+
 ```
-#### Table output example:
-![ep_table](/images/ep_table.png)
+Parameter table output:
 
-# 🚧 Roadmap
+  ![parameter_output](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/param_v1.png)
 
- - [x] OAS 3 support
- - [x] Passive checks
- - [x] Parameter table 
- - [x] Improve installation script
- - [x] Endpoints table
- - [x] YAML support (currently only JSON is supported)
- - [x] Custom scans - optional checks + optional output
- - [x] Active scans
- - [ ] Ignore alerts + don't fail on info
- - [ ] More passive checks
- - [ ] Swagger 2 support (currently only version 3 is supported)
- - [ ] Homebrew/apt/crates.io support
- - [ ] GraphQL schema support
+Endpoint table output:
+
+  ![endpoint_output](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/endpoint_v1.png)
+
+
+
 
 # 🍻 Integration
 
-You can embed it into your CI pipeline, and If you plan on doing that I would recommend that you go to our [website](https://www.blstsecurity.com/?promo=blst&domain=github_integration_link), sign up, go through the [CI pipeline integration wizard](https://cicd.blstsecurity.com/Loading?redirect=/&promo=blst&domain=github_wiz_integration), and copy the groovy/GitHub actions snippet built for you. 
+  
+
+You can embed it into your CI pipeline, and If you plan on doing that I would recommend that you go to our [website](https://www.blstsecurity.com/?promo=blst&domain=github_integration_link), sign up, go through the [CI pipeline integration wizard](https://www.blstsecurity.com/Loading?redirect=/CICD&promo=blst&domain=github_wiz_integration), and copy the groovy/GitHub actions snippet built for you.
+
 </br>Example:
-![CI pipeline builder output](/images/ci_output.png)
+
+![CI pipeline builder output](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/ci_output.png)
+
 # 💪 Support
 
+  
+
 ### Get help
+
 If you have any questions, please send us a message to [support@blstsecurity.com](mailto:support@blstsecurity.com) or ask us on our [discord server](https://discord.gg/WdHhv4DqwU).
-<br />
+
+
 You are also welcome to open an Issue here on GitHub.
 
-# 🤝 Contributing
-You can find contribution options from our open issues, you should look for the "More passive checks" issue(it's a great issue to start from).
-You can also find info about contributing new checks to Cherrybomb [here](https://github.com/blst-security/cherrybomb/blob/main/CONTRIBUTING.md).</br>
-If you have any question or need any help talk to us over at our [discord server](https://discord.gg/WdHhv4DqwU) to see where and how can you contribute to our project.
+  
+
+

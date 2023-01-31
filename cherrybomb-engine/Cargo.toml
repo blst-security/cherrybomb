@@ -1,0 +1,26 @@
+[package]
+name = "cherrybomb-engine"
+version = "0.1.0"
+authors = ["BLST Security"]
+description = """
+Cherrybomb enging crate
+"""
+documentation = "https://github.com/blst-security/cherrybomb"
+repository = "https://github.com/blst-security/cherrybomb"
+license = "Apache-2.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cherrybomb-oas = "^0.1"
+anyhow = "1.0.66"
+thiserror = "1.0.37"
+serde_json = "^1.0"
+clap = { version = "4.0.29", features = ["derive"] }
+serde = { version = "^1.0", features = ["derive"] }
+strum = "0.23" # legacy
+strum_macros = "0.23" # legacy
+url="^2" #legacy
+base64 = "0.13" #legacy
+reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls"] } #legacy
