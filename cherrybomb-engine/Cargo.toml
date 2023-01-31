@@ -1,12 +1,19 @@
 [package]
 name = "cherrybomb-engine"
 version = "0.1.0"
+authors = ["BLST Security"]
+description = """
+Cherrybomb enging crate
+"""
+documentation = "https://github.com/blst-security/cherrybomb"
+repository = "https://github.com/blst-security/cherrybomb"
+license = "Apache-2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cherrybomb-oas = { path = "../cherrybomb-oas" }
+cherrybomb-oas = "^0.1"
 anyhow = "1.0.66"
 thiserror = "1.0.37"
 serde_json = "^1.0"
