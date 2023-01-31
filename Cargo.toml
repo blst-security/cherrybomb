@@ -12,7 +12,7 @@ keywords = ["API","security",  "CLI", "OpenAPI",  "scanning"]
 categories = ["command-line-utilities","web-programming"]
 license = "Apache-2.0"
 edition = "2021"
-default-run = "cherrybomb --help"
+default-run = "cherrybomb"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
