@@ -1,8 +1,9 @@
-/target
-Cargo.lock
-*.sw*
-./mapper
-./attacker
-./decider
+# IDE folders
 /.idea
+/.vscode
+/.fleet
 
+# Rust build artifacts
+/target
+cherrybomb-engine/target/
+cherrybomb-oas/target/
