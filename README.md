@@ -1,7 +1,7 @@
 
 <div  align="center">
 
-![cherry_bomb_v1.0](https://raw.githubusercontent.com/blst-security/cherrybomb/main/images/cherrybomb_github_art_v2-1%20(1).png)
+![cherry_bomb_v1.0](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/cherrybomb_github_art_v2-1%20(1).png)
 
   
 
@@ -163,7 +163,7 @@ cherrybomb --version
 
 Passive Output example:
 
-![passive_output](https://raw.githubusercontent.com/blst-security/cherrybomb/main/images/passive1_0.png)
+![passive_output](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/passive1_0.png)
 
 
 ### Generate Info Table
@@ -175,11 +175,11 @@ cherrybomb --file <PATH> --profile info
 ```
 Parameter table output:
 
-  ![parameter_output](https://raw.githubusercontent.com/blst-security/cherrybomb/main/images/param_v1.png)
+  ![parameter_output](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/param_v1.png)
 
 Endpoint table output:
 
-  ![endpoint_output](https://raw.githubusercontent.com/blst-security/cherrybomb/main/images/endpoint_v1.png)
+  ![endpoint_output](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/endpoint_v1.png)
 
 
 
@@ -192,7 +192,7 @@ You can embed it into your CI pipeline, and If you plan on doing that I would re
 
 </br>Example:
 
-![CI pipeline builder output](https://raw.githubusercontent.com/blst-security/cherrybomb/main/images/ci_output.png)
+![CI pipeline builder output](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/ci_output.png)
 
 # 💪 Support
 
