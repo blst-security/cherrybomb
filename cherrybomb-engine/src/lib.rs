@@ -174,7 +174,7 @@ async fn run_normal_profile(
     Ok(report)
 }
 
-async fn run_full_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result {
+async fn run_full_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
     let mut report = json!({});
     let mut results = HashMap::from([
         ("active", run_active_profile(config, oas, oas_json).await),
