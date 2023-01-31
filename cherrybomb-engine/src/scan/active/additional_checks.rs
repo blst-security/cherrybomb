@@ -760,7 +760,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
 
         let mut ret_val = CheckRetVal::default();
         let server = &self.oas.servers();
-        dbg!(&server);
         let id_vec = &self
             .path_params
             .keys()
