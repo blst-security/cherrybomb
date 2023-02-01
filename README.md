@@ -1,7 +1,7 @@
 
 <div  align="center">
 
-![cherry_bomb_v1.0](https://raw.githubusercontent.com/blst-security/cherrybomb/reformat/images/cherrybomb_github_art_v2-1%20(1).png)
+![cherry_bomb_v1.0](https://raw.githubusercontent.com/blst-security/cherrybomb/main/images/cherrybomb_github_art_v2-1%20(1).png)
 
   
 
