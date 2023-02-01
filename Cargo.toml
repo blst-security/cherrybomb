@@ -19,7 +19,7 @@ default-run = "cherrybomb"
 [dependencies]
 anyhow = "1.0.66"
 thiserror = "1.0.37"
-tokio = { version = "^1.0", features = ["rt-multi-thread", "macros"]}
+tokio = { version = "^1.23", features = ["rt-multi-thread", "macros"]}
 clap = { version = "4.0.29", features = ["derive"] }
 const_format = "0.2.30"
 serde = { version = "^1.0", features = ["derive"] }
