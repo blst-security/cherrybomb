@@ -11,7 +11,7 @@ pub struct Custom {
     value: String,
 }
 impl Custom {
-    pub fn from_3_vals(vals: Vec<&str>) -> Self {
+    pub fn _from_3_vals(vals: Vec<&str>) -> Self {
         if vals.len() != 3 {
             panic!("Authentication doesn't match Cherrybomb's scheme!");
         }

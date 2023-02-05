@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::fs::File;
 use std::io::Write;
-use std::option;
+
 use std::process::ExitCode;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -83,7 +83,7 @@ pub fn print_tables(json_struct: Value, options: &Options) -> anyhow::Result<Exi
             }
         }
         options::OutputFormat::Json => {
-            println!("{}", json_struct);
+            println!("{json_struct}");
             if let Some(output_file) = &options.output {
                 let mut file = File::create(output_file)?;
                 file.write_all(json_struct.to_string().as_bytes())?;
