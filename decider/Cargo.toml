@@ -1,0 +1,14 @@
+[package]
+name = "decider"
+version = "0.3.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#digest = {git="https://github.com/l-tools/digest"}
+#digest = {path="../digest"}
+mapper = {path="../mapper"}
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "1.0"
+#random-cut-forest ={git="https://github.com/aws/random-cut-forest-by-aws"}

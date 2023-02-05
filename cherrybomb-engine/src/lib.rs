@@ -134,6 +134,13 @@ fn run_passive_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyho
         passive_checks: vec![], //TODO create check list from config
         verbosity: 0,
     };
+    
+    
+    let (vec_of_passive, vec_of_active) = merge_passive_checks(config);
+    if !vec_of_active.is_empty() {
+        
+    }
+
     // Running passive scan
     verbose_print(config, None, "Running passive scan...");
     passive_scan.run(passive_scanner::PassiveScanType::Full);
@@ -200,3 +207,29 @@ async fn run_full_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> an
     }
     Ok(report)
 }
+fn merge_passive_checks(config: &Config)-> (Vec<PassiveChecks>, Vec<ActiveChecks> ){// function for passive profile
+    let mut passive_checks = vec![];
+    let mut active_checks: Vec<ActiveChecks> =  vec![];
+    let mut all_checks: Vec<PassiveChecks> = PassiveChecks::iter().collect();
+   if !config.passive_exclude.is_empty() && !config.passive_include.is_empty(){// can not be set both exluce and include
+    panic!("Only exclude or include can be set");
+   }
+    if !config.passive_exclude.is_empty(){ // exclude passive checks
+    passive_checks = all_checks
+        .iter()
+        .filter(|x| !config.passive_exclude.contains(&x.name().to_string()))
+        .cloned()
+        .collect();
+    }
+    if !config.active_include.is_empty() { //include active test 
+        let all_checks: Vec<ActiveChecks> = ActiveChecks::iter().collect();
+        active_checks = all_checks
+        .iter()
+        .filter(|x| config.active_include.contains(&x.name().to_string()))
+        .cloned()
+        .collect();
+    }
+      
+    (passive_checks, active_checks)
+}
+
