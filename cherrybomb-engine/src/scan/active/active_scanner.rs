@@ -109,7 +109,6 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         };
     }
 
-
     fn payloads_generator(oas: &T, oas_value: &Value) -> Vec<OASMap> {
         let mut payloads = vec![];
         for (path, path_item) in oas.get_paths() {

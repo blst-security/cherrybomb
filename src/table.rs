@@ -66,7 +66,7 @@ enum CheckStatus {
 pub fn print_tables(json_struct: Value, options: &Options) -> anyhow::Result<ExitCode> {
     let mut status_vec = vec![];
     if let Some(json_struct) = json_struct["passive"].as_object() {
-        status_vec.push(print_full_alert_table(json_struct, &options.format)?);
+        status_vec.push(print_alert_table(json_struct, &options.format)?);
         //create_table_with_full_verbosity(&json_struct)?;
     }
     if let Some(json_struct) = json_struct["active"].as_object() {
