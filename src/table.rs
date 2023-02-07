@@ -99,6 +99,23 @@ enum CheckStatus {
     Warning,
     Fail,
 }
+#[derive(Debug)]
+pub enum Level {
+    Info,
+    Low,
+    Medium,
+    High,
+    Critical,
+}
+pub fn adjust_color(level: &Level, colors: Colored) -> Cell {
+    return match level {
+    Level::Info => Cell::new(format!("{:?}", level)).fg(colors.certainty),
+    Level::Low => Cell::new(format!("{:?}", level)).fg(colors.description),
+    Level::Medium => Cell::new(format!("{:?}", level)).fg(colors.level),
+    Level::High => Cell::new(format!("{:?}", level)).fg(colors.location),
+    Level::Critical => Cell::new(format!("{:?}", level)).fg(colors.location),
+    };
+    }
 
 pub fn print_tables(json_struct: Value,options: &Options, colors: bool) -> anyhow::Result<ExitCode> {
      
