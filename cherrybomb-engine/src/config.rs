@@ -24,7 +24,7 @@ pub struct Config {
     pub servers_override: Vec<String>,
     pub security: Vec<Auth>,
     pub ignore_tls_errors: bool,
-    pub no_color: bool,
+    pub color: bool,
 }
 
 #[derive(ValueEnum, Deserialize, Clone, Debug, Default, PartialOrd, PartialEq)]

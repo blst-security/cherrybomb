@@ -50,7 +50,7 @@ pub struct Options {
 
     #[arg(long, default_value_t = false)]
     /// Use this flag to disable color output
-    pub no_color: bool,
+    pub color: bool,
 }
 
 #[derive(Subcommand, Debug)]
