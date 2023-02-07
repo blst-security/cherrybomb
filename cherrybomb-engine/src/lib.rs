@@ -13,6 +13,8 @@ use scan::passive::passive_scanner;
 use scan::*;
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
+
 
 fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
     let required = required.unwrap_or(Verbosity::Normal);
@@ -26,6 +28,15 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
 
     // Reading OAS file to string
     verbose_print(config, None, "Opening OAS file...");
+    let f = config.file.clone();
+    let mut ex = match f.into_os_string().into_string() {
+        Ok(extension) => {
+            extension.split(".").last().unwrap().to_owned()
+            
+        },
+        Err(_) => todo!(),
+    };
+     println!("ext {ex}");
     let oas_file = match std::fs::read_to_string(&config.file) {
         Ok(file) => file,
         Err(e) => {
@@ -35,22 +46,40 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
 
     // Parsing OAS file to JSON
     verbose_print(config, None, "Parsing OAS file...");
-    let oas_json: Value = match serde_json::from_str(&oas_file) {
-        Ok(json) => json,
-        Err(e) => {
-            return Err(anyhow::anyhow!("Error parsing OAS file: {}", e));
+    let oas_json: Value;
+    let oas: OAS3_1;
+    
+    match ex.as_str() {
+        "json" =>  {
+            println!("Json");
+            oas_json = match serde_json::from_str(&oas_file) {
+               Ok(json) => json,
+                Err(e) => {
+                    return Err(anyhow::anyhow!("Error parsing OAS file: {}", e));
+                }
+            };
+        },
+        "yaml" => {
+            println!("YAML");
+            oas_json = match serde_yaml::from_str(&oas_file) {
+                Ok(json) => json,
+                Err(e) => {
+                    return Err(anyhow::anyhow!("Error parsing OAS file: {}", e));
+                }
+            };
+        },
+        _ => {
+            return Err(anyhow::anyhow!("Unsupported file extension: {}", ex));
         }
-    };
-
-    // Parsing JSON to OAS struct
+    }
+    
     verbose_print(config, Some(Verbosity::Debug), "Creating OAS struct...");
-    let oas: OAS3_1 = match serde_json::from_value(oas_json.clone()) {
+    oas = match serde_json::from_value(oas_json.clone()) {
         Ok(oas) => oas,
         Err(e) => {
             return Err(anyhow::anyhow!("Error creating OAS struct: {}", e));
         }
     };
-
     match config.profile {
         config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
         config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json).await,
