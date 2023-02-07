@@ -171,8 +171,7 @@ pub struct EpTable {
     servers: Vec<String>,
 }
 impl EpTable {
-    pub fn 
-    path_only(&self, path: &str) -> Self {
+    pub fn path_only(&self, path: &str) -> Self {
         let eps = self
             .eps
             .iter()

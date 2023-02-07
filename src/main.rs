@@ -10,7 +10,7 @@ use std::process::ExitCode;
 
 use crate::options::Options;
 use crate::table::print_tables;
- 
+
 fn open_config_file(config_location: &std::path::PathBuf) -> anyhow::Result<Config> {
     return match config_location.extension() {
         Some(ext) => {
@@ -75,7 +75,7 @@ async fn main() -> anyhow::Result<ExitCode> {
         telemetry::send(config.profile.clone(), config.verbosity.clone()).await?;
     }
     let json_val = cherrybomb_engine::run(&config).await?;
-    match print_tables(json_val, &opt, config.color) {
+    match print_tables(json_val, &opt, config.no_color) {
         Ok(exit_code) => Ok(exit_code),
         Err(e) => Err(anyhow::anyhow!("Error printing tables: {}", e)),
     }
