@@ -1,7 +1,6 @@
 pub mod config;
 mod info;
 mod scan;
-
 use crate::config::Verbosity;
 use crate::info::eps::EpTable;
 use crate::info::params::ParamTable;
@@ -12,9 +11,8 @@ use config::Config;
 use scan::passive::passive_scanner;
 use scan::*;
 use serde_json::{json, Value};
+use serde_yaml;
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
-
 
 fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
     let required = required.unwrap_or(Verbosity::Normal);
@@ -26,60 +24,49 @@ fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
 pub async fn run(config: &Config) -> anyhow::Result<Value> {
     verbose_print(config, None, "Starting Cherrybomb...");
 
-    // Reading OAS file to string
     verbose_print(config, None, "Opening OAS file...");
-    let f = config.file.clone();
-    let mut ex = match f.into_os_string().into_string() {
-        Ok(extension) => {
-            extension.split(".").last().unwrap().to_owned()
-            
-        },
-        Err(_) => todo!(),
-    };
-     println!("ext {ex}");
-    let oas_file = match std::fs::read_to_string(&config.file) {
-        Ok(file) => file,
-        Err(e) => {
-            return Err(anyhow::anyhow!("Error reading OAS file: {}", e));
-        }
-    };
+    // Reading OAS file to string let oas_json: Value;
 
-    // Parsing OAS file to JSON
-    verbose_print(config, None, "Parsing OAS file...");
     let oas_json: Value;
     let oas: OAS3_1;
-    
-    match ex {
-        "json".to_owned() =>  {
-            println!("Json");
-            oas_json = match serde_json::from_str(&oas_file) {
-               Ok(json) => json,
-                Err(e) => {
-                    return Err(anyhow::anyhow!("Error parsing OAS file: {}", e));
-                }
+    match config.file.extension() {
+        Some(ext) => {
+            verbose_print(config, None, "Reading OAS file...");
+            let oas_file = match std::fs::read_to_string(&config.file) {
+                Ok(file) => file,
+                Err(e) => return Err(anyhow::anyhow!("Error opening OAS file: {}", e))?,
             };
-        },
-        "yaml" => {
-            println!("YAML");
-            oas_json = match serde_yaml::from_str(&oas_file) {
-                Ok(json) => json,
-                Err(e) => {
-                    return Err(anyhow::anyhow!("Error parsing OAS file: {}", e));
+            match ext.to_str() {
+                Some("json") => {
+                    verbose_print(config, None, "Parsing OAS file...");
+                    oas_json = match serde_json::from_str(&oas_file) {
+                        Ok(json) => json,
+                        Err(e) => return Err(anyhow::anyhow!("Error parsing OAS file: {}", e))?,
+                    };
                 }
+                Some("yaml") => {
+                    verbose_print(config, None, "Parsing OAS file...");
+                    oas_json = match serde_yaml::from_str(&oas_file) {
+                        Ok(yaml) => yaml,
+                        Err(e) => return Err(anyhow::anyhow!("Error parsing OAS file: {}", e))?,
+                    };
+                    verbose_print(config, Some(Verbosity::Debug), "Creating OAS struct...");
+                }
+                _ => return Err(anyhow::anyhow!("Unsupported config file extension")),
             };
-        },
-        _ => {
-            return Err(anyhow::anyhow!("Unsupported file extension: {}", ex));
         }
-    }
-    
+        _ => return Err(anyhow::anyhow!("Unsupported config file extension")),
+    };
+
     verbose_print(config, Some(Verbosity::Debug), "Creating OAS struct...");
+
     oas = match serde_json::from_value(oas_json.clone()) {
         Ok(oas) => oas,
         Err(e) => {
             return Err(anyhow::anyhow!("Error creating OAS struct: {}", e));
         }
     };
+
     match config.profile {
         config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
         config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json).await,
@@ -89,7 +76,7 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
     }
 }
 
-fn run_profile_info(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
+fn run_profile_info(config: &Config, _oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
     // Creating parameter list
     verbose_print(config, None, "Creating param list...");
     let param_scan = ParamTable::new::<OAS3_1>(oas_json);
@@ -203,7 +190,11 @@ async fn run_normal_profile(
     Ok(report)
 }
 
-async fn run_full_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
+async fn run_full_profile(
+    config: &Config,
+    oas: &OAS3_1,
+    oas_json: &Value,
+) -> anyhow::Result<Value> {
     let mut report = json!({});
     let mut results = HashMap::from([
         ("active", run_active_profile(config, oas, oas_json).await),
