@@ -20,7 +20,11 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
 }
 
 impl<T: OAS + Serialize> ActiveScan<T> {
-    pub async fn check_sqli(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+    pub async fn check_sqli(
+        &self,
+        auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> (CheckRetVal, Vec<String>) {
         let vec_payload: Vec<&str> = vec!["\'", "\"", "`", "%00", "\"\"", "\' OR \'1"];
         let h: Vec<MHeader> = vec![MHeader::from("content-type", "text/plain; charset=utf-8")];
 
@@ -48,6 +52,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 .servers(self.oas.servers(), true)
                                 .path(path)
                                 .parameters(vec_param.clone())
+                                .ignore_tls_errors(ignore_tls_errors)
                                 .auth(auth.clone())
                                 .method(*m)
                                 .headers(h.clone())
@@ -190,7 +195,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             (ret_val, vec_response_payload)
         }
     */
-    pub async fn check_method_permissions_active(&self, auth: &Authorization) -> CheckRetVal {
+    pub async fn check_method_permissions_active(
+        &self,
+        auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> CheckRetVal {
         let mut h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
 
         let mut ret_val = CheckRetVal::default();
@@ -218,6 +227,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 let req = AttackRequest::builder()
                     .servers(self.oas.servers(), true)
                     .path(path)
+                    .ignore_tls_errors(ignore_tls_errors)
                     .parameters(vec_param.clone())
                     .auth(auth.clone())
                     .method(method)
@@ -243,7 +253,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
-    pub async fn check_method_encoding(&self, auth: &Authorization) -> CheckRetVal {
+    pub async fn check_method_encoding(
+        &self,
+        auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
 
         for oas_map in self.payloads.iter() {
@@ -282,6 +296,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             let req = AttackRequest::builder()
                                 .servers(self.oas.servers(), true)
                                 .method(*m)
+                                .ignore_tls_errors(ignore_tls_errors)
                                 //  .payload(&oas_map.payload.payload.to_string())
                                 //TODO! create function that translate json payload to XML and vice versa
                                 .path(&oas_map.path.path)
@@ -317,7 +332,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         ret_val
     }
-    pub async fn check_for_ssrf(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+    pub async fn check_for_ssrf(
+        &self,
+        auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> (CheckRetVal, Vec<String>) {
         let mut ret_val = CheckRetVal::default();
         let mut provider_vec = vec![];
         let provider_hash = HashMap::from([
@@ -353,6 +372,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             provider_vec.push(provider_item.to_string());
                             let req = AttackRequest::builder()
                                 .servers(self.oas.servers(), true)
+                                .ignore_tls_errors(ignore_tls_errors)
                                 .path(path)
                                 .parameters(params_vec.clone())
                                 .auth(auth.clone())
@@ -383,7 +403,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         (ret_val, provider_vec)
     }
 
-    pub async fn check_ssrf_post(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
+    pub async fn check_ssrf_post(
+        &self,
+        auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> (CheckRetVal, Vec<String>) {
         let h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
 
         let mut ret_val = CheckRetVal::default();
@@ -418,6 +442,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             provider_vec.push(provider_item.to_string());
                             let req = AttackRequest::builder()
                                 .servers(self.oas.servers(), true)
+                                .ignore_tls_errors(ignore_tls_errors)
                                 .path(&oas_map.path.path)
                                 .method(*m)
                                 .headers(h.clone())
@@ -480,6 +505,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     .servers(self.oas.servers(), true)
                                     .path(&oas_map.path.path)
                                     .method(*m)
+                                    .ignore_tls_errors(ignore_tls_errors)
                                     .headers(h.clone())
                                     .parameters(params_vec.clone())
                                     .auth(auth.clone())
@@ -516,6 +542,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_parameter_pollution(
         &self,
         auth: &Authorization,
+        ignore_tls_errors: bool,
     ) -> (CheckRetVal, Vec<String>) {
         let mut ret_val = CheckRetVal::default();
         let mut vec_polluted = vec!["blstparamtopollute".to_string()];
@@ -542,6 +569,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .servers(self.oas.servers(), true)
                             .path(path)
                             .auth(auth.clone())
+                            .ignore_tls_errors(ignore_tls_errors)
                             .parameters(vec_param.clone())
                             .method(m)
                             .headers(vec![])
@@ -574,7 +602,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         (ret_val, vec_polluted)
     }
-    pub async fn check_open_redirect(&self, auth: &Authorization) -> CheckRetVal {
+    pub async fn check_open_redirect(
+        &self,
+        auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
@@ -595,6 +627,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .parameters(vec_param.clone())
                             .auth(auth.clone())
                             .method(*m)
+                            .ignore_tls_errors(ignore_tls_errors)
                             .headers(vec![])
                             .auth(auth.clone())
                             .build();
@@ -622,7 +655,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         ret_val
     }
-    pub async fn check_string_length_max(&self, auth: &Authorization) -> CheckRetVal {
+    pub async fn check_string_length_max(
+        &self,
+        auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> CheckRetVal {
         let h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
 
         let mut ret_val = CheckRetVal::default();
@@ -653,6 +690,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .servers(url, true)
                             .path(&oas_map.path.path)
                             .method(*m)
+                            .ignore_tls_errors(ignore_tls_errors)
                             .headers(h.clone())
                             .parameters(vec_param.clone())
                             .auth(auth.clone())
@@ -694,7 +732,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         ret_val
     }
-    pub async fn check_min_max(&self, auth: &Authorization) -> CheckRetVal {
+    pub async fn check_min_max(
+        &self,
+        auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> CheckRetVal {
         let h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
 
         let mut ret_val = CheckRetVal::default();
@@ -725,6 +767,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .method(*m)
                             .headers(h.clone())
                             .parameters(vec_param.clone())
+                            .ignore_tls_errors(ignore_tls_errors)
                             .auth(auth.clone())
                             .payload(
                                 &change_payload(&oas_map.payload.payload, json_path, json!(val.1))
@@ -755,7 +798,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         ret_val
     }
-    pub async fn check_broken_object(&self, auth: &Authorization) -> CheckRetVal {
+    pub async fn check_broken_object(
+        &self,
+        auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> CheckRetVal {
         let _h: Vec<MHeader> = vec![MHeader::from("content-type", "application/json")];
 
         let mut ret_val = CheckRetVal::default();
@@ -799,6 +846,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .uri(server, path)
                             .parameters(vec_params.clone())
                             .auth(auth.clone())
+                            .ignore_tls_errors(ignore_tls_errors)
                             .method(Method::GET)
                             .headers(vec![])
                             .build();
@@ -829,6 +877,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_broken_object_level_authorization(
         &self,
         auth: &Authorization,
+        ignore_tls_errors: bool,
     ) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         let mut vec_param: Vec<RequestParameter> = Vec::new();
@@ -873,6 +922,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     let req = AttackRequest::builder()
                                         .uri(server, path)
                                         .method(*m)
+                                        .ignore_tls_errors(ignore_tls_errors)
+                                        .ignore_tls_errors(ignore_tls_errors)
                                         .auth(auth.clone())
                                         .parameters(vec_param.clone())
                                         .build();
@@ -904,13 +955,14 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
-    pub async fn check_ssl(&self, auth: &Authorization) -> CheckRetVal {
+    pub async fn check_ssl(&self, auth: &Authorization, ignore_tls_errors: bool) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         let req = AttackRequest::builder()
             .servers(self.oas.servers(), false)
             .path("")
             .auth(auth.clone())
             .parameters(vec![])
+            //  .ignore_tls_errors(ignore_tls_errors)
             .method(Method::GET)
             .headers(vec![])
             .auth(auth.clone())
@@ -933,7 +985,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
-    pub async fn check_authentication_for_post(&self, _auth: &Authorization) -> CheckRetVal {
+    pub async fn check_authentication_for_post(
+        &self,
+        _auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         let h = vec![MHeader::from("content-type", "application/json")];
         for oas_map in self.payloads.iter() {
@@ -955,6 +1011,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .headers(h.clone())
                             .parameters(vec_param.clone())
                             //.auth(auth.clone())
+                            .ignore_tls_errors(ignore_tls_errors)
                             .payload(&oas_map.payload.payload.to_string())
                             .build();
 
@@ -979,7 +1036,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         ret_val
     }
-    pub async fn check_authentication_for_get(&self, _auth: &Authorization) -> CheckRetVal {
+    pub async fn check_authentication_for_get(
+        &self,
+        _auth: &Authorization,
+        ignore_tls_errors: bool,
+    ) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         let _server = self.oas.servers();
         //   let base_url = server.unwrap().get(0).unwrap().clone();
@@ -996,6 +1057,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .servers(self.oas.servers(), true)
                         .path(&path.clone())
                         .method(m)
+                        .ignore_tls_errors(ignore_tls_errors)
                         .headers(vec![])
                         .parameters(vec_param.clone())
                         .build();

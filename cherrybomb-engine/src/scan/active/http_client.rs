@@ -71,4 +71,5 @@ pub struct AttackRequest {
     pub auth: auth::Authorization,
     pub method: utils::Method,
     pub headers: Vec<MHeader>,
+    pub ignore_tls_errors: bool,
 }

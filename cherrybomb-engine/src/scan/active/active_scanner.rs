@@ -83,32 +83,35 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         })
     }
 
-    pub async fn run(&mut self, tp: ActiveScanType, auth: &Authorization) {
+    pub async fn run(&mut self, tp: ActiveScanType, auth: &Authorization, ignore_tls_errors: bool) {
         self.path_params = Self::create_hash(self, auth).await;
         match tp {
             ActiveScanType::Full => {
                 for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check, auth).await);
+                    self.checks
+                        .push(self.run_check(check, auth, ignore_tls_errors).await);
                 }
             }
             ActiveScanType::NonInvasive => {
                 for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check, auth).await);
+                    self.checks
+                        .push(self.run_check(check, auth, ignore_tls_errors).await);
                 }
             }
             ActiveScanType::OnlyTests => {
                 for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check, auth).await);
+                    self.checks
+                        .push(self.run_check(check, auth, ignore_tls_errors).await);
                 }
             }
             ActiveScanType::Partial(checks) => {
                 for check in checks {
-                    self.checks.push(self.run_check(check, auth).await);
+                    self.checks
+                        .push(self.run_check(check, auth, ignore_tls_errors).await);
                 }
             }
         };
     }
-
 
     fn payloads_generator(oas: &T, oas_value: &Value) -> Vec<OASMap> {
         let mut payloads = vec![];

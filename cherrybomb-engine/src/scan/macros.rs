@@ -92,10 +92,10 @@ macro_rules! impl_active_checks{
             }
         }
         impl <T:OAS+Serialize>ActiveScan<T>{
-            pub async fn run_check(&self,check:ActiveChecks,auth:&Authorization)->ActiveChecks{
+            pub async fn run_check(&self,check:ActiveChecks,auth:&Authorization,ignore_tls_errors: bool)->ActiveChecks{
                 match check{
                     $(
-                        ActiveChecks::$check(_)=>ActiveChecks::$check(Self::$response_func(self.$check_func(auth).await)),
+                        ActiveChecks::$check(_)=>ActiveChecks::$check(Self::$response_func(self.$check_func(auth, ignore_tls_errors).await)),
                     )*
                 }
             }

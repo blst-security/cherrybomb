@@ -110,7 +110,11 @@ async fn run_active_profile(
     verbose_print(config, None, "Running active scan...");
     let temp_auth = Authorization::None;
     active_scan
-        .run(active_scanner::ActiveScanType::Full, &temp_auth)
+        .run(
+            active_scanner::ActiveScanType::Full,
+            &temp_auth,
+            config.ignore_tls_errors,
+        )
         .await;
     let active_result: HashMap<&str, Vec<Alert>> = active_scan
         .checks
@@ -174,7 +178,11 @@ async fn run_normal_profile(
     Ok(report)
 }
 
-async fn run_full_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
+async fn run_full_profile(
+    config: &Config,
+    oas: &OAS3_1,
+    oas_json: &Value,
+) -> anyhow::Result<Value> {
     let mut report = json!({});
     let mut results = HashMap::from([
         ("active", run_active_profile(config, oas, oas_json).await),

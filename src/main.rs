@@ -54,10 +54,12 @@ fn merge_options(conf: &mut Config, opt: &Options) {
         conf.security.push(value.clone());
     }
     if let Some(value) = &opt.ignore_tls_errors {
+        dbg!(&value);
         conf.ignore_tls_errors = *value;
     }
     if let Some(server_item) = &opt.server {
         conf.servers_override = vec![server_item.clone()];
+        todo!("Fix and open an issue");
     }
 }
 

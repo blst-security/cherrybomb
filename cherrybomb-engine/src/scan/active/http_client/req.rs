@@ -4,6 +4,7 @@ use crate::scan::active::http_client::{
 };
 use cherrybomb_oas::legacy::legacy_oas::*;
 use cherrybomb_oas::legacy::utils::Method;
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
@@ -17,6 +18,7 @@ pub struct AttackRequestBuilder {
     method: Method,
     headers: Vec<MHeader>,
     payload: String,
+    ignore_tls_errors: bool,
 }
 
 impl AttackRequestBuilder {
@@ -126,6 +128,10 @@ impl AttackRequestBuilder {
             self.parameters.push(a);
         }
     }
+    pub fn ignore_tls_errors(&mut self, flag: bool) -> &mut Self {
+        self.ignore_tls_errors = flag;
+        self
+    }
     pub fn build(&self) -> AttackRequest {
         AttackRequest {
             servers: self.servers.clone(),
@@ -135,6 +141,7 @@ impl AttackRequestBuilder {
             method: self.method,
             headers: self.headers.clone(),
             payload: self.payload.clone(),
+            ignore_tls_errors: self.ignore_tls_errors.clone(),
         }
     }
 }
@@ -196,7 +203,10 @@ impl AttackRequest {
             .collect()
     }
     pub async fn send_request_with_response(&self) -> (String, bool) {
-        let client = reqwest::Client::new();
+        let client = Client::builder()
+            .danger_accept_invalid_certs(self.ignore_tls_errors)
+            .build()
+            .unwrap();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let h = self.get_headers(&headers1);
@@ -228,7 +238,11 @@ impl AttackRequest {
     }
 
     pub async fn send_request(&self, print: bool) -> Result<AttackResponse, reqwest::Error> {
-        let client = reqwest::Client::new();
+        let client = Client::builder()
+            .danger_accept_invalid_certs(self.ignore_tls_errors)
+            .build()
+            .unwrap();
+        // let client = reqwest::Client::new();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let h = self.get_headers(&headers1);
@@ -263,7 +277,10 @@ impl AttackRequest {
         }
     }
     pub async fn send_request_all_servers(&self, print: bool) -> Vec<AttackResponse> {
-        let client = reqwest::Client::new();
+        let client = Client::builder()
+            .danger_accept_invalid_certs(self.ignore_tls_errors)
+            .build()
+            .unwrap();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let mut h = self.get_headers(&headers1);
