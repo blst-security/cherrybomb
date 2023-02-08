@@ -49,8 +49,8 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
     let oas_json: Value;
     let oas: OAS3_1;
     
-    match ex.as_str() {
-        "json" =>  {
+    match ex {
+        "json".to_owned() =>  {
             println!("Json");
             oas_json = match serde_json::from_str(&oas_file) {
                Ok(json) => json,
