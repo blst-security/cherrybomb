@@ -6,6 +6,7 @@ use crate::scan::active::active_scanner::ActiveScan;
 use crate::scan::passive::auth::*;
 use crate::scan::passive::general::*;
 use crate::scan::passive::type_checks::*;
+use crate::Server;
 use crate::{impl_active_checks, impl_passive_checks};
 use cherrybomb_oas::legacy::legacy_oas::OAS;
 use serde::{Deserialize, Serialize};
@@ -93,83 +94,83 @@ impl_passive_checks![
     ];
 
 impl_active_checks![
-    (
-        CheckOpenRedirect,
-        check_open_redirect,
-        is_3xx,
-        "OPEN REDIRECT",
-        "Check if the API may be vulnerable to open redirect"
-    ),
-    (
-        CheckMinMax,
-        check_min_max,
-        is_2xx,
-        "NUMBER LIMITS ENFORCED",
-        "checks that the api enforces the number limits in the OAS"
-    ),
-    (
-        CheckStringMaxLength,
-        check_string_length_max,
-        is_2xx,
-        "STRING LENGTH ENFORCED",
-        "check that the api validate the String length"
-    ),
-    (
-        CheckParameterPollution,
-        check_parameter_pollution,
-        reflected_and_2xx,
-        "PARAMETER POLLUTION",
-        "Check if the endpoint is vulnerable to http pollution"
-    ),
+    // (
+    //     CheckOpenRedirect,
+    //     check_open_redirect,
+    //     is_3xx,
+    //     "OPEN REDIRECT",
+    //     "Check if the API may be vulnerable to open redirect"
+    // ),
+    // (
+    //     CheckMinMax,
+    //     check_min_max,
+    //     is_2xx,
+    //     "NUMBER LIMITS ENFORCED",
+    //     "checks that the api enforces the number limits in the OAS"
+    // ),
+    // (
+    //     CheckStringMaxLength,
+    //     check_string_length_max,
+    //     is_2xx,
+    //     "STRING LENGTH ENFORCED",
+    //     "check that the api validate the String length"
+    // ),
+    // (
+    //     CheckParameterPollution,
+    //     check_parameter_pollution,
+    //     reflected_and_2xx,
+    //     "PARAMETER POLLUTION",
+    //     "Check if the endpoint is vulnerable to http pollution"
+    // ),
     (
         CheckSSL,
         check_ssl,
         is_2xx,
         "SSL ENFORCED",
         "Check if the connection is secure"
-    ),
-    (
-        CheckMethodPermissionsActive,
-        check_method_permissions_active,
-        is_2xx,
-        "METHOD PERMISSION",
-        "Check if the endpoint is correctly configured"
-    ),
-    (
-        CheckAuthenticationPOST,
-        check_authentication_for_post,
-        is_2xx,
-        "AUTH BY PASS",
-        "Check if the auth is correctly configured"
-    ),
-    (
-        CheckAuthenticationGET,
-        check_authentication_for_get,
-        is_2xx,
-        "AUTH BY PASS",
-        "Check if the auth is correctly configured"
-    ),
-    (
-        CheckSsrfPOST,
-        check_ssrf_post,
-        ssrf_and_2xx,
-        "SSRF POST",
-        "Check if the endpoint is vulnerable to SSRF"
-    ),
-    (
-        CheckSsrfGET,
-        check_for_ssrf,
-        ssrf_and_2xx,
-        "SSRF GET",
-        "Check if the endpoint is vulnerable to SSRF"
-    ),
-    (
-        CheckBOLA,
-        check_broken_object_level_authorization,
-        is_2xx,
-        "BROKEN OBJECT LEVEL AUTHORIZATION",
-        "Check if object is vulnerable to level authorization"
-    ),
+    )
+    // (
+    //     CheckMethodPermissionsActive,
+    //     check_method_permissions_active,
+    //     is_2xx,
+    //     "METHOD PERMISSION",
+    //     "Check if the endpoint is correctly configured"
+    // ),
+    // (
+    //     CheckAuthenticationPOST,
+    //     check_authentication_for_post,
+    //     is_2xx,
+    //     "AUTH BY PASS",
+    //     "Check if the auth is correctly configured"
+    // ),
+    // (
+    //     CheckAuthenticationGET,
+    //     check_authentication_for_get,
+    //     is_2xx,
+    //     "AUTH BY PASS",
+    //     "Check if the auth is correctly configured"
+    // ),
+    // (
+    //     CheckSsrfPOST,
+    //     check_ssrf_post,
+    //     ssrf_and_2xx,
+    //     "SSRF POST",
+    //     "Check if the endpoint is vulnerable to SSRF"
+    // ),
+    // (
+    //     CheckSsrfGET,
+    //     check_for_ssrf,
+    //     ssrf_and_2xx,
+    //     "SSRF GET",
+    //     "Check if the endpoint is vulnerable to SSRF"
+    // ),
+    // (
+    //     CheckBOLA,
+    //     check_broken_object_level_authorization,
+    //     is_2xx,
+    //     "BROKEN OBJECT LEVEL AUTHORIZATION",
+    //     "Check if object is vulnerable to level authorization"
+    // ),
     // (
     //     CheckForSQLInjectionsPOST,
     //     check_sqli_post,
@@ -177,25 +178,25 @@ impl_active_checks![
     //     "SQL Injection for POST",
     //     "Check if the endpoint is vulnerable to sql injection"
     // ),
-    (
-        CheckForSQLInjections,
-        check_sqli,
-        reflected_and_2xx,
-        "SQL Injection",
-        "Check if the endpoint is vulnerable to sql injection"
-    ),
-    (
-        CheckMethodEncoding,
-        check_method_encoding,
-        is_2xx,
-        "Check Content-type header",
-        "Check if the endpoint can be send with other content type"
-    ),
-    (
-        CheckIDOR,
-        check_broken_object,
-        is_2xx,
-        "BROKEN OBJECT LEVEL AUTHORIZATION",
-        "Check if object is vulnerable to level authorization"
-    )
+    // (
+    //     CheckForSQLInjections,
+    //     check_sqli,
+    //     reflected_and_2xx,
+    //     "SQL Injection",
+    //     "Check if the endpoint is vulnerable to sql injection"
+    // ),
+    // (
+    //     CheckMethodEncoding,
+    //     check_method_encoding,
+    //     is_2xx,
+    //     "Check Content-type header",
+    //     "Check if the endpoint can be send with other content type"
+    // ),
+    // (
+    //     CheckIDOR,
+    //     check_broken_object,
+    //     is_2xx,
+    //     "BROKEN OBJECT LEVEL AUTHORIZATION",
+    //     "Check if object is vulnerable to level authorization"
+    // )
 ];

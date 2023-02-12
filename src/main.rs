@@ -57,8 +57,8 @@ fn merge_options(conf: &mut Config, opt: &Options) {
         conf.ignore_tls_errors = *value;
     }
     if let Some(server_item) = &opt.server {
-        conf.servers_override = vec![server_item.clone()];
-    }
+        conf.servers_override = vec![server_item.clone()]; //command line server override server from configs
+    } //and override also server from oas file
 }
 
 #[tokio::main]
@@ -74,6 +74,7 @@ async fn main() -> anyhow::Result<ExitCode> {
     if !opt.no_telemetry {
         telemetry::send(config.profile.clone(), config.verbosity.clone()).await?;
     }
+    dbg!(&config.servers_override);
     let json_val = cherrybomb_engine::run(&config).await?;
     match print_tables(json_val, &opt) {
         Ok(exit_code) => Ok(exit_code),

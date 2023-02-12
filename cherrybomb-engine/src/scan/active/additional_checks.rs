@@ -2,7 +2,7 @@ use crate::active::active_scanner::{ActiveScan, CheckRetVal, ResponseData};
 use crate::active::http_client::{auth::Authorization, *};
 use crate::active::utils::create_payload;
 use crate::scan::Level;
-use cherrybomb_oas::legacy::legacy_oas::OAS;
+use cherrybomb_oas::legacy::legacy_oas::{OAS, Server};
 use cherrybomb_oas::legacy::utils::Method;
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -20,6 +20,39 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
 }
 
 impl<T: OAS + Serialize> ActiveScan<T> {
+    pub async fn check_ssl(&self, auth: &Authorization, serv: &Vec<Server>) -> CheckRetVal {
+
+    
+        let mut ret_val = CheckRetVal::default();
+        
+        let req = AttackRequest::builder()
+            .servers(self.oas.servers(), false,serv)
+            .path("")
+            .auth(auth.clone())
+            .parameters(vec![])
+            .method(Method::GET)
+            .headers(vec![])
+            .auth(auth.clone())
+            .build();
+        let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+        for (response, server) in response_vector.iter().zip(req.servers.iter()) {
+            ret_val.1.push(&req, response, "Testing SSL".to_string());
+            ret_val.0.push((
+                ResponseData {
+                    location: server.base_url.clone(),
+                    alert_text: format!(
+                        "The server does not seem to be using SSL, status code: {}",
+                        response.status
+                    ),
+                    serverity: Level::Medium,
+                },
+                response.clone(),
+            ));
+        }
+        ret_val
+    }
+
+    /*
     pub async fn check_sqli(&self, auth: &Authorization) -> (CheckRetVal, Vec<String>) {
         let vec_payload: Vec<&str> = vec!["\'", "\"", "`", "%00", "\"\"", "\' OR \'1"];
         let h: Vec<MHeader> = vec![MHeader::from("content-type", "text/plain; charset=utf-8")];
@@ -904,34 +937,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         ret_val
     }
 
-    pub async fn check_ssl(&self, auth: &Authorization) -> CheckRetVal {
-        let mut ret_val = CheckRetVal::default();
-        let req = AttackRequest::builder()
-            .servers(self.oas.servers(), false)
-            .path("")
-            .auth(auth.clone())
-            .parameters(vec![])
-            .method(Method::GET)
-            .headers(vec![])
-            .auth(auth.clone())
-            .build();
-        let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
-        for (response, server) in response_vector.iter().zip(req.servers.iter()) {
-            ret_val.1.push(&req, response, "Testing SSL".to_string());
-            ret_val.0.push((
-                ResponseData {
-                    location: server.base_url.clone(),
-                    alert_text: format!(
-                        "The server does not seem to be using SSL, status code: {}",
-                        response.status
-                    ),
-                    serverity: Level::Medium,
-                },
-                response.clone(),
-            ));
-        }
-        ret_val
-    }
+
 
     pub async fn check_authentication_for_post(&self, _auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
@@ -1019,7 +1025,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             }
         }
         ret_val
-    }
+    }*/
+
 }
 
 const LIST_CONTENT_TYPE: [&str; 2] = ["application/xml", "application/xml"];

@@ -93,6 +93,14 @@ async fn run_active_profile(
     oas: &OAS3_1,
     oas_json: &Value,
 ) -> anyhow::Result<Value> {
+
+    //creating a server struct from config
+    let serv: Vec<Server> =  config.servers_override.iter().map(|url| Server {
+        base_url: url.to_owned(),
+        description: None,
+        variables: None,
+    }).collect::<Vec<Server>>();
+
     // Creating active scan struct
     verbose_print(
         config,
@@ -105,12 +113,12 @@ async fn run_active_profile(
             return Err(anyhow::anyhow!("Error creating active scan struct: {}", e));
         }
     };
-
+    
     // Running active scan
     verbose_print(config, None, "Running active scan...");
     let temp_auth = Authorization::None;
     active_scan
-        .run(active_scanner::ActiveScanType::Full, &temp_auth)
+        .run(active_scanner::ActiveScanType::Full, &temp_auth, &serv)
         .await;
     let active_result: HashMap<&str, Vec<Alert>> = active_scan
         .checks
