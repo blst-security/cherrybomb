@@ -32,31 +32,36 @@ impl AttackRequestBuilder {
         }
         self
     }
-    pub fn servers(&mut self, servers: Option<Vec<Server>>, secure: bool, config_server: &Vec<Server>) -> &mut Self {
-        if config_server.is_empty(){
-        if let Some(servers) = servers {
-            for server in servers {
-                let mut new_server_addr = server.base_url.clone();
-                if let Some(vars) = &server.variables {
-                    for (k, v) in vars {
-                        new_server_addr =
-                            new_server_addr.replace(&format!("{{{k}}}"), v.default.as_str());
+    pub fn servers(
+        &mut self,
+        servers: Option<Vec<Server>>,
+        secure: bool,
+        config_server: &Vec<Server>,
+    ) -> &mut Self {
+        if config_server.is_empty() {
+            if let Some(servers) = servers {
+                for server in servers {
+                    let mut new_server_addr = server.base_url.clone();
+                    if let Some(vars) = &server.variables {
+                        for (k, v) in vars {
+                            new_server_addr =
+                                new_server_addr.replace(&format!("{{{k}}}"), v.default.as_str());
+                        }
                     }
+                    if !secure & new_server_addr.starts_with("https") {
+                        new_server_addr.replace_range(0..5, "http")
+                    }
+                    self.servers.push(Server {
+                        base_url: new_server_addr,
+                        description: server.description,
+                        variables: server.variables,
+                    });
                 }
-                if !secure & new_server_addr.starts_with("https") {
-                    new_server_addr.replace_range(0..5, "http")
-                }
-                self.servers.push(Server {
-                    base_url: new_server_addr,
-                    description: server.description,
-                    variables: server.variables,
-                });
             }
         }
-    }
         //TODO implement error here
         else {
-            self.servers= config_server.to_vec();
+            self.servers = config_server.to_vec();
         }
         self
     }

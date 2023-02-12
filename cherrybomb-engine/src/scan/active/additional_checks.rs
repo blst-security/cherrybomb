@@ -2,7 +2,7 @@ use crate::active::active_scanner::{ActiveScan, CheckRetVal, ResponseData};
 use crate::active::http_client::{auth::Authorization, *};
 use crate::active::utils::create_payload;
 use crate::scan::Level;
-use cherrybomb_oas::legacy::legacy_oas::{OAS, Server};
+use cherrybomb_oas::legacy::legacy_oas::{Server, OAS};
 use cherrybomb_oas::legacy::utils::Method;
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -21,12 +21,10 @@ pub fn change_payload(orig: &Value, path: &[String], new_val: Value) -> Value {
 
 impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_ssl(&self, auth: &Authorization, serv: &Vec<Server>) -> CheckRetVal {
-
-    
         let mut ret_val = CheckRetVal::default();
-        
+
         let req = AttackRequest::builder()
-            .servers(self.oas.servers(), false,serv)
+            .servers(self.oas.servers(), false, serv)
             .path("")
             .auth(auth.clone())
             .parameters(vec![])
@@ -315,8 +313,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             let req = AttackRequest::builder()
                                 .servers(self.oas.servers(), true)
                                 .method(*m)
-                                //  .payload(&oas_map.payload.payload.to_string())
-                                //TODO! create function that translate json payload to XML and vice versa
+    //  .payload(&oas_map.payload.payload.to_string())
+    //TODO! create function that translate json payload to XML and vice versa
                                 .path(&oas_map.path.path)
                                 .parameters(vec_param)
                                 .auth(auth.clone())
@@ -432,11 +430,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                 for (m, op) in oas_map
                     .path
                     .path_item
-                    //.filter(|| path_item==p)
+    //.filter(|| path_item==p)
                     .get_ops()
                     .iter()
                     .filter(|(m, _)| m == &Method::POST)
-                //947
+    //947
                 {
                     let param_to_test =
                         &json_path.last().unwrap_or(&"empty".to_string()).to_owned()[..];
@@ -485,8 +483,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             }
                         }
                     }
-                    // if no param in body req exist in the default array
-                    // so let's check if there is any good param in the query
+    // if no param in body req exist in the default array
+    // so let's check if there is any good param in the query
                     else {
                         let mut param_is_good_to_send = false;
 
@@ -552,7 +550,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
     ) -> (CheckRetVal, Vec<String>) {
         let mut ret_val = CheckRetVal::default();
         let mut vec_polluted = vec!["blstparamtopollute".to_string()];
-        //   let base_url = server.unwrap().get(0).unwrap().clone();
+    //   let base_url = server.unwrap().get(0).unwrap().clone();
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
                 let _text = path.to_string();
@@ -582,7 +580,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .build();
                         let response_vector =
                             req.send_request_all_servers(self.verbosity > 0).await;
-                        //  dbg!(&response_vector);
+    //  dbg!(&response_vector);
                         for response in response_vector {
                             ret_val.1.push(
                                 &req,
@@ -737,7 +735,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     schema.minimum.map(|min| ("minimum", min - 1.0)),
                     schema.maximum.map(|max| ("maximum", max + 1.0)),
                 ]);
-                // dbg!(&test_vals);
+    // dbg!(&test_vals);
                 for val in test_vals.into_iter().flatten() {
                     for (m, op) in oas_map
                         .path
@@ -799,12 +797,12 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             .filter(|key| key.to_lowercase().contains("id"))
             .cloned()
             .collect::<Vec<String>>();
-        //dbg!(id_vec);
+    //dbg!(id_vec);
         for (path, item) in &self.oas.get_paths() {
             for (_m, op) in item.get_ops().iter().filter(|(m, _)| m == &Method::GET) {
                 let mut vec_params: Vec<RequestParameter> = Vec::new();
                 for i in op.params() {
-                    //TODO Check if there is only one param
+    //TODO Check if there is only one param
                     let type_param = match i
                         .inner(&self.oas_value)
                         .param_in
@@ -818,7 +816,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     };
                     if id_vec.contains(&i.inner(&self.oas_value).name) {
                         vec_params.push(RequestParameter {
-                            // TODO check if others values are ok
+    // TODO check if others values are ok
                             name: i.inner(&self.oas_value).name.to_string(),
                             value: self
                                 .path_params
@@ -827,7 +825,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 .to_string(),
                             dm: type_param,
                         });
-                        //sending the request
+    //sending the request
                         let req = AttackRequest::builder()
                             .uri(server, path)
                             .parameters(vec_params.clone())
@@ -837,8 +835,8 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .build();
                         let response_vector = req.send_request(self.verbosity > 0).await;
                         if let Ok(res) = response_vector {
-                            //logging
-                            //logging request/response/description
+    //logging
+    //logging request/response/description
                             ret_val.1.push(
                                 &req,
                                 &res,
@@ -913,7 +911,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     let response_vector =
                                         req.send_request(self.verbosity > 0).await;
                                     if let Ok(res) = response_vector {
-                                        //logging request/response/description
+    //logging request/response/description
                                         ret_val.1.push(&req, &res, "Testing for BOLA".to_string());
                                         ret_val.0.push((
                                             ResponseData {
@@ -943,7 +941,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         let mut ret_val = CheckRetVal::default();
         let h = vec![MHeader::from("content-type", "application/json")];
         for oas_map in self.payloads.iter() {
-            //for (_json_path, _schema) in &oas_map.payload.map {
+    //for (_json_path, _schema) in &oas_map.payload.map {
             for _schema in oas_map.payload.map.values() {
                 for (m, op) in oas_map.path.path_item.get_ops().iter() {
                     let vec_param = create_payload(
@@ -960,7 +958,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .method(*m)
                             .headers(h.clone())
                             .parameters(vec_param.clone())
-                            //.auth(auth.clone())
+    //.auth(auth.clone())
                             .payload(&oas_map.payload.payload.to_string())
                             .build();
 
@@ -988,7 +986,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
     pub async fn check_authentication_for_get(&self, _auth: &Authorization) -> CheckRetVal {
         let mut ret_val = CheckRetVal::default();
         let _server = self.oas.servers();
-        //   let base_url = server.unwrap().get(0).unwrap().clone();
+    //   let base_url = server.unwrap().get(0).unwrap().clone();
         for (path, item) in &self.oas.get_paths() {
             for (m, op) in item.get_ops() {
                 if m == Method::GET {
@@ -1007,11 +1005,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .build();
                     let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
                     for response in response_vector {
-                        //logging request/response/description
+    //logging request/response/description
                         ret_val
                             .1
                             .push(&req, &response, "Testing without auth".to_string());
-                        // println!("Status Code : {:?}", res.status);
+    // println!("Status Code : {:?}", res.status);
                         ret_val.0.push((
                             ResponseData{
                                 location: path.to_string(),
@@ -1026,7 +1024,6 @@ impl<T: OAS + Serialize> ActiveScan<T> {
         }
         ret_val
     }*/
-
 }
 
 const LIST_CONTENT_TYPE: [&str; 2] = ["application/xml", "application/xml"];

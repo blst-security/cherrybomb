@@ -93,13 +93,16 @@ async fn run_active_profile(
     oas: &OAS3_1,
     oas_json: &Value,
 ) -> anyhow::Result<Value> {
-
     //creating a server struct from config
-    let serv: Vec<Server> =  config.servers_override.iter().map(|url| Server {
-        base_url: url.to_owned(),
-        description: None,
-        variables: None,
-    }).collect::<Vec<Server>>();
+    let serv: Vec<Server> = config
+        .servers_override
+        .iter()
+        .map(|url| Server {
+            base_url: url.to_owned(),
+            description: None,
+            variables: None,
+        })
+        .collect::<Vec<Server>>();
 
     // Creating active scan struct
     verbose_print(
@@ -113,7 +116,7 @@ async fn run_active_profile(
             return Err(anyhow::anyhow!("Error creating active scan struct: {}", e));
         }
     };
-    
+
     // Running active scan
     verbose_print(config, None, "Running active scan...");
     let temp_auth = Authorization::None;
@@ -182,7 +185,11 @@ async fn run_normal_profile(
     Ok(report)
 }
 
-async fn run_full_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
+async fn run_full_profile(
+    config: &Config,
+    oas: &OAS3_1,
+    oas_json: &Value,
+) -> anyhow::Result<Value> {
     let mut report = json!({});
     let mut results = HashMap::from([
         ("active", run_active_profile(config, oas, oas_json).await),
