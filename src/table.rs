@@ -65,16 +65,17 @@ enum CheckStatus {
 
 pub fn print_tables(json_struct: Value, options: &Options) -> anyhow::Result<ExitCode> {
     let mut status_vec = vec![];
-    if let Some(json_struct) = json_struct["passive"].as_object() {
-        status_vec.push(print_full_alert_table(json_struct, &options.format)?);
-        //create_table_with_full_verbosity(&json_struct)?;
-    }
-    if let Some(json_struct) = json_struct["active"].as_object() {
-        status_vec.push(print_full_alert_table(json_struct, &options.format)?);
-        //  create_table_with_full_verbosity(&json_struct)?;
-    }
+
     match options.format {
         options::OutputFormat::Table => {
+            if let Some(json_struct) = json_struct["passive"].as_object() {
+                status_vec.push(print_full_alert_table(json_struct)?);
+                //create_table_with_full_verbosity(&json_struct)?;
+            }
+            if let Some(json_struct) = json_struct["active"].as_object() {
+                status_vec.push(print_full_alert_table(json_struct)?);
+            }
+
             if let Some(json_struct) = json_struct["params"].as_object() {
                 print_param_table(json_struct)?;
             }
@@ -171,10 +172,7 @@ fn print_param_table(json_struct: &Map<String, Value>) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn print_alert_table(
-    json_struct: &Map<String, Value>,
-    output: &options::OutputFormat,
-) -> anyhow::Result<CheckStatus> {
+fn print_alert_table(json_struct: &Map<String, Value>) -> anyhow::Result<CheckStatus> {
     //display simple table  with alerts
     let mut table = Table::new();
     let mut return_status = CheckStatus::OK;
@@ -189,30 +187,24 @@ fn print_alert_table(
         if !alerts.is_empty() {
             return_status = CheckStatus::Fail;
         }
-        if matches!(output, &options::OutputFormat::Table) {
-            if let Some(alert) = alerts.get(0) {
-                table
-                    .load_preset(UTF8_FULL)
-                    .apply_modifier(UTF8_ROUND_CORNERS)
-                    .add_row(vec![
-                        Cell::new(key).add_attribute(Attribute::Bold),
-                        Cell::new(format!("{:?}", alert.level)),
-                        Cell::new(format!("{:?}", alerts.len())),
-                        Cell::new(alert.description.clone()),
-                    ]);
-            }
+        if let Some(alert) = alerts.get(0) {
+            table
+                .load_preset(UTF8_FULL)
+                .apply_modifier(UTF8_ROUND_CORNERS)
+                .add_row(vec![
+                    Cell::new(key).add_attribute(Attribute::Bold),
+                    Cell::new(format!("{:?}", alert.level)),
+                    Cell::new(format!("{:?}", alerts.len())),
+                    Cell::new(alert.description.clone()),
+                ]);
         }
     }
-    if matches!(output, &options::OutputFormat::Table) {
-        println!("{table}");
-    }
+    println!("{table}");
+
     Ok(return_status)
 }
 
-fn print_full_alert_table(
-    json_struct: &Map<String, Value>,
-    output: &options::OutputFormat,
-) -> anyhow::Result<CheckStatus> {
+fn print_full_alert_table(json_struct: &Map<String, Value>) -> anyhow::Result<CheckStatus> {
     //create a table of alerts with full verbosity
     let mut table = Table::new();
     let mut return_status = CheckStatus::OK;
@@ -227,22 +219,19 @@ fn print_full_alert_table(
         if !alerts.is_empty() {
             return_status = CheckStatus::Fail;
         }
-        if matches!(output, &options::OutputFormat::Table) {
-            alerts.iter().for_each(|alert| {
-                table
-                    .load_preset(UTF8_FULL)
-                    .apply_modifier(UTF8_ROUND_CORNERS)
-                    .add_row(vec![
-                        Cell::new(key).add_attribute(Attribute::Bold),
-                        Cell::new(format!("{:?}", alert.level)),
-                        Cell::new(alert.description.clone()),
-                        Cell::new(alert.location.clone()),
-                    ]);
-            });
-        }
+        alerts.iter().for_each(|alert| {
+            table
+                .load_preset(UTF8_FULL)
+                .apply_modifier(UTF8_ROUND_CORNERS)
+                .add_row(vec![
+                    Cell::new(key).add_attribute(Attribute::Bold),
+                    Cell::new(format!("{:?}", alert.level)),
+                    Cell::new(alert.description.clone()),
+                    Cell::new(alert.location.clone()),
+                ]);
+        });
     }
-    if matches!(output, &options::OutputFormat::Table) {
-        println!("{table}");
-    }
+    println!("{table}");
+
     Ok(return_status)
 }
