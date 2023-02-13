@@ -13,7 +13,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#cherrybomb-oas = "^0.1"
 cherrybomb-oas = {path = "../cherrybomb-oas"}
 anyhow = "1.0.66"
 thiserror = "1.0.37"
@@ -26,5 +25,3 @@ url="^2" #legacy
 base64 = "0.13" #legacy
 reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls"] } #legacy
 
-[dev-dependencies]
-cherrybomb-oas = {path = "../cherrybomb-oas"}

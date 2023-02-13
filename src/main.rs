@@ -59,6 +59,7 @@ fn merge_options(conf: &mut Config, opt: &Options) {
     if let Some(server_item) = &opt.server {
         conf.servers_override = vec![server_item.clone()];
     }
+    conf.no_color =  opt.no_color.clone();
 }
 
 #[tokio::main]

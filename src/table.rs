@@ -61,10 +61,7 @@ lazy_static! {
     };
 }
 
-pub enum ColorChoice {
-    WithColors(&'static Colored),
-    NoColors(&'static Colored),
-}
+
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -136,16 +133,12 @@ pub fn print_tables(
     options: &Options,
     use_colors: bool,
 ) -> anyhow::Result<ExitCode> {
-    let color_choice = if !use_colors {
-        ColorChoice::WithColors(&COLORS)
+    let colors = if !use_colors {
+        COLORS.clone()
     } else {
-        ColorChoice::NoColors(&NO_COLORS)
+        NO_COLORS.clone()
     };
-    let colors = match color_choice {
-        ColorChoice::WithColors(c) => c,
-        ColorChoice::NoColors(c) => c,
-    };
-
+    
     let mut status_vec = vec![];
     if let Some(json_struct) = json_struct["passive"].as_object() {
         status_vec.push(print_full_alert_table(
@@ -159,7 +152,7 @@ pub fn print_tables(
         status_vec.push(print_full_alert_table(
             json_struct,
             &options.format,
-            colors,
+            &colors,
         )?);
         // print_alert_table(json_struct, &options.format, &colors)?;
     }
