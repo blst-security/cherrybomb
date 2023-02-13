@@ -27,8 +27,8 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
     verbose_print(config, None, "Opening OAS file...");
     // Reading OAS file to string let oas_json: Value;
 
-    let oas_json: Value;
-    let oas: OAS3_1;
+  //  let oas_json: Value;
+  //  let oas: OAS3_1;
     match config.file.extension() {
         Some(ext) => {
             verbose_print(config, None, "Reading OAS file...");
@@ -36,44 +36,48 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
                 Ok(file) => file,
                 Err(e) => return Err(anyhow::anyhow!("Error opening OAS file: {}", e))?,
             };
-            match ext.to_str() {
+            let oas_json = match ext.to_str() {
                 Some("json") => {
                     verbose_print(config, None, "Parsing OAS file...");
-                    oas_json = match serde_json::from_str(&oas_file) {
+                    match serde_json::from_str(&oas_file) {
                         Ok(json) => json,
                         Err(e) => return Err(anyhow::anyhow!("Error parsing OAS file: {}", e))?,
                     };
                 }
                 Some("yaml") => {
                     verbose_print(config, None, "Parsing OAS file...");
-                    oas_json = match serde_yaml::from_str(&oas_file) {
+                    match serde_yaml::from_str(&oas_file) {
                         Ok(yaml) => yaml,
                         Err(e) => return Err(anyhow::anyhow!("Error parsing OAS file: {}", e))?,
                     };
                     verbose_print(config, Some(Verbosity::Debug), "Creating OAS struct...");
                 }
                 _ => return Err(anyhow::anyhow!("Unsupported config file extension")),
+            
             };
+            let oas: OAS3_1 = match serde_json::from_value(oas_json.clone().into()) {
+                Ok(oas) => oas,
+                Err(e) => {
+                    return Err(anyhow::anyhow!("Error creating OAS struct: {}", e));
+                }
+            };
+            match config.profile {
+                config::Profile::Info => run_profile_info(&config, &oas, &oas_json.into()),
+                config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json.into()).await,
+                config::Profile::Intrusive => todo!("Not implemented!"),
+                config::Profile::Passive => run_passive_profile(&config, &oas, &oas_json.into()),
+                config::Profile::Full => run_full_profile(config, &oas, &oas_json.into()).await,
+            }
+
         }
         _ => return Err(anyhow::anyhow!("Unsupported config file extension")),
     };
 
     verbose_print(config, Some(Verbosity::Debug), "Creating OAS struct...");
 
-    oas = match serde_json::from_value(oas_json.clone()) {
-        Ok(oas) => oas,
-        Err(e) => {
-            return Err(anyhow::anyhow!("Error creating OAS struct: {}", e));
-        }
-    };
+  
 
-    match config.profile {
-        config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
-        config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json).await,
-        config::Profile::Intrusive => todo!("Not implemented!"),
-        config::Profile::Passive => run_passive_profile(&config, &oas, &oas_json),
-        config::Profile::Full => run_full_profile(config, &oas, &oas_json).await,
-    }
+ 
 }
 
 fn run_profile_info(config: &Config, _oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
