@@ -1,6 +1,7 @@
 use crate::options;
 use crate::options::Options;
 use anyhow::*;
+use cherrybomb_engine::config::{Config, Verbosity};
 use comfy_table::{modifiers::UTF8_ROUND_CORNERS, presets::UTF8_FULL, *};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -62,16 +63,30 @@ enum CheckStatus {
     Warning,
     Fail,
 }
+  fn verbosity_print(json_struct: &Map<String,Value>, options: &Options, conf : &Config) -> anyhow::Result<CheckStatus>{
+    let opt = options.verbosity.clone().unwrap_or(Verbosity::Normal);
+    match opt {
+        Verbosity::Quiet =>  return print_alert_table(json_struct, &options.format),
+        Verbosity::Normal => return print_alert_table(json_struct, &options.format)  ,
+        Verbosity::Verbose => return print_full_alert_table(json_struct, &options.format),
+        Verbosity::Debug =>  return print_alert_table(json_struct, &options.format) ,
+    }
 
-pub fn print_tables(json_struct: Value, options: &Options) -> anyhow::Result<ExitCode> {
+
+}
+
+
+pub fn print_tables(json_struct: Value, options: &Options, conf: &Config) -> anyhow::Result<ExitCode> {
     let mut status_vec = vec![];
     if let Some(json_struct) = json_struct["passive"].as_object() {
-        status_vec.push(print_full_alert_table(json_struct, &options.format)?);
-        //create_table_with_full_verbosity(&json_struct)?;
+        //status_vec.push(print_full_alert_table(json_struct, &options.format)?);
+       
+        status_vec.push(verbosity_print(json_struct, options,conf)?);
     }
     if let Some(json_struct) = json_struct["active"].as_object() {
-        status_vec.push(print_full_alert_table(json_struct, &options.format)?);
-        //  create_table_with_full_verbosity(&json_struct)?;
+        //status_vec.push(print_full_alert_table(json_struct, &options.format)?);
+        status_vec.push(verbosity_print(json_struct, options,conf)?);
+
     }
     match options.format {
         options::OutputFormat::Table => {
