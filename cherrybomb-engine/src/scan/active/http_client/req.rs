@@ -1,3 +1,4 @@
+use crate::config::{Config, Verbosity, self};
 use crate::scan::active::http_client::auth::Authorization;
 use crate::scan::active::http_client::{
     AttackRequest, AttackResponse, MHeader, QuePay, RequestParameter,
@@ -7,6 +8,20 @@ use cherrybomb_oas::legacy::utils::Method;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
+
+
+
+pub fn receive_parameters(config: &Config){
+
+}
+
+fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
+    let required = required.unwrap_or(Verbosity::Normal);
+    if config.verbosity.eq(&Verbosity::Debug){
+        println!("{message}");
+    }
+    
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct AttackRequestBuilder {
@@ -296,7 +311,9 @@ impl AttackRequest {
                     })
                 }
                 Err(e) => {
-                    println!("FAILED TO EXECUTE: {self} - ERROR: {e}");
+                  //  println!("FAILED TO EXECUTE: {self} - ERROR: {e}");
+                  verbose_print(config, None, "Starting Cherrybomb...");
+
                 }
             }
         }

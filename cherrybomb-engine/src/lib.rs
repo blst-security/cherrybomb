@@ -9,10 +9,11 @@ use crate::scan::active::active_scanner;
 use crate::scan::active::http_client::auth::Authorization;
 use cherrybomb_oas::legacy::legacy_oas::*;
 use config::Config;
-use scan::passive::passive_scanner;
+use scan::{passive::passive_scanner, active::http_client::req::receive_parameters};
 use scan::*;
 use serde_json::{json, Value};
 use std::collections::HashMap;
+
 
 fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
     let required = required.unwrap_or(Verbosity::Normal);
@@ -22,6 +23,8 @@ fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
 }
 
 pub async fn run(config: &Config) -> anyhow::Result<Value> {
+  //  receive_parameters(config);
+
     verbose_print(config, None, "Starting Cherrybomb...");
 
     // Reading OAS file to string
