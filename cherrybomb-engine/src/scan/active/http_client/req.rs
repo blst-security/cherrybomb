@@ -1,27 +1,14 @@
-use crate::config::{Config, Verbosity, self};
+use crate::config::{self, Config, Verbosity};
 use crate::scan::active::http_client::auth::Authorization;
 use crate::scan::active::http_client::{
     AttackRequest, AttackResponse, MHeader, QuePay, RequestParameter,
 };
 use cherrybomb_oas::legacy::legacy_oas::*;
 use cherrybomb_oas::legacy::utils::Method;
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
-
-
-
-pub fn receive_parameters(config: &Config){
-
-}
-
-fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
-    let required = required.unwrap_or(Verbosity::Normal);
-    if config.verbosity.eq(&Verbosity::Debug){
-        println!("{message}");
-    }
-    
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct AttackRequestBuilder {
@@ -242,8 +229,15 @@ impl AttackRequest {
         }
     }
 
-    pub async fn send_request(&self, print: bool) -> Result<AttackResponse, reqwest::Error> {
-        let client = reqwest::Client::new();
+    pub async fn send_request(
+        &self,
+        verbose: Verbosity,
+        ignore_tls_error: bool,
+    ) -> Result<AttackResponse, reqwest::Error> {
+        let client = Client::builder()
+            .danger_accept_invalid_certs(ignore_tls_error)
+            .build()
+            .unwrap();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let h = self.get_headers(&headers1);
@@ -255,10 +249,9 @@ impl AttackRequest {
             //.header("content-type", "application/json")
             .build()
             .unwrap();
-        // dbg!(&req);
         match client.execute(req).await {
             Ok(res) => {
-                if print {
+                if verbose.eq(&Verbosity::Debug) {
                     println!("Request: {self}");
                 }
                 Ok(AttackResponse {
@@ -272,13 +265,22 @@ impl AttackRequest {
                 })
             }
             Err(e) => {
-                println!("FAILED TO EXECUTE: {self}");
+                if verbose.eq(&Verbosity::Debug) {
+                    println!("FAILED TO EXECUTE: {self}");
+                }
                 Err(e)
             }
         }
     }
-    pub async fn send_request_all_servers(&self, print: bool) -> Vec<AttackResponse> {
-        let client = reqwest::Client::new();
+    pub async fn send_request_all_servers(
+        &self,
+        print: Verbosity,
+        ignore_tls_error: bool,
+    ) -> Vec<AttackResponse> {
+        let client = Client::builder()
+            .danger_accept_invalid_certs(ignore_tls_error)
+            .build()
+            .unwrap();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
         let mut h = self.get_headers(&headers1);
@@ -297,7 +299,7 @@ impl AttackRequest {
                 .unwrap(); //TODO return builder error
             match client.execute(req).await {
                 Ok(res) => {
-                    if print {
+                    if print.eq(&Verbosity::Debug) {
                         println!("Request: {self}");
                     }
                     ret.push(AttackResponse {
@@ -311,9 +313,9 @@ impl AttackRequest {
                     })
                 }
                 Err(e) => {
-                  //  println!("FAILED TO EXECUTE: {self} - ERROR: {e}");
-                  verbose_print(config, None, "Starting Cherrybomb...");
-
+                    if print.eq(&Verbosity::Debug) {
+                        println!("FAILED TO EXECUTE: {self} - ERROR: {e}");
+                    }
                 }
             }
         }

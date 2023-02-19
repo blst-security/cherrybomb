@@ -1,5 +1,6 @@
 use super::http_client::logs::AttackLog;
 use super::http_client::*;
+use crate::config::Verbosity;
 use crate::scan::active::http_client::auth::Authorization;
 use crate::scan::active::utils::send_req;
 use crate::scan::checks::*;
@@ -60,15 +61,21 @@ where
 {
     pub oas: T,
     pub oas_value: Value,
-    pub verbosity: u8,
+    pub verbosity: Verbosity,
     pub checks: Vec<ActiveChecks>,
     pub payloads: Vec<OASMap>,
     pub logs: AttackLog,
     pub path_params: HashMap<String, String>,
+    pub ignore_tls_error: bool,
 }
 
 impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
-    pub fn new(oas: T, oas_value: Value) -> Result<Self, &'static str> {
+    pub fn new(
+        oas: T,
+        oas_value: Value,
+        verbosity: Verbosity,
+        ignore_tls_error: bool,
+    ) -> Result<Self, &'static str> {
         let path_params: HashMap<String, String> = HashMap::new();
         //  let path_params = Self::create_hash(&auth_p);
         let payloads = Self::payloads_generator(&oas, &oas_value);
@@ -76,10 +83,11 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             oas,
             oas_value,
             checks: vec![],
-            verbosity: 0,
+            verbosity: verbosity,
             payloads,
             logs: AttackLog::default(),
             path_params,
+            ignore_tls_error: ignore_tls_error,
         })
     }
 
@@ -108,7 +116,6 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             }
         };
     }
-
 
     fn payloads_generator(oas: &T, oas_value: &Value) -> Vec<OASMap> {
         let mut payloads = vec![];
