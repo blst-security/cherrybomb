@@ -22,7 +22,7 @@ thiserror = "1.0.37"
 tokio = { version = "^1.23", features = ["rt-multi-thread", "macros"]}
 clap = { version = "4.0.29", features = ["derive"] }
 const_format = "0.2.30"
-cherrybomb-engine = {path = "cherrybomb-engine"}
+cherrybomb-engine = "0.1"
 
 #cherrybomb-engine = "^0.1"
 serde = { version = "^1.0", features = ["derive"] }
