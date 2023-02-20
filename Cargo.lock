@@ -90,6 +90,8 @@ dependencies = [
 [[package]]
 name = "cherrybomb-engine"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8dbae9f28b8112520b2f6b8d89094ab685a558c6b508504825adf42b8ccf2c74"
 dependencies = [
  "anyhow",
  "base64 0.13.1",
