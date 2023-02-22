@@ -49,6 +49,17 @@ pub struct Auth {
     #[arg(long = "scope")]
     auth_scope: Option<String>,
 }
+impl Auth {
+    pub fn get_auth_type(&self) -> &AuthType {
+        &self.auth_type
+    }
+    pub fn get_auth_value(&self) -> &String {
+        &self.auth_value
+    }
+    pub fn get_auth_scope(&self) -> &Option<String> {
+        &self.auth_scope
+    }
+}
 
 #[derive(ValueEnum, Deserialize, Clone, Debug)]
 pub enum AuthType {

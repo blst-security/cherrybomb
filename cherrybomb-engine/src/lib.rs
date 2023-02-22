@@ -22,6 +22,12 @@ fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
 }
 
 pub async fn run(config: &Config) -> anyhow::Result<Value> {
+    let auth = config.security.get(0);
+    let mut a = Authorization::None;
+    if let Some(auth) = auth {
+        a = Authorization::from_parts(&auth.get_auth_type(), auth.get_auth_value().clone());
+    }
+
     verbose_print(config, None, "Starting Cherrybomb...");
 
     // Reading OAS file to string
@@ -53,14 +59,14 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
 
     match config.profile {
         config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
-        config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json).await,
+        config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json, &a).await,
         config::Profile::Intrusive => todo!("Not implemented!"),
         config::Profile::Passive => run_passive_profile(&config, &oas, &oas_json),
-        config::Profile::Full => run_full_profile(config, &oas, &oas_json).await,
+        config::Profile::Full => run_full_profile(config, &oas, &oas_json, &a).await,
     }
 }
 
-fn run_profile_info(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
+fn run_profile_info(config: &Config, _oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
     // Creating parameter list
     verbose_print(config, None, "Creating param list...");
     let param_scan = ParamTable::new::<OAS3_1>(oas_json);
@@ -92,6 +98,7 @@ async fn run_active_profile(
     config: &Config,
     oas: &OAS3_1,
     oas_json: &Value,
+    auth: &Authorization,
 ) -> anyhow::Result<Value> {
     // Creating active scan struct
     verbose_print(
@@ -108,9 +115,8 @@ async fn run_active_profile(
 
     // Running active scan
     verbose_print(config, None, "Running active scan...");
-    let temp_auth = Authorization::None;
     active_scan
-        .run(active_scanner::ActiveScanType::Full, &temp_auth)
+        .run(active_scanner::ActiveScanType::Full, &auth)
         .await;
     let active_result: HashMap<&str, Vec<Alert>> = active_scan
         .checks
@@ -149,11 +155,15 @@ async fn run_normal_profile(
     config: &Config,
     oas: &OAS3_1,
     oas_json: &Value,
+    auth: &Authorization,
 ) -> anyhow::Result<Value> {
     let mut report = json!({});
     let mut results = HashMap::from([
         ("passive", run_passive_profile(config, oas, oas_json)),
-        ("active", run_active_profile(config, oas, oas_json).await),
+        (
+            "active",
+            run_active_profile(config, oas, oas_json, auth).await,
+        ),
     ]);
     for (key, value) in results.iter_mut() {
         match value {
@@ -174,10 +184,18 @@ async fn run_normal_profile(
     Ok(report)
 }
 
-async fn run_full_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
+async fn run_full_profile(
+    config: &Config,
+    oas: &OAS3_1,
+    oas_json: &Value,
+    auth: &Authorization,
+) -> anyhow::Result<Value> {
     let mut report = json!({});
     let mut results = HashMap::from([
-        ("active", run_active_profile(config, oas, oas_json).await),
+        (
+            "active",
+            run_active_profile(config, oas, oas_json, auth).await,
+        ),
         ("passive", run_passive_profile(config, oas, oas_json)),
         ("params", run_profile_info(config, oas, oas_json)),
         ("endpoints", run_profile_info(config, oas, oas_json)),

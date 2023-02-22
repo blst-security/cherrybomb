@@ -96,7 +96,7 @@ pub struct Header {
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct Encoding {
     #[serde(rename = "contentType")]
-    pub conent_type: Option<String>,
+    pub content_type: Option<String>,
     pub headers: Option<HeaderMap>,
     pub style: Option<String>,
     pub explode: Option<bool>,
