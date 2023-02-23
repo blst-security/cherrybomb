@@ -53,14 +53,20 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
     // Creating checks lists
     let mut checks : HashMap<&str,HashSet<&str>> = HashMap::new();
     match config.profile {
-        config::Profile::Info => checks.insert("info",HashSet::new()),
+        config::Profile::Info => {
+            checks.insert("info",HashSet::new());
+            checks.insert("active",HashSet::new());
+            checks.insert("passive",HashSet::new())
+    },
         config::Profile::Normal => {
             checks.insert("passive",PassiveChecks::iter().map(|x| x.name()).collect());
             checks.insert("active",ActiveChecks::iter().map(|x| x.name()).collect())
         },
         config::Profile::Intrusive => todo!("Not implemented!"),
         config::Profile::Passive => {
-            checks.insert("passive",PassiveChecks::iter().map(|x| x.name()).collect())
+            checks.insert("passive",PassiveChecks::iter().map(|x| x.name()).collect());
+            checks.insert("active",HashSet::new())
+
         },
         config::Profile::Full => {
             checks.insert("info",HashSet::new());
@@ -68,9 +74,13 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
             checks.insert("active",ActiveChecks::iter().map(|x| x.name()).collect())
         },
     };
+    dbg!(&config.active_exclude);
+    dbg!(&config.active_include);
+    dbg!(&config.passive_exclude);
+    dbg!(&config.passive_include);
     for active_check in config.active_exclude.iter() {
-        if let Some(a) = checks.get_mut("active") {
-            a.remove(active_check.as_str());
+         if let Some(a) = checks.get_mut("active") {
+             a.remove(active_check.as_str());
         }
     }
     for passive_check in config.passive_exclude.iter() {
@@ -79,9 +89,13 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
         }
     }
     for active_check in config.active_include.iter() {
+         println!("hey");
         if let Some(a) = checks.get_mut("active") {
+            println!("hereree");
             a.insert(active_check.as_str());
+            dbg!(&a);
         }
+        
     }
     for passive_check in config.passive_include.iter() {
         if let Some(a) = checks.get_mut("passive") {
@@ -89,6 +103,7 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
         }
     }
     let mut report = json!({});
+    dbg!(&checks);
     for check_type in checks.keys() {
         match check_type.to_owned() {
             "info" => {

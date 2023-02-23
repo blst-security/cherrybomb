@@ -74,6 +74,7 @@ async fn main() -> anyhow::Result<ExitCode> {
     if !opt.no_telemetry {
         telemetry::send(config.profile.clone(), config.verbosity.clone()).await?;
     }
+    dbg!(&config);
     let json_val = cherrybomb_engine::run(&config).await?;
     match print_tables(json_val, &opt) {
         Ok(exit_code) => Ok(exit_code),
