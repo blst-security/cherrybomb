@@ -19,15 +19,16 @@
 
 # 💣 What is Cherrybomb?
 
-Cherrybomb is an CLI tool written  in Rust that helps prevent incorrect code implementation early in development. It works by validating and testing your API using an OpenAPI file. Its main goal is to reduce security errors and ensure your API functions as intended.
+CherryBomb is a powerful and flexible open-source vulnerability scanner designed to help you identify potential security flaws in your web applications. It is an CLI tool written in Rust that helps prevent incorrect code implementation early in development. Developed by the security experts at BLST, CherryBomb is a comprehensive and user-friendly tool that both beginner and experienced security professionals can use to scan various vulnerabilities, including SQL injection, cross-site scripting (XSS), and more. 
 
+With CherryBomb, you can easily configure and customize your scans to suit your specific needs, and get detailed reports and insights that help you prioritize and address any vulnerabilities that are found. Whether you're a security analyst, developer, or IT administrator, CherryBomb can help you proactively identify and address potential security threats, and safeguard your web applications from attacks. We're excited to share this powerful tool with the community and welcome your contributions to its continued development.
   
   
 
 # 🔨 How does it work?
 
 
-Cherrybomb makes sure your API is working correctly. It checks your API's spec file (OpenAPI Specification) for good practices and makes sure it follows the OAS rules. Then, it tests your API for common issues and vulnerabilities. If any problems are found, Cherrybomb gives you a detailed report with the exact location of the problem so you can fix it easily.
+CherryBomb works by validating and testing your API using an OpenAPI file. Its main goal is to reduce security errors and ensure your API functions as intended. It checks your API's spec file (OpenAPI Specification) for good practices and makes sure it follows the OAS rules. Then, it tests your API for common issues and vulnerabilities. If any problems are found, Cherrybomb gives you a detailed report with the exact location of the problem so you can fix it easily.
 
   
 
