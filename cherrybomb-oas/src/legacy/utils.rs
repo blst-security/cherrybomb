@@ -113,7 +113,9 @@ impl Default for QuePay {
 }
 impl fmt::Display for QuePay {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        #[cfg(feature = "colored")]
         use colored::*;
+        #[cfg(feature = "colored")]
         match self {
             Self::Headers => write!(f, "{:16}", "Headers".bold().truecolor(253, 186, 116)),
             Self::Path => write!(f, "{:16}", "Path".bold().truecolor(147, 197, 253)),
@@ -124,6 +126,15 @@ impl fmt::Display for QuePay {
                 "{:16}",
                 "Response Payload".bold().truecolor(165, 180, 252)
             ),
+            Self::None => write!(f, ""),
+        }
+        #[cfg(not(feature = "colored"))]
+        match self {
+            Self::Headers => write!(f, "{:16}", "Headers"),
+            Self::Path => write!(f, "{:16}", "Path"),
+            Self::Query => write!(f, "{:16}", "Query"),
+            Self::Payload => write!(f, "{:16}", "Request Payload"),
+            Self::Response => write!(f, "{:16}", "Response Payload"),
             Self::None => write!(f, ""),
         }
     }
