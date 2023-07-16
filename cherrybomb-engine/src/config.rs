@@ -1,7 +1,7 @@
 use clap::{Args, ValueEnum};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Default, ValueEnum, Deserialize, Clone, Debug)]
+#[derive(Default, ValueEnum, Deserialize, Clone, Debug, Serialize)]
 pub enum Profile {
     Info,
     #[default]
@@ -27,7 +27,7 @@ pub struct Config {
     pub no_color: bool,
 }
 
-#[derive(ValueEnum, Deserialize, Clone, Debug, Default, PartialOrd, PartialEq)]
+#[derive(ValueEnum, Deserialize, Clone, Debug, Default, PartialOrd, PartialEq, Serialize, Copy)]
 pub enum Verbosity {
     Quiet,
     #[default]

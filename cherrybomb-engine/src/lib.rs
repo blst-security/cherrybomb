@@ -22,10 +22,12 @@ fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
 }
 
 pub async fn run(config: &Config) -> anyhow::Result<Value> {
-    verbose_print(config, None, "Starting Cherrybomb...");
+    //  receive_parameters(config);
+
+    verbose_print(config, Some(config.verbosity), "Starting Cherrybomb...");
 
     // Reading OAS file to string
-    verbose_print(config, None, "Opening OAS file...");
+    verbose_print(config, Some(config.verbosity), "Opening OAS file...");
     let oas_file = match std::fs::read_to_string(&config.file) {
         Ok(file) => file,
         Err(e) => {
@@ -34,7 +36,7 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
     };
 
     // Parsing OAS file to JSON
-    verbose_print(config, None, "Parsing OAS file...");
+    verbose_print(config, Some(config.verbosity), "Parsing OAS file...");
     let oas_json: Value = match serde_json::from_str(&oas_file) {
         Ok(json) => json,
         Err(e) => {
@@ -43,7 +45,7 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
     };
 
     // Parsing JSON to OAS struct
-    verbose_print(config, Some(Verbosity::Debug), "Creating OAS struct...");
+    verbose_print(config, Some(config.verbosity), "Creating OAS struct...");
     let oas: OAS3_1 = match serde_json::from_value(oas_json.clone()) {
         Ok(oas) => oas,
         Err(e) => {
@@ -71,7 +73,7 @@ fn run_profile_info(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::
         .collect();
 
     //Creating endpoint
-    verbose_print(config, None, "Create endpoint list");
+    verbose_print(config, Some(config.verbosity), "Create endpoint list");
     let ep_table = EpTable::new::<OAS3_1>(oas_json);
     let endpoint_result: HashMap<&str, Value> = ep_table
         .eps
@@ -96,10 +98,15 @@ async fn run_active_profile(
     // Creating active scan struct
     verbose_print(
         config,
-        Some(Verbosity::Debug),
+        Some(config.verbosity),
         "Creating active scan struct...",
     );
-    let mut active_scan = match active_scanner::ActiveScan::new(oas.clone(), oas_json.clone()) {
+    let mut active_scan = match active_scanner::ActiveScan::new(
+        oas.clone(),
+        oas_json.clone(),
+        config.verbosity,
+        config.ignore_tls_errors,
+    ) {
         Ok(scan) => scan,
         Err(e) => {
             return Err(anyhow::anyhow!("Error creating active scan struct: {}", e));
@@ -107,7 +114,7 @@ async fn run_active_profile(
     };
 
     // Running active scan
-    verbose_print(config, None, "Running active scan...");
+    verbose_print(config, Some(config.verbosity), "Running active scan...");
     let temp_auth = Authorization::None;
     active_scan
         .run(active_scanner::ActiveScanType::Full, &temp_auth)
@@ -125,7 +132,7 @@ fn run_passive_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyho
     // Creating passive scan struct
     verbose_print(
         config,
-        Some(Verbosity::Debug),
+        Some(config.verbosity),
         "Creating passive scan struct...",
     );
     let mut passive_scan = passive_scanner::PassiveSwaggerScan {
@@ -174,7 +181,11 @@ async fn run_normal_profile(
     Ok(report)
 }
 
-async fn run_full_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
+async fn run_full_profile(
+    config: &Config,
+    oas: &OAS3_1,
+    oas_json: &Value,
+) -> anyhow::Result<Value> {
     let mut report = json!({});
     let mut results = HashMap::from([
         ("active", run_active_profile(config, oas, oas_json).await),

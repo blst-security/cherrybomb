@@ -53,12 +53,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 .headers(h.clone())
                                 .build();
 
-                            let response_vector =
-                                req.send_request_all_servers(self.verbosity > 0).await;
+                            let response_vector = req
+                                .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                                .await;
                             for response in response_vector {
-                                ret_val
-                                    .1
-                                    .push(&req, &response, "Testing SQLIcarg".to_string());
+                                ret_val.1.push(&req, &response, "Testing SQLI".to_string());
                                 ret_val.0.push((
                                     ResponseData {
                                         location: path.to_string(),
@@ -223,7 +222,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                     .method(method)
                     .headers(h.clone())
                     .build();
-                let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                let response_vector = req
+                    .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                    .await;
                 for response in response_vector {
                     ret_val
                         .1
@@ -289,8 +290,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 .auth(auth.clone())
                                 .headers(vec![h])
                                 .build();
-                            let response_vector =
-                                req.send_request_all_servers(self.verbosity > 0).await;
+                            let response_vector = req
+                                .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                                .await;
                             for response in response_vector {
                                 ret_val.1.push(
                                     &req,
@@ -360,8 +362,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 .headers(vec![])
                                 .auth(auth.clone())
                                 .build();
-                            let response_vector =
-                                req.send_request_all_servers(self.verbosity > 0).await;
+                            let response_vector = req
+                                .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                                .await;
                             for response in response_vector {
                                 ret_val.1.push(&req, &response, "Testing SSRF".to_string());
                                 ret_val.0.push((
@@ -433,9 +436,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 )
                                 .build();
 
-                            print!("POST SSRF : ");
-                            let response_vector =
-                                req.send_request_all_servers(self.verbosity > 0).await;
+                            let response_vector = req
+                                .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                                .await;
                             for response in response_vector {
                                 ret_val.1.push(&req, &response, "Testing SSRF".to_string());
                                 ret_val.0.push((
@@ -485,11 +488,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     .auth(auth.clone())
                                     .payload(&oas_map.payload.payload.to_string())
                                     .build();
-                                let _response_vector =
-                                    req.send_request_all_servers(self.verbosity > 0).await;
-                                print!("POST SSRF : ");
-                                let response_vector =
-                                    req.send_request_all_servers(self.verbosity > 0).await;
+                                let response_vector = req
+                                    .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                                    .await;
                                 for response in response_vector {
                                     ret_val.1.push(&req, &response, "Testing SSRF".to_string());
                                     ret_val.0.push((
@@ -547,8 +548,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .headers(vec![])
                             .auth(auth.clone())
                             .build();
-                        let response_vector =
-                            req.send_request_all_servers(self.verbosity > 0).await;
+                        let response_vector = req
+                            .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                            .await;
                         //  dbg!(&response_vector);
                         for response in response_vector {
                             ret_val.1.push(
@@ -598,8 +600,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .headers(vec![])
                             .auth(auth.clone())
                             .build();
-                        let response_vector =
-                            req.send_request_all_servers(self.verbosity > 0).await;
+                        let response_vector = req
+                            .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                            .await;
                         for response in response_vector {
                             ret_val.1.push(
                                 &req,
@@ -669,8 +672,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 .to_string(),
                             )
                             .build();
-                        let response_vector =
-                            req.send_request_all_servers(self.verbosity > 0).await;
+                        let response_vector = req
+                            .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                            .await;
                         for response in response_vector {
                             ret_val.1.push(
                                 &req,
@@ -731,8 +735,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     .to_string(),
                             )
                             .build();
-                        let response_vector =
-                            req.send_request_all_servers(self.verbosity > 0).await;
+                        let response_vector = req
+                            .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                            .await;
                         for response in response_vector {
                             ret_val
                                 .1
@@ -802,7 +807,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .method(Method::GET)
                             .headers(vec![])
                             .build();
-                        let response_vector = req.send_request(self.verbosity > 0).await;
+                        let response_vector = req
+                            .send_request(self.verbosity, self.ignore_tls_error)
+                            .await;
                         if let Ok(res) = response_vector {
                             //logging
                             //logging request/response/description
@@ -877,8 +884,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                         .parameters(vec_param.clone())
                                         .build();
 
-                                    let response_vector =
-                                        req.send_request(self.verbosity > 0).await;
+                                    let response_vector = req
+                                        .send_request(self.verbosity, self.ignore_tls_error)
+                                        .await;
                                     if let Ok(res) = response_vector {
                                         //logging request/response/description
                                         ret_val.1.push(&req, &res, "Testing for BOLA".to_string());
@@ -915,7 +923,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
             .headers(vec![])
             .auth(auth.clone())
             .build();
-        let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+        let response_vector = req
+            .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+            .await;
         for (response, server) in response_vector.iter().zip(req.servers.iter()) {
             ret_val.1.push(&req, response, "Testing SSL".to_string());
             ret_val.0.push((
@@ -958,8 +968,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             .payload(&oas_map.payload.payload.to_string())
                             .build();
 
-                        let response_vector =
-                            req.send_request_all_servers(self.verbosity > 0).await;
+                        let response_vector = req
+                            .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                            .await;
                         for response in response_vector {
                             ret_val
                                 .1
@@ -999,7 +1010,9 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         .headers(vec![])
                         .parameters(vec_param.clone())
                         .build();
-                    let response_vector = req.send_request_all_servers(self.verbosity > 0).await;
+                    let response_vector = req
+                        .send_request_all_servers(self.verbosity, self.ignore_tls_error)
+                        .await;
                     for response in response_vector {
                         //logging request/response/description
                         ret_val

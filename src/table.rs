@@ -1,6 +1,7 @@
 use crate::options;
 use crate::options::Options;
 use anyhow::*;
+use cherrybomb_engine::config::{self, Config, Verbosity};
 use comfy_table::{modifiers::UTF8_ROUND_CORNERS, presets::UTF8_FULL, *};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -47,6 +48,14 @@ pub struct TableEP {
     pub statuses: Vec<String>,
 }
 
+fn print_table_verbosity(verb: &Verbosity, table: Table) {
+    match verb {
+        Verbosity::Quiet => (),
+        Verbosity::Normal => println!("{table}"),
+        Verbosity::Verbose => println!("{table}"),
+        Verbosity::Debug => println!("{table}"),
+    };
+}
 fn to_format(vec_raw: &mut Vec<String>) -> String {
     vec_raw.dedup();
     vec_raw
@@ -63,23 +72,67 @@ enum CheckStatus {
     Fail,
 }
 
-pub fn print_tables(json_struct: Value, options: &Options) -> anyhow::Result<ExitCode> {
+pub fn print_tables(
+    json_struct: Value,
+    options: &Options,
+    conf: &Config,
+) -> anyhow::Result<ExitCode> {
     let mut status_vec = vec![];
     if let Some(json_struct) = json_struct["passive"].as_object() {
-        status_vec.push(print_full_alert_table(json_struct, &options.format)?);
-        //create_table_with_full_verbosity(&json_struct)?;
+        match &conf.verbosity {
+            Verbosity::Verbose => status_vec.push(print_full_alert_table(
+                json_struct,
+                &options.format,
+                &conf.verbosity,
+            )?),
+            Verbosity::Debug => status_vec.push(print_full_alert_table(
+                json_struct,
+                &options.format,
+                &conf.verbosity,
+            )?),
+            Verbosity::Quiet => status_vec.push(print_alert_table(
+                json_struct,
+                &options.format,
+                &conf.verbosity,
+            )?),
+            Verbosity::Normal => status_vec.push(print_alert_table(
+                json_struct,
+                &options.format,
+                &conf.verbosity,
+            )?),
+        };
     }
     if let Some(json_struct) = json_struct["active"].as_object() {
-        status_vec.push(print_full_alert_table(json_struct, &options.format)?);
-        //  create_table_with_full_verbosity(&json_struct)?;
+        match &conf.verbosity {
+            Verbosity::Verbose => status_vec.push(print_full_alert_table(
+                json_struct,
+                &options.format,
+                &conf.verbosity,
+            )?),
+            Verbosity::Debug => status_vec.push(print_full_alert_table(
+                json_struct,
+                &options.format,
+                &conf.verbosity,
+            )?),
+            Verbosity::Quiet => status_vec.push(print_alert_table(
+                json_struct,
+                &options.format,
+                &conf.verbosity,
+            )?),
+            Verbosity::Normal => status_vec.push(print_alert_table(
+                json_struct,
+                &options.format,
+                &conf.verbosity,
+            )?),
+        };
     }
     match options.format {
         options::OutputFormat::Table => {
             if let Some(json_struct) = json_struct["params"].as_object() {
-                print_param_table(json_struct)?;
+                print_param_table(json_struct, &conf.verbosity)?;
             }
             if let Some(json_struct) = json_struct["endpoints"].as_object() {
-                print_endpoints_table(json_struct)?;
+                print_endpoints_table(json_struct, &conf.verbosity)?;
             }
         }
         options::OutputFormat::Json => {
@@ -97,7 +150,7 @@ pub fn print_tables(json_struct: Value, options: &Options) -> anyhow::Result<Exi
     }
 }
 
-fn print_endpoints_table(json_struct: &Map<String, Value>) -> anyhow::Result<()> {
+fn print_endpoints_table(json_struct: &Map<String, Value>, verb: &Verbosity) -> anyhow::Result<()> {
     let mut table = Table::new();
     table
         .load_preset(presets::UTF8_FULL)
@@ -132,11 +185,11 @@ fn print_endpoints_table(json_struct: &Map<String, Value>) -> anyhow::Result<()>
                 ]);
         }
     }
-    println!("{table}");
+    print_table_verbosity(verb, table);
     Ok(())
 }
 
-fn print_param_table(json_struct: &Map<String, Value>) -> anyhow::Result<()> {
+fn print_param_table(json_struct: &Map<String, Value>, verb: &Verbosity) -> anyhow::Result<()> {
     //create a parameter table
     let mut table = Table::new();
     table
@@ -167,13 +220,14 @@ fn print_param_table(json_struct: &Map<String, Value>) -> anyhow::Result<()> {
         }
     }
 
-    println!("{table}");
+    print_table_verbosity(verb, table);
     Ok(())
 }
 
 fn print_alert_table(
     json_struct: &Map<String, Value>,
     output: &options::OutputFormat,
+    verb: &Verbosity,
 ) -> anyhow::Result<CheckStatus> {
     //display simple table  with alerts
     let mut table = Table::new();
@@ -204,7 +258,7 @@ fn print_alert_table(
         }
     }
     if matches!(output, &options::OutputFormat::Table) {
-        println!("{table}");
+        print_table_verbosity(verb, table)
     }
     Ok(return_status)
 }
@@ -212,6 +266,7 @@ fn print_alert_table(
 fn print_full_alert_table(
     json_struct: &Map<String, Value>,
     output: &options::OutputFormat,
+    verb: &Verbosity,
 ) -> anyhow::Result<CheckStatus> {
     //create a table of alerts with full verbosity
     let mut table = Table::new();
@@ -242,7 +297,7 @@ fn print_full_alert_table(
         }
     }
     if matches!(output, &options::OutputFormat::Table) {
-        println!("{table}");
+        print_table_verbosity(verb, table);
     }
     Ok(return_status)
 }

@@ -75,7 +75,7 @@ async fn main() -> anyhow::Result<ExitCode> {
         telemetry::send(config.profile.clone(), config.verbosity.clone()).await?;
     }
     let json_val = cherrybomb_engine::run(&config).await?;
-    match print_tables(json_val, &opt) {
+    match print_tables(json_val, &opt, &config) {
         Ok(exit_code) => Ok(exit_code),
         Err(e) => Err(anyhow::anyhow!("Error printing tables: {}", e)),
     }
