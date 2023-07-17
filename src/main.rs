@@ -59,6 +59,7 @@ fn merge_options(conf: &mut Config, opt: &Options) {
     if let Some(server_item) = &opt.server {
         conf.servers_override = vec![server_item.clone()];
     }
+    conf.no_color =  opt.no_color.clone();
 }
 
 #[tokio::main]
@@ -75,7 +76,7 @@ async fn main() -> anyhow::Result<ExitCode> {
         telemetry::send(config.profile.clone(), config.verbosity.clone()).await?;
     }
     let json_val = cherrybomb_engine::run(&config).await?;
-    match print_tables(json_val, &opt) {
+    match print_tables(json_val, &opt, config.no_color) {
         Ok(exit_code) => Ok(exit_code),
         Err(e) => Err(anyhow::anyhow!("Error printing tables: {}", e)),
     }

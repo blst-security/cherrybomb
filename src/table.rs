@@ -2,12 +2,66 @@ use crate::options;
 use crate::options::Options;
 use anyhow::*;
 use comfy_table::{modifiers::UTF8_ROUND_CORNERS, presets::UTF8_FULL, *};
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::fs::File;
 use std::io::Write;
-use std::option;
 use std::process::ExitCode;
+
+#[derive(Clone, Copy)]
+pub struct Colored {
+    text: Color,
+    level: Color,
+    description: Color,
+    location: Color,
+    certainty: Color,
+    severity_info: Color,
+    severity_low: Color,
+    severity_medium: Color,
+    severity_high: Color,
+    severity_critical: Color,
+}
+lazy_static! {
+    pub static ref COLORS: Colored = Colored {
+        text: Color::Grey,
+        level: Color::Red,
+        description: Color::Yellow,
+        location: Color::Rgb {
+            r: 255,
+            g: 192,
+            b: 203
+        },
+        certainty: Color::Blue,
+        severity_info: Color::Green,
+        severity_low: Color::Blue,
+        severity_medium: Color::Rgb {
+            r: 255,
+            g: 255,
+            b: 0
+        },
+        severity_high: Color::Rgb {
+            r: 255,
+            g: 165,
+            b: 0
+        },
+        severity_critical: Color::Red,
+    };
+    pub static ref NO_COLORS: Colored = Colored {
+        text: Color::White,
+        level: Color::White,
+        description: Color::White,
+        location: Color::White,
+        certainty: Color::White,
+        severity_info: Color::White,
+        severity_low: Color::White,
+        severity_medium: Color::White,
+        severity_high: Color::White,
+        severity_critical: Color::White
+    };
+}
+
+
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -63,23 +117,52 @@ enum CheckStatus {
     Fail,
 }
 
-pub fn print_tables(json_struct: Value, options: &Options) -> anyhow::Result<ExitCode> {
+pub fn adjust_color(level: String, colors: &Colored) -> Cell {
+    return match level.to_lowercase().as_str() {
+        "info" => Cell::new(format!("{level:?}")).fg(colors.severity_info),
+        "low" => Cell::new(format!("{level:?}")).fg(colors.severity_low),
+        "medium" => Cell::new(format!("{level:?}")).fg(colors.severity_medium),
+        "high" => Cell::new(format!("{level:?}")).fg(colors.severity_high),
+        "high" => Cell::new(format!("{level:?}")).fg(colors.severity_high),
+        &_ => Cell::new(format!("{level:?}")).fg(colors.text),
+    };
+}
+
+pub fn print_tables(
+    json_struct: Value,
+    options: &Options,
+    use_colors: bool,
+) -> anyhow::Result<ExitCode> {
+    let colors = if !use_colors {
+        COLORS.clone()
+    } else {
+        NO_COLORS.clone()
+    };
+    
     let mut status_vec = vec![];
     if let Some(json_struct) = json_struct["passive"].as_object() {
-        status_vec.push(print_full_alert_table(json_struct, &options.format)?);
-        //create_table_with_full_verbosity(&json_struct)?;
+        status_vec.push(print_full_alert_table(
+            json_struct,
+            &options.format,
+            &colors,
+        )?);
+        // print_alert_table(json_struct, &options.format, &colors)?;
     }
     if let Some(json_struct) = json_struct["active"].as_object() {
-        status_vec.push(print_full_alert_table(json_struct, &options.format)?);
-        //  create_table_with_full_verbosity(&json_struct)?;
+        status_vec.push(print_full_alert_table(
+            json_struct,
+            &options.format,
+            &colors,
+        )?);
+        // print_alert_table(json_struct, &options.format, &colors)?;
     }
     match options.format {
         options::OutputFormat::Table => {
             if let Some(json_struct) = json_struct["params"].as_object() {
-                print_param_table(json_struct)?;
+                print_param_table(json_struct, &colors)?;
             }
             if let Some(json_struct) = json_struct["endpoints"].as_object() {
-                print_endpoints_table(json_struct)?;
+                print_endpoints_table(json_struct, &colors)?;
             }
         }
         options::OutputFormat::Json => {
@@ -97,7 +180,7 @@ pub fn print_tables(json_struct: Value, options: &Options) -> anyhow::Result<Exi
     }
 }
 
-fn print_endpoints_table(json_struct: &Map<String, Value>) -> anyhow::Result<()> {
+fn print_endpoints_table(json_struct: &Map<String, Value>, colors: &Colored) -> anyhow::Result<()> {
     let mut table = Table::new();
     table
         .load_preset(presets::UTF8_FULL)
@@ -117,56 +200,22 @@ fn print_endpoints_table(json_struct: &Map<String, Value>) -> anyhow::Result<()>
         let jsn: Option<TableEP> = serde_json::from_value(val.clone())?;
 
         if let Some(mut obj) = jsn {
-            // dbg!(&val);
             table
                 .load_preset(UTF8_FULL)
                 .apply_modifier(UTF8_ROUND_CORNERS)
                 .add_row(vec![
-                    Cell::new(obj.path).add_attribute(Attribute::Bold),
-                    Cell::new(to_format(&mut obj.res_params)),
-                    Cell::new(to_format(&mut obj.statuses)),
-                    Cell::new(to_format(&mut obj.ops)),
-                    Cell::new(to_format(&mut obj.query_params)),
-                    Cell::new(to_format(&mut obj.headers_params)),
-                    Cell::new(to_format(&mut obj.req_body_params)),
+                    Cell::new(obj.path)
+                        .add_attribute(Attribute::Bold)
+                        .fg(colors.text),
+                    Cell::new(to_format(&mut obj.res_params)).fg(colors.description),
+                    Cell::new(to_format(&mut obj.statuses)).fg(colors.location),
+                    Cell::new(to_format(&mut obj.ops)).fg(colors.severity_medium),
+                    Cell::new(to_format(&mut obj.query_params)).fg(colors.severity_low),
+                    Cell::new(to_format(&mut obj.headers_params)).fg(colors.severity_low),
+                    Cell::new(to_format(&mut obj.req_body_params)).fg(colors.severity_low),
                 ]);
         }
     }
-    println!("{table}");
-    Ok(())
-}
-
-fn print_param_table(json_struct: &Map<String, Value>) -> anyhow::Result<()> {
-    //create a parameter table
-    let mut table = Table::new();
-    table
-        .load_preset(presets::UTF8_FULL)
-        .apply_modifier(modifiers::UTF8_ROUND_CORNERS)
-        .set_content_arrangement(ContentArrangement::Dynamic)
-        .set_header(vec![
-            "Name",
-            "Type",
-            "Statuses",
-            "Delivery Method",
-            "Endpoints",
-        ]);
-
-    for (key, val) in json_struct {
-        let jsn: Option<TableParam> = serde_json::from_value(val.clone())?;
-        if let Some(mut obj) = jsn {
-            table
-                .load_preset(UTF8_FULL)
-                .apply_modifier(UTF8_ROUND_CORNERS)
-                .add_row(vec![
-                    Cell::new(key).add_attribute(Attribute::Bold),
-                    Cell::new(obj.type_field),
-                    Cell::new(to_format(&mut obj.statuses)),
-                    Cell::new(to_format(&mut obj.dms)),
-                    Cell::new(to_format(&mut obj.eps)),
-                ]);
-        }
-    }
-
     println!("{table}");
     Ok(())
 }
@@ -174,15 +223,18 @@ fn print_param_table(json_struct: &Map<String, Value>) -> anyhow::Result<()> {
 fn print_alert_table(
     json_struct: &Map<String, Value>,
     output: &options::OutputFormat,
+    colors: &Colored,
 ) -> anyhow::Result<CheckStatus> {
     //display simple table  with alerts
     let mut table = Table::new();
     let mut return_status = CheckStatus::OK;
+
     table
         .load_preset(presets::UTF8_FULL)
         .apply_modifier(modifiers::UTF8_ROUND_CORNERS)
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec!["Check", "Severity", "Alerts", "Description"]);
+
     for (key, val) in json_struct {
         //checks name and vec of alerts
         let alerts: Vec<TableAlert> = serde_json::from_value(val.clone())?;
@@ -195,10 +247,13 @@ fn print_alert_table(
                     .load_preset(UTF8_FULL)
                     .apply_modifier(UTF8_ROUND_CORNERS)
                     .add_row(vec![
-                        Cell::new(key).add_attribute(Attribute::Bold),
-                        Cell::new(format!("{:?}", alert.level)),
-                        Cell::new(format!("{:?}", alerts.len())),
-                        Cell::new(alert.description.clone()),
+                        Cell::new(key)
+                            .add_attribute(Attribute::Bold)
+                            .fg(colors.text),
+                        // Cell::new(format!("{:?}", alert.level)).fg(colors.level),
+                        adjust_color(alert.level.to_string(), colors),
+                        Cell::new(format!("{:?}", alerts.len())).fg(colors.level),
+                        Cell::new(alert.description.clone()).fg(colors.description),
                     ]);
             }
         }
@@ -208,10 +263,10 @@ fn print_alert_table(
     }
     Ok(return_status)
 }
-
 fn print_full_alert_table(
     json_struct: &Map<String, Value>,
     output: &options::OutputFormat,
+    colors: &Colored,
 ) -> anyhow::Result<CheckStatus> {
     //create a table of alerts with full verbosity
     let mut table = Table::new();
@@ -233,10 +288,12 @@ fn print_full_alert_table(
                     .load_preset(UTF8_FULL)
                     .apply_modifier(UTF8_ROUND_CORNERS)
                     .add_row(vec![
-                        Cell::new(key).add_attribute(Attribute::Bold),
-                        Cell::new(format!("{:?}", alert.level)),
-                        Cell::new(alert.description.clone()),
-                        Cell::new(alert.location.clone()),
+                        Cell::new(key)
+                            .add_attribute(Attribute::Bold)
+                            .fg(colors.text),
+                        Cell::new(format!("{:?}", alert.level)).fg(colors.level),
+                        Cell::new(alert.description.clone()).fg(colors.description),
+                        Cell::new(alert.location.clone()).fg(colors.location),
                     ]);
             });
         }
@@ -245,4 +302,40 @@ fn print_full_alert_table(
         println!("{table}");
     }
     Ok(return_status)
+}
+fn print_param_table(json_struct: &Map<String, Value>, colors: &Colored) -> anyhow::Result<()> {
+    //create a parameter table
+    let mut table = Table::new();
+    table
+        .load_preset(presets::UTF8_FULL)
+        .apply_modifier(modifiers::UTF8_ROUND_CORNERS)
+        .set_content_arrangement(ContentArrangement::Dynamic)
+        .set_header(vec![
+            "Name",
+            "Type",
+            "Statuses",
+            "Delivery Method",
+            "Endpoints",
+        ]);
+
+    for (key, val) in json_struct {
+        let jsn: Option<TableParam> = serde_json::from_value(val.clone())?;
+        if let Some(mut obj) = jsn {
+            table
+                .load_preset(UTF8_FULL)
+                .apply_modifier(UTF8_ROUND_CORNERS)
+                .add_row(vec![
+                    Cell::new(key)
+                        .add_attribute(Attribute::Bold)
+                        .fg(colors.text),
+                    Cell::new(obj.type_field).fg(colors.severity_info),
+                    Cell::new(to_format(&mut obj.statuses)).fg(colors.location),
+                    Cell::new(to_format(&mut obj.dms)).fg(colors.severity_medium),
+                    Cell::new(to_format(&mut obj.eps)).fg(colors.severity_low),
+                ]);
+        }
+    }
+
+    println!("{table}");
+    Ok(())
 }
