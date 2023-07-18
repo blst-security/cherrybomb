@@ -9,16 +9,34 @@ use crate::scan::active::active_scanner;
 use crate::scan::active::http_client::auth::Authorization;
 use cherrybomb_oas::legacy::legacy_oas::*;
 use config::Config;
+use scan::checks::{ActiveChecks, PassiveChecks};
 use scan::passive::passive_scanner;
 use scan::*;
 use serde_json::{json, Value};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::vec;
+use strum::IntoEnumIterator;
 
 fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
     let required = required.unwrap_or(Verbosity::Normal);
     if config.verbosity >= required {
         println!("{message}");
     }
+}
+//take config and return hashset of checks to remove
+fn merge_config_exclude(config: &Config, mut checks: HashSet<String>) -> HashSet<String> {
+    if !config.passive_exclude.is_empty() {
+        for passive_check in config.passive_exclude.iter() {
+            checks.remove(passive_check);
+        }
+    }
+
+    if !config.active_exclude.is_empty() {
+        for active_check in config.active_exclude.iter() {
+            checks.remove(active_check);
+        }
+    }
+    checks.clone()
 }
 
 pub async fn run(config: &Config) -> anyhow::Result<Value> {
@@ -50,14 +68,40 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
             return Err(anyhow::anyhow!("Error creating OAS struct: {}", e));
         }
     };
-
     match config.profile {
         config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
         config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json).await,
-        config::Profile::Intrusive => todo!("Not implemented!"),
-        config::Profile::Passive => run_passive_profile(&config, &oas, &oas_json),
+        config::Profile::Active => {
+            if !&config.passive_include.is_empty() {
+                let mut n_config = config.clone();
+                let mut vec_passive: Vec<String> = PassiveChecks::iter()
+                    .map(|x| x.name().to_string())
+                    .collect();
+                vec_passive.retain(|check| !config.passive_include.contains(check));
+                n_config.passive_exclude = vec_passive;
+                run_normal_profile(&n_config, &oas, &oas_json).await
+            } else {
+                run_active_profile(&config, &oas, &oas_json).await
+            }
+        }
+
+        config::Profile::Passive => {
+            if !&config.active_include.is_empty() {
+                let mut n_config = config.clone();
+                let mut vec_active: Vec<String> =
+                    ActiveChecks::iter().map(|x| x.name().to_string()).collect();
+                vec_active.retain(|check| !config.active_include.contains(check));
+                n_config.active_exclude = vec_active;
+                run_normal_profile(&n_config, &oas, &oas_json).await
+            } else {
+                run_passive_profile(&config, &oas, &oas_json)
+            }
+        }
         config::Profile::Full => run_full_profile(config, &oas, &oas_json).await,
     }
+    //into the match  add include test into passive and active, so just create a json with passive and active
+    //return manually
+    //modify the config.exclude by the difference between include to all others test.
 }
 
 fn run_profile_info(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
@@ -99,6 +143,13 @@ async fn run_active_profile(
         Some(Verbosity::Debug),
         "Creating active scan struct...",
     );
+    let checks = merge_config_exclude(
+        config,
+        ActiveChecks::iter().map(|x| x.name().to_string()).collect(),
+    );
+    let active_checks: Vec<ActiveChecks> = ActiveChecks::iter()
+        .filter(|check| checks.contains(check.name()))
+        .collect();
     let mut active_scan = match active_scanner::ActiveScan::new(oas.clone(), oas_json.clone()) {
         Ok(scan) => scan,
         Err(e) => {
@@ -110,7 +161,10 @@ async fn run_active_profile(
     verbose_print(config, None, "Running active scan...");
     let temp_auth = Authorization::None;
     active_scan
-        .run(active_scanner::ActiveScanType::Full, &temp_auth)
+        .run(
+            active_scanner::ActiveScanType::Partial(active_checks),
+            &temp_auth,
+        )
         .await;
     let active_result: HashMap<&str, Vec<Alert>> = active_scan
         .checks
@@ -128,6 +182,17 @@ fn run_passive_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyho
         Some(Verbosity::Debug),
         "Creating passive scan struct...",
     );
+    //create hashsetand excluding checks
+    let checks = merge_config_exclude(
+        config,
+        PassiveChecks::iter()
+            .map(|x| x.name().to_string())
+            .collect(),
+    );
+    //create vector of passive checks to run
+    let passive_checks = PassiveChecks::iter()
+        .filter(|check| checks.contains(check.name()))
+        .collect();
     let mut passive_scan = passive_scanner::PassiveSwaggerScan {
         swagger: oas.clone(),
         swagger_value: oas_json.clone(),
@@ -136,12 +201,13 @@ fn run_passive_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyho
     };
     // Running passive scan
     verbose_print(config, None, "Running passive scan...");
-    passive_scan.run(passive_scanner::PassiveScanType::Full);
+    passive_scan.run(passive_scanner::PassiveScanType::Partial(passive_checks));
     let passive_result: HashMap<&str, Vec<Alert>> = passive_scan
         .passive_checks
         .iter()
         .map(|check| (check.name(), check.inner()))
         .collect();
+
     Ok(json!({ "passive": passive_result }))
 }
 
@@ -174,7 +240,11 @@ async fn run_normal_profile(
     Ok(report)
 }
 
-async fn run_full_profile(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
+async fn run_full_profile(
+    config: &Config,
+    oas: &OAS3_1,
+    oas_json: &Value,
+) -> anyhow::Result<Value> {
     let mut report = json!({});
     let mut results = HashMap::from([
         ("active", run_active_profile(config, oas, oas_json).await),

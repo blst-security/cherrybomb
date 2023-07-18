@@ -6,12 +6,12 @@ pub enum Profile {
     Info,
     #[default]
     Normal,
-    Intrusive,
+    Active,
     Passive,
     Full,
 }
 
-#[derive(Deserialize, Debug, Default)]
+#[derive(Deserialize, Debug, Default, Clone)]
 #[serde(default)]
 pub struct Config {
     pub file: std::path::PathBuf,
