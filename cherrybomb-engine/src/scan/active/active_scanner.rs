@@ -4,6 +4,7 @@ use crate::scan::active::http_client::auth::Authorization;
 use crate::scan::active::utils::send_req;
 use crate::scan::checks::*;
 use crate::scan::Level;
+use cherrybomb_oas::legacy::legacy_oas::Server;
 use cherrybomb_oas::legacy::legacy_oas::OAS;
 use cherrybomb_oas::legacy::path::PathItem;
 use cherrybomb_oas::legacy::refs::*;
@@ -83,32 +84,31 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         })
     }
 
-    pub async fn run(&mut self, tp: ActiveScanType, auth: &Authorization) {
+    pub async fn run(&mut self, tp: ActiveScanType, auth: &Authorization, serv: &Vec<Server>) {
         self.path_params = Self::create_hash(self, auth).await;
         match tp {
             ActiveScanType::Full => {
                 for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check, auth).await);
+                    self.checks.push(self.run_check(check, auth, serv).await);
                 }
             }
             ActiveScanType::NonInvasive => {
                 for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check, auth).await);
+                    self.checks.push(self.run_check(check, auth, serv).await);
                 }
             }
             ActiveScanType::OnlyTests => {
                 for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check, auth).await);
+                    self.checks.push(self.run_check(check, auth, serv).await);
                 }
             }
             ActiveScanType::Partial(checks) => {
                 for check in checks {
-                    self.checks.push(self.run_check(check, auth).await);
+                    self.checks.push(self.run_check(check, auth, serv).await);
                 }
             }
         };
     }
-
 
     fn payloads_generator(oas: &T, oas_value: &Value) -> Vec<OASMap> {
         let mut payloads = vec![];

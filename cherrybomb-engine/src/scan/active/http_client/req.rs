@@ -32,29 +32,36 @@ impl AttackRequestBuilder {
         }
         self
     }
-    pub fn servers(&mut self, servers: Option<Vec<Server>>, secure: bool) -> &mut Self {
-        if let Some(servers) = servers {
-            for server in servers {
-                let mut new_server_addr = server.base_url.clone();
-                if let Some(vars) = &server.variables {
-                    for (k, v) in vars {
-                        new_server_addr =
-                            new_server_addr.replace(&format!("{{{k}}}"), v.default.as_str());
+    pub fn servers(
+        &mut self,
+        servers: Option<Vec<Server>>,
+        secure: bool,
+        config_server: &Vec<Server>,
+    ) -> &mut Self {
+        if config_server.is_empty() {
+            if let Some(servers) = servers {
+                for server in servers {
+                    let mut new_server_addr = server.base_url.clone();
+                    if let Some(vars) = &server.variables {
+                        for (k, v) in vars {
+                            new_server_addr =
+                                new_server_addr.replace(&format!("{{{k}}}"), v.default.as_str());
+                        }
                     }
+                    if !secure & new_server_addr.starts_with("https") {
+                        new_server_addr.replace_range(0..5, "http")
+                    }
+                    self.servers.push(Server {
+                        base_url: new_server_addr,
+                        description: server.description,
+                        variables: server.variables,
+                    });
                 }
-                if !secure & new_server_addr.starts_with("https") {
-                    new_server_addr.replace_range(0..5, "http")
-                }
-                self.servers.push(Server {
-                    base_url: new_server_addr,
-                    description: server.description,
-                    variables: server.variables,
-                });
             }
         }
         //TODO implement error here
         else {
-            println!("No servers supplied")
+            self.servers = config_server.to_vec();
         }
         self
     }
@@ -263,6 +270,7 @@ impl AttackRequest {
         }
     }
     pub async fn send_request_all_servers(&self, print: bool) -> Vec<AttackResponse> {
+        dbg!(&self.servers);
         let client = reqwest::Client::new();
         let method1 = reqwest::Method::from_bytes(self.method.to_string().as_bytes()).unwrap();
         let (req_payload, req_query, path, headers1) = self.params_to_payload();
