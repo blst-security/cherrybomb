@@ -25,46 +25,87 @@ pub async fn run(config: &Config) -> anyhow::Result<Value> {
     verbose_print(config, None, "Starting Cherrybomb...");
     verbose_print(config, None, "Opening OAS file...");
 
-    match config.file.extension() {
-        Some(ext) => {
-            verbose_print(config, None, "Reading OAS file...");
-            let oas_file = match std::fs::read_to_string(&config.file) {
-                Ok(file) => file,
-                Err(e) => return Err(anyhow::Error::msg(format!("Error opening OAS file: {}", e))),
-            };
-            let oas_json: Value = match ext.to_str() {
-                Some("json") => {
-                    verbose_print(config, None, "Parsing OAS file...");
-                    match serde_json::from_str(&oas_file) {
-                        Ok(json) => json,
-                        Err(e) => return Err(anyhow::Error::msg(format!("Error parsing OAS file: {}", e))),
-                    }
+    if let Some(ext)= config.file.extension(){
+        verbose_print(config, None, "Reading OAS file...");
+        let oas_file = match std::fs::read_to_string(&config.file) {
+            Ok(file) => file,
+            Err(e) => return Err(anyhow::Error::msg(format!("Error opening OAS file: {}", e))),
+        };
+        let oas_json: Value = match ext.to_str() {
+            Some("json") => {
+                verbose_print(config, None, "Parsing OAS file...");
+                match serde_json::from_str(&oas_file) {
+                    Ok(json) => json,
+                    Err(e) => return Err(anyhow::Error::msg(format!("Error parsing OAS file: {}", e))),
                 }
-                Some("yaml") => {
-                    verbose_print(config, None, "Parsing OAS file...");
-                    match serde_yaml::from_str(&oas_file) {
-                        Ok(yaml) => yaml,
-                        Err(e) => return Err(anyhow::Error::msg(format!("Error parsing OAS file: {}", e))),
-                    }
-                }
-                _ => return Err(anyhow::Error::msg("Unsupported config file extension")),
-            };
-
-            let oas: OAS3_1 = match serde_json::from_value(oas_json.clone().into()) {
-                Ok(oas) => oas,
-                Err(e) => return Err(anyhow::Error::msg(format!("Error creating OAS struct: {}", e))),
-            };
-
-            match config.profile {
-                config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
-                config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json).await,
-                config::Profile::Intrusive => todo!("Not implemented!"),
-                config::Profile::Passive => run_passive_profile(&config, &oas, &oas_json),
-                config::Profile::Full => run_full_profile(config, &oas, &oas_json).await,
             }
+            Some("yaml") | Some("yml") => {
+                verbose_print(config, None, "Parsing OAS file...");
+                match serde_yaml::from_str(&oas_file) {
+                    Ok(yaml) => yaml,
+                    Err(e) => return Err(anyhow::Error::msg(format!("Error parsing OAS file: {}", e))),
+                }
+            }
+            _ => return Err(anyhow::Error::msg("Unsupported config file extension")),
+        };
+        let oas: OAS3_1 = match serde_json::from_value(oas_json.clone().into()) {
+            Ok(oas) => oas,
+            Err(e) => return Err(anyhow::Error::msg(format!("Error creating OAS struct: {}", e))),
+        };
+
+        match config.profile {
+            config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
+            config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json).await,
+            config::Profile::Intrusive => todo!("Not implemented!"),
+            config::Profile::Passive => run_passive_profile(&config, &oas, &oas_json),
+            config::Profile::Full => run_full_profile(config, &oas, &oas_json).await,
         }
-        _ => return Err(anyhow::Error::msg("Unsupported config file extension")),
+        
     }
+    else {
+        return Err(anyhow::Error::msg("file extension is not valid."));
+    }
+
+    // match config.file.extension() {
+    //     Some(ext) => {
+    //         verbose_print(config, None, "Reading OAS file...");
+    //         let oas_file = match std::fs::read_to_string(&config.file) {
+    //             Ok(file) => file,
+    //             Err(e) => return Err(anyhow::Error::msg(format!("Error opening OAS file: {}", e))),
+    //         };
+    //         let oas_json: Value = match ext.to_str() {
+    //             Some("json") => {
+    //                 verbose_print(config, None, "Parsing OAS file...");
+    //                 match serde_json::from_str(&oas_file) {
+    //                     Ok(json) => json,
+    //                     Err(e) => return Err(anyhow::Error::msg(format!("Error parsing OAS file: {}", e))),
+    //                 }
+    //             }
+    //             Some("yaml") => {
+    //                 verbose_print(config, None, "Parsing OAS file...");
+    //                 match serde_yaml::from_str(&oas_file) {
+    //                     Ok(yaml) => yaml,
+    //                     Err(e) => return Err(anyhow::Error::msg(format!("Error parsing OAS file: {}", e))),
+    //                 }
+    //             }
+    //             _ => return Err(anyhow::Error::msg("Unsupported config file extension")),
+    //         };
+
+    //         let oas: OAS3_1 = match serde_json::from_value(oas_json.clone().into()) {
+    //             Ok(oas) => oas,
+    //             Err(e) => return Err(anyhow::Error::msg(format!("Error creating OAS struct: {}", e))),
+    //         };
+
+    //         match config.profile {
+    //             config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
+    //             config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json).await,
+    //             config::Profile::Intrusive => todo!("Not implemented!"),
+    //             config::Profile::Passive => run_passive_profile(&config, &oas, &oas_json),
+    //             config::Profile::Full => run_full_profile(config, &oas, &oas_json).await,
+    //         }
+    //     }
+    //     _ => return Err(anyhow::Error::msg("Unsupported config file extension")),
+    // }
 }
 
 fn run_profile_info(config: &Config, _oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
