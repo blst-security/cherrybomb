@@ -49,7 +49,12 @@ The script requires sudo permissions to move the cherrybomb bin into <b>/usr/loc
 
 (If you want to view the shell script(or even help to improving it - [/scripts/install.sh](/scripts/install.sh))
 
-  
+ ##### Containerized version
+ You can get Cherrybomb through its containerized version which is hosted on AWS ECR, and requires an API key that you can get on that addess(the loading is a bit slow) - [https://cicd.blstsecurity.com/](https://cicd.blstsecurity.com/)
+
+```
+docker run --mount type=bind,source=[PATH TO OAS],destination=/home public.ecr.aws/blst-security/cherrybomb:latest cherrybomb -f /home/[OAS NAME] --api-key=[API-KEY]
+```
 
 #### Get it from crates.io
 
