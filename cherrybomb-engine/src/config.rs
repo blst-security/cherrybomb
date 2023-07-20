@@ -9,6 +9,7 @@ pub enum Profile {
     Active,
     Passive,
     Full,
+    OWASP
 }
 
 #[derive(Deserialize, Debug, Default, Clone)]
@@ -26,20 +27,20 @@ pub struct Config {
     pub ignore_tls_errors: bool,
     pub no_color: bool,
     pub active_checks: Vec<String>,
-    pub passive_checks: Vec<String>
+    pub passive_checks: Vec<String>,
 }
 impl Config {
-    pub fn update_checks_passive(&mut self, mut vec_checks: Vec<String> ) {
-         vec_checks.retain(|check| !self.passive_exclude.contains(check));
-         self.passive_checks = vec_checks;
-        
+    pub fn update_checks_passive(&mut self, mut vec_checks: Vec<String>) {
+        //get a list of passive checks and remove exclude
+        vec_checks.retain(|check| !self.passive_exclude.contains(check));
+        self.passive_checks = vec_checks;
     }
-    pub fn update_checks_active(&mut self, mut vec_checks: Vec<String> ) {
+    pub fn update_checks_active(&mut self, mut vec_checks: Vec<String>) {
+        //get a list of active checks and remove exclude
         vec_checks.retain(|check| !self.active_exclude.contains(check));
         self.active_checks = vec_checks;
     }
 }
-
 
 #[derive(ValueEnum, Deserialize, Clone, Debug, Default, PartialOrd, PartialEq)]
 pub enum Verbosity {

@@ -37,6 +37,12 @@ macro_rules! impl_passive_checks{
                     )*
                 }
             }
+            pub fn create_checks( vec_checks: Vec<String>) ->Vec<ActiveChecks>{ //get a vec of checks name  and create check active  struct
+                vec_checks
+                .into_iter()
+                .filter_map(|name| ActiveChecks::from_string(&name))
+                .collect()
+        }
 
         }
         impl <T:OAS+Serialize>PassiveSwaggerScan<T>{
@@ -90,7 +96,14 @@ macro_rules! impl_active_checks{
                     )*
                 }
             }
+            pub fn create_checks( vec_checks: Vec<String>) ->Vec<ActiveChecks>{ //get a vec of checks name  and create passive check struct
+                vec_checks
+                .into_iter()
+                .filter_map(|name| ActiveChecks::from_string(&name))
+                .collect()
         }
+        }
+
         impl <T:OAS+Serialize>ActiveScan<T>{
             pub async fn run_check(&self,check:ActiveChecks,auth:&Authorization)->ActiveChecks{
                 match check{
