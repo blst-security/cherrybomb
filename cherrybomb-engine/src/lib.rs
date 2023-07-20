@@ -23,21 +23,7 @@ fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
         println!("{message}");
     }
 }
-//take config and return hashset of checks to remove
-fn merge_config_exclude(config: &Config, mut checks: HashSet<String>) -> HashSet<String> {
-    if !config.passive_exclude.is_empty() {
-        for passive_check in config.passive_exclude.iter() {
-            checks.remove(passive_check);
-        }
-    }
 
-    if !config.active_exclude.is_empty() {
-        for active_check in config.active_exclude.iter() {
-            checks.remove(active_check);
-        }
-    }
-    checks.clone()
-}
 
 pub async fn run(config: &Config) -> anyhow::Result<Value> {
     verbose_print(config, None, "Starting Cherrybomb...");
@@ -143,12 +129,9 @@ async fn run_active_profile(
         Some(Verbosity::Debug),
         "Creating active scan struct...",
     );
-    let checks = merge_config_exclude(
-        config,
-        ActiveChecks::iter().map(|x| x.name().to_string()).collect(),
-    );
+    &config.update_checks_active( ActiveChecks::iter().map(|x| x.name().to_string()).collect());
     let active_checks: Vec<ActiveChecks> = ActiveChecks::iter()
-        .filter(|check| checks.contains(check.name()))
+        .filter(|check| config.active_checks.contains(check.name().to_string().as_ref()))
         .collect();
     let mut active_scan = match active_scanner::ActiveScan::new(oas.clone(), oas_json.clone()) {
         Ok(scan) => scan,
