@@ -9,7 +9,7 @@ pub enum Profile {
     Active,
     Passive,
     Full,
-    OWASP
+    OWASP,
 }
 
 #[derive(Deserialize, Debug, Default, Clone)]

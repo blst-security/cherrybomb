@@ -37,10 +37,10 @@ macro_rules! impl_passive_checks{
                     )*
                 }
             }
-            pub fn create_checks( vec_checks: Vec<String>) ->Vec<ActiveChecks>{ //get a vec of checks name  and create check active  struct
+            pub fn create_checks( vec_checks: &Vec<String>) ->Vec<PassiveChecks>{ //get a vec of checks name and create check passive struct
                 vec_checks
                 .into_iter()
-                .filter_map(|name| ActiveChecks::from_string(&name))
+                .filter_map(|name| PassiveChecks::from_string(&name))
                 .collect()
         }
 
@@ -96,7 +96,7 @@ macro_rules! impl_active_checks{
                     )*
                 }
             }
-            pub fn create_checks( vec_checks: Vec<String>) ->Vec<ActiveChecks>{ //get a vec of checks name  and create passive check struct
+            pub fn create_checks( vec_checks: &Vec<String>) ->Vec<ActiveChecks>{ //get a vec of checks name and create passive check struct
                 vec_checks
                 .into_iter()
                 .filter_map(|name| ActiveChecks::from_string(&name))

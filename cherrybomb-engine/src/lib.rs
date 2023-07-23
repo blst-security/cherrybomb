@@ -58,7 +58,7 @@ pub async fn run(config: &mut Config) -> anyhow::Result<Value> {
         config::Profile::Normal => run_normal_profile(config, &oas, &oas_json).await,
         config::Profile::Active => {
             if !&config.passive_include.is_empty() {
-                config.passive_checks = config.passive_include.clone();
+                config.passive_checks = config.passive_include.clone(); //passive include into passive checks
                 run_normal_profile(config, &oas, &oas_json).await
             } else {
                 run_active_profile(config, &oas, &oas_json).await
@@ -127,16 +127,16 @@ async fn run_active_profile(
     // Running active scan
     verbose_print(config, None, "Running active scan...");
     let temp_auth = Authorization::None;
-
     let active_result: HashMap<&str, Vec<Alert>> = match config.active_checks.is_empty() {
         true => {
-            // if empty, active profile and exclude  active checks is set
-        
+            // if empty, active profile and exclude_active checks is set
+            //create a vec of active scan checks
+
             let all_active_checks = ActiveChecks::iter().map(|x| x.name().to_string()).collect();
             config.update_checks_active(all_active_checks);
 
             //create a vec of active scan checks
-            let active_checks = ActiveChecks::create_checks(config.active_checks.clone());
+            let active_checks = ActiveChecks::create_checks(&config.active_checks);
 
             active_scan
                 .run(
@@ -151,10 +151,12 @@ async fn run_active_profile(
                 .collect()
         }
         false => {
-            // if the active_checks not empty,  active include_checks  and passive profile is set
-            let active_checks_to_run = ActiveChecks::iter()
-                .filter(|check| config.active_checks.contains(&check.name().to_string()))
-                .collect();
+            // if the active_checks not empty, active include_checks and passive profile is set
+
+            // let active_checks_to_run = ActiveChecks::iter()
+            //     .filter(|check| config.active_checks.contains(&check.name().to_string()))
+            //     .collect();
+            let active_checks_to_run = ActiveChecks::create_checks(&config.active_checks.clone()); //create active check vec
             active_scan
                 .run(
                     active_scanner::ActiveScanType::Partial(active_checks_to_run),
@@ -169,7 +171,6 @@ async fn run_active_profile(
         }
     };
 
-  
     Ok(json!({ "active": active_result }))
 }
 
@@ -196,16 +197,19 @@ fn run_passive_profile(
 
     let passive_result: HashMap<&str, Vec<Alert>> = match config.passive_checks.is_empty() {
         true => {
-            //  if empty, passive profile and exclude  passive checks is set
+            // if passive_checks empty, passive profile and exclude passive checks is set
             let all_passive_checks = PassiveChecks::iter()
                 .map(|x| x.name().to_string())
                 .collect(); //collect all passive checks
             config.update_checks_passive(all_passive_checks);
 
             //create vector of passive checks to run
-            let passive_checks_to_run = PassiveChecks::iter()
-                .filter(|check| config.active_checks.contains(&check.name().to_string()))
-                .collect();
+
+            // let passive_checks_to_run = PassiveChecks::iter()
+            //     .filter(|check| config.active_checks.contains(&check.name().to_string()))
+            //     .collect();
+
+            let passive_checks_to_run = PassiveChecks::create_checks(&config.passive_checks);
             passive_scan.run(passive_scanner::PassiveScanType::Partial(
                 passive_checks_to_run,
             ));
@@ -216,10 +220,13 @@ fn run_passive_profile(
                 .collect()
         }
         false => {
-            // if the passive_checks not empty,so passive include_checks  and active profile is set
-            let passive_checks_to_run = PassiveChecks::iter()
-                .filter(|check| config.passive_checks.contains(&check.name().to_string()))
-                .collect();
+            // if the passive_checks not empty, so passive include_checks and active profile is set
+
+            // let passive_checks_to_run = PassiveChecks::iter()
+            //     .filter(|check| config.passive_checks.contains(&check.name().to_string()))
+            //     .collect(); //create vec of passive checks
+
+            let passive_checks_to_run = PassiveChecks::create_checks(&config.passive_checks);
             passive_scan.run(passive_scanner::PassiveScanType::Partial(
                 passive_checks_to_run,
             ));
@@ -232,7 +239,6 @@ fn run_passive_profile(
     };
     Ok(json!({"passive": passive_result}))
 }
-
 
 async fn run_normal_profile(
     config: &mut Config,
