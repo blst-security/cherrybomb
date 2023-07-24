@@ -2,6 +2,7 @@ use super::active::http_client::logs::AttackLog;
 use super::passive::passive_scanner::PassiveSwaggerScan;
 use super::*;
 use crate::active::http_client::auth::Authorization;
+use crate::impl_owasp_checks;
 use crate::scan::active::active_scanner::ActiveScan;
 use crate::scan::passive::auth::*;
 use crate::scan::passive::general::*;
@@ -10,6 +11,7 @@ use crate::{impl_active_checks, impl_passive_checks};
 use cherrybomb_oas::legacy::legacy_oas::OAS;
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
+
 
 ///Add the rule name to this enum
 impl Default for PassiveChecks {
@@ -39,6 +41,24 @@ impl Check for PassiveChecks {
             "PASSED"
         } else {
             "FAILED"
+        }
+    }
+}
+impl Check for OwaspChecks {
+    fn top_severity(&self) -> Level {
+        let mut top = Level::Info;
+        for alert in self.inner() {
+            if alert.level > top {
+                top = alert.level;
+            }
+        }
+        top
+    }
+    fn result(&self) -> &'static str {
+        if !self.inner().is_empty() {
+            "FAILED"
+        } else {
+            "PASSED"
         }
     }
 }
@@ -199,3 +219,15 @@ impl_active_checks![
         "Check if object is vulnerable to level authorization"
     )
 ];
+
+impl_owasp_checks![
+    // Add your OWASP checks here, following the same pattern as active checks.
+    // For example:
+    (
+        CheckIDOR,
+        check_broken_object,
+        is_2xx,
+        "BROKEN OBJECT LEVEL AUTHORIZATION",
+        "Check if object is vulnerable to level authorization"
+    )
+    ];

@@ -24,7 +24,7 @@ pub enum ActiveScanType {
     Full,
     Partial(Vec<ActiveChecks>),
     NonInvasive,
-    OnlyTests,
+    OWASP,
 }
 
 type PayloadMap = HashMap<Vec<String>, Schema>;
@@ -96,9 +96,10 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
                     self.checks.push(self.run_check(check, auth).await);
                 }
             }
-            ActiveScanType::OnlyTests => {
-                for check in ActiveChecks::iter() {
-                    self.checks.push(self.run_check(check, auth).await);
+            ActiveScanType::OWASP => {
+                for check in OwaspChecks::iter() {
+                self.run_owasp_check(check, auth).await;
+
                 }
             }
             ActiveScanType::Partial(checks) => {

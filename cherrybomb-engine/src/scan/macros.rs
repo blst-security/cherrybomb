@@ -1,3 +1,62 @@
+//const CHECKS: &'static [&'static str] = &["AUTH BY PASS", "API2"];
+#[macro_export]
+macro_rules! impl_owasp_checks {
+    ( $( ($check:ident, $check_func:ident, $response_func:ident, $name:literal, $desc:literal )),* ) => {
+        #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, EnumIter)]
+        pub enum OwaspChecks {
+            $(
+                $check((Vec<Alert>, AttackLog)),
+            )*
+        }
+        impl OwaspChecks {
+            // Same utility methods as ActiveChecks if needed.
+            pub fn description(&self)->&'static str{
+                match &self{
+                    $(
+                        OwaspChecks::$check(_)=>$desc,
+                    )*
+                }
+            }
+            pub fn from_string(str1:&str)->Option<Self>{
+                match str1{
+                    $(
+                        $name=>Some(OwaspChecks::$check((vec![],AttackLog::default()))),
+                    )*
+                    _=>None,
+                }
+            }
+            pub fn name(&self)->&'static str{
+                match &self{
+                    $(
+                        OwaspChecks::$check(_)=>$name,
+                    )*
+                }
+            }
+            pub fn inner(&self)->Vec<Alert>{
+                match &self{
+                    $(
+                        OwaspChecks::$check(i)=>i.0.to_vec(),
+                    )*
+                }
+            }
+        }
+
+        impl <T: OAS + Serialize> ActiveScan<T> {
+            pub async fn run_owasp_check(&mut self, check: OwaspChecks, auth: &Authorization) {
+                match check {
+                    $(
+                        OwaspChecks::$check(_) => {
+                            let result = Self::$response_func(self.$check_func(auth).await);
+                            // Do something with the result if needed.
+                        }
+                    )*
+                }
+            }
+        }
+    }
+}
+
+
 #[macro_export]
 macro_rules! impl_passive_checks{
     ( $( ($check:ident,$check_func:ident,$name:literal,$desc:literal )),* ) => {
@@ -102,10 +161,10 @@ macro_rules! impl_active_checks{
                 .filter_map(|name| ActiveChecks::from_string(&name))
                 .collect()
         }
+        
         }
-
         impl <T:OAS+Serialize>ActiveScan<T>{
-            pub async fn run_check(&self,check:ActiveChecks,auth:&Authorization)->ActiveChecks{
+            pub async fn run_check(&self,check:ActiveChecks, auth:&Authorization)->ActiveChecks{
                 match check{
                     $(
                         ActiveChecks::$check(_)=>ActiveChecks::$check(Self::$response_func(self.$check_func(auth).await)),
