@@ -78,7 +78,7 @@ pub async fn run(config: &mut Config) -> anyhow::Result<Value> {
     }
 }
 
-async  fn run_owasp(config: &mut Config , &oas: &OAS3_1, &oas_json: &Value) -> anyhow::Result<Value>{
+async  fn run_owasp(config: &mut Config , oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value>{
      // Creating active scan struct
      verbose_print(
         config,
