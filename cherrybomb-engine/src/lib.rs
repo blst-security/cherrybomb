@@ -74,10 +74,41 @@ pub async fn run(config: &mut Config) -> anyhow::Result<Value> {
             }
         }
         config::Profile::Full => run_full_profile(config, &oas, &oas_json).await,
-        config::Profile::OWASP => todo!("not implemented yet!"),
+        config::Profile::OWASP => run_owasp(config, &oas, &oas_json).await ,
     }
 }
 
+async  fn run_owasp(config: &mut Config , &oas: &OAS3_1, &oas_json: &Value) -> anyhow::Result<Value>{
+     // Creating active scan struct
+     verbose_print(
+        config,
+        Some(Verbosity::Debug),
+        "Creating active scan struct...",
+    );
+    let mut active_scan = match active_scanner::ActiveScan::new(oas.clone(), oas_json.clone()) {
+        Ok(scan) => scan,
+        Err(e) => {
+            return Err(anyhow::anyhow!("Error creating active scan struct: {}", e));
+        }
+    };
+
+    // Running active scan
+    verbose_print(config, None, "Running active scan...");
+    let temp_auth = Authorization::None;
+    active_scan
+        .run(active_scanner::ActiveScanType::OWASP, &temp_auth)
+        .await;
+    let active_result: HashMap<&str, Vec<Alert>> = active_scan
+        .checks
+        .iter()
+        .map(|check| (check.name(), check.inner()))
+        .collect();
+    let report = json!({ "active": active_result });
+    Ok(report)
+}
+
+
+ 
 fn run_profile_info(config: &mut Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
     // Creating parameter list
     verbose_print(config, None, "Creating param list...");
