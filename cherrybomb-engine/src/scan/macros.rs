@@ -11,7 +11,7 @@ macro_rules! impl_owasp_checks {
         impl OwaspChecks {
             // Same utility methods as ActiveChecks if needed.
             pub fn description(&self)->&'static str{
-                match &self{
+                match &self{    
                     $(
                         OwaspChecks::$check(_)=>$desc,
                     )*
@@ -25,7 +25,7 @@ macro_rules! impl_owasp_checks {
                     _=>None,
                 }
             }
-            pub fn name(&self)->&'static str{
+            pub fn name_owasp(&self)->&'static str{
                 match &self{
                     $(
                         OwaspChecks::$check(_)=>$name,
@@ -42,12 +42,13 @@ macro_rules! impl_owasp_checks {
         }
 
         impl <T: OAS + Serialize> ActiveScan<T> {
-            pub async fn run_owasp_check(&mut self, check: OwaspChecks, auth: &Authorization) {
+            pub async fn run_owasp_check(&self, check: OwaspChecks, auth: &Authorization) -> ActiveChecks {
                 match check {
                     $(
                         OwaspChecks::$check(_) => {
                             let result = Self::$response_func(self.$check_func(auth).await);
                             // Do something with the result if needed.
+                            ActiveChecks::$check(result)
                         }
                     )*
                 }
@@ -55,6 +56,15 @@ macro_rules! impl_owasp_checks {
         }
     }
 }
+
+
+
+
+// match check{
+//     $(
+//         ActiveChecks::$check(_)=>ActiveChecks::$check(Self::$response_func(self.$check_func(auth).await)),
+//     )*
+// }
 
 
 #[macro_export]

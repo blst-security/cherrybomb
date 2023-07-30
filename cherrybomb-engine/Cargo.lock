@@ -87,8 +87,6 @@ dependencies = [
 [[package]]
 name = "cherrybomb-oas"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69dec5274a0a239037855a6e6753a093e9690522c6883f2a8bc9288a70b86a68"
 dependencies = [
  "colored",
  "serde",

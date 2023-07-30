@@ -13,6 +13,11 @@ use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 
 
+pub enum CheckWrapper<'a> {
+    Active(&'a dyn Check),
+    Owasp(&'a dyn Check),
+}
+
 ///Add the rule name to this enum
 impl Default for PassiveChecks {
     fn default() -> Self {
@@ -221,13 +226,57 @@ impl_active_checks![
 ];
 
 impl_owasp_checks![
-    // Add your OWASP checks here, following the same pattern as active checks.
-    // For example:
+    // Add your OWASP checks here
+    (
+        CheckOpenRedirect,
+        check_open_redirect,
+        is_3xx,
+        "OPEN REDIRECT",
+        "Check if the API may be vulnerable to open redirect"
+    ),
     (
         CheckIDOR,
         check_broken_object,
         is_2xx,
-        "BROKEN OBJECT LEVEL AUTHORIZATION",
+        "API1: Broken Object level Authorization",
+        "Check if object is vulneable to broken level authorization"
+
+    ),
+   
+    (
+        CheckAuthenticationGET,
+        check_authentication_for_get,
+        is_2xx,
+        "API2: Broken Authentication",
+        "Check if the auth is correctly configured"
+    ),
+    (
+        CheckBOLA,
+        check_broken_object_level_authorization,
+        is_2xx,
+        "API3: Broken Property Level Authorization",
         "Check if object is vulnerable to level authorization"
+    ),
+    (
+        CheckMethodPermissionsActive,
+        check_method_permissions_active,
+        is_2xx,
+        "API5:Broken Function Level Authorization",
+        "Check if the endpoint is correctly configured"
+    ),
+    (
+        CheckSsrfPOST,
+        check_ssrf_post,
+        ssrf_and_2xx,
+        "API7: Server Side Request Forgery ",
+        "Check if the endpoint is vulnerable to SSRF"
+    ),
+    (
+        CheckSsrfGET,
+        check_for_ssrf,
+        ssrf_and_2xx,
+        "API7: Server Side Request Forgery",
+        "Check if the endpoint is vulnerable to SSRF"
     )
+
     ];

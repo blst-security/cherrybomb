@@ -17,6 +17,8 @@ use std::collections::{HashMap, HashSet};
 use std::vec;
 use strum::IntoEnumIterator;
 
+
+
 fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
     let required = required.unwrap_or(Verbosity::Normal);
     if config.verbosity >= required {
@@ -93,11 +95,16 @@ async  fn run_owasp(config: &mut Config , oas: &OAS3_1, oas_json: &Value) -> any
     };
 
     // Running active scan
-    verbose_print(config, None, "Running active scan...");
+    verbose_print(config, None, "Running owasp scan...");
     let temp_auth = Authorization::None;
     active_scan
         .run(active_scanner::ActiveScanType::OWASP, &temp_auth)
         .await;
+    // let active_result: HashMap<&str, Vec<Alert>> = active_scan
+    //     .checks
+    //     .iter()
+    //     .map(|check| (check.name(), check.inner()))
+    //     .collect();
     let active_result: HashMap<&str, Vec<Alert>> = active_scan
         .checks
         .iter()

@@ -98,7 +98,8 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             }
             ActiveScanType::OWASP => {
                 for check in OwaspChecks::iter() {
-                self.run_owasp_check(check, auth).await;
+                println!("{:?}", check.name_owasp());
+                self.checks.push(self.run_owasp_check(check, auth).await);
 
                 }
             }
