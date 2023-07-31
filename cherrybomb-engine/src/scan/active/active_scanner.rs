@@ -19,6 +19,8 @@ use strum::IntoEnumIterator;
 
 pub type CheckRetVal = (Vec<(ResponseData, AttackResponse)>, AttackLog);
 
+
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ActiveScanType {
     Full,
@@ -65,6 +67,7 @@ where
     pub payloads: Vec<OASMap>,
     pub logs: AttackLog,
     pub path_params: HashMap<String, String>,
+    pub owasp_checks: Vec<OwaspChecks>
 }
 
 impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
@@ -80,6 +83,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             payloads,
             logs: AttackLog::default(),
             path_params,
+            owasp_checks: vec![]
         })
     }
 
@@ -98,8 +102,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             }
             ActiveScanType::OWASP => {
                 for check in OwaspChecks::iter() {
-                println!("{:?}", check.name_owasp());
-                self.checks.push(self.run_owasp_check(check, auth).await);
+                    self.owasp_checks.push( self.run_owasp_check(check, auth).await);
 
                 }
             }

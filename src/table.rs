@@ -8,6 +8,10 @@ use std::fs::File;
 use std::io::Write;
 use std::option;
 use std::process::ExitCode;
+use std::collections::HashMap;
+
+#[derive(Default, Debug, Clone )]
+struct MyT (String, String);
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,6 +20,7 @@ pub struct TableAlert {
     pub description: String,
     pub level: String,
     pub location: String,
+  //  pub category: Option<String>
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -72,6 +77,10 @@ pub fn print_tables(json_struct: Value, options: &Options) -> anyhow::Result<Exi
     if let Some(json_struct) = json_struct["active"].as_object() {
         status_vec.push(print_full_alert_table(json_struct, &options.format)?);
         //  create_table_with_full_verbosity(&json_struct)?;
+    }
+    if let Some(json_obj) = json_struct["owasp"].as_object(){
+    // Now convert the HashMap into a serde_json::Map
+        status_vec.push(print_full_alert_table_owasp(json_obj, &options.format)?);
     }
     match options.format {
         options::OutputFormat::Table => {
@@ -222,7 +231,6 @@ fn print_full_alert_table(
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec!["Check", "Severity", "Description", "Location"]);
     for (key, val) in json_struct {
-        //checks name and vec of alerts
         let alerts: Vec<TableAlert> = serde_json::from_value(val.clone())?;
         if !alerts.is_empty() {
             return_status = CheckStatus::Fail;
@@ -234,6 +242,52 @@ fn print_full_alert_table(
                     .apply_modifier(UTF8_ROUND_CORNERS)
                     .add_row(vec![
                         Cell::new(key).add_attribute(Attribute::Bold),
+                        Cell::new(format!("{:?}", alert.level)),
+                        Cell::new(alert.description.clone()),
+                        Cell::new(alert.location.clone()),
+                    ]);
+            });
+        }
+    }
+    if matches!(output, &options::OutputFormat::Table) {
+        println!("{table}");
+    }
+    Ok(return_status)
+}
+fn print_full_alert_table_owasp(
+    json_struct: &Map<String, Value>,
+    output: &options::OutputFormat,
+) -> anyhow::Result<CheckStatus> {
+    //create a table of alerts with full verbosity
+    let mut table = Table::new();
+    let mut return_status = CheckStatus::OK;
+    table
+        .load_preset(presets::UTF8_FULL)
+        .apply_modifier(modifiers::UTF8_ROUND_CORNERS)
+        .set_content_arrangement(ContentArrangement::Dynamic)
+        .set_header(vec!["Check", "Category", "Severity", "Description", "Location"]);
+    for (key, val) in json_struct {
+        //checks name and vec of alerts
+          //checks name and vec of alerts
+        //   let part: Vec<&str> = key.split(',').collect();
+        //   let tup = MyT (part[0].trim().to_string(), part[1].trim().to_string());
+        let clean_str = key.trim_start_matches('(').trim_end_matches(')');
+        let parts: Vec<&str> = clean_str.split(',').map(|part| part.trim()).collect();
+    
+        // Create a tuple from the parts
+        let my_tuple = (parts[0], parts[1]);
+        let alerts: Vec<TableAlert> = serde_json::from_value(val.clone())?;
+        if !alerts.is_empty() {
+            return_status = CheckStatus::Fail;
+        }
+        if matches!(output, &options::OutputFormat::Table) {
+            alerts.iter().for_each(|alert| {
+                table
+                    .load_preset(UTF8_FULL)
+                    .apply_modifier(UTF8_ROUND_CORNERS)
+                    .add_row(vec![
+                        Cell::new(my_tuple.0).add_attribute(Attribute::Bold),
+                        Cell::new(my_tuple.1).add_attribute(Attribute::Bold),
                         Cell::new(format!("{:?}", alert.level)),
                         Cell::new(alert.description.clone()),
                         Cell::new(alert.location.clone()),

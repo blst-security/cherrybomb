@@ -13,10 +13,6 @@ use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 
 
-pub enum CheckWrapper<'a> {
-    Active(&'a dyn Check),
-    Owasp(&'a dyn Check),
-}
 
 ///Add the rule name to this enum
 impl Default for PassiveChecks {
@@ -226,57 +222,65 @@ impl_active_checks![
 ];
 
 impl_owasp_checks![
-    // Add your OWASP checks here
+   // Add your OWASP checks here
     (
         CheckOpenRedirect,
         check_open_redirect,
         is_3xx,
         "OPEN REDIRECT",
-        "Check if the API may be vulnerable to open redirect"
+        "Check if the API may be vulnerable to open redirect",
+        "POP"
     ),
     (
         CheckIDOR,
         check_broken_object,
         is_2xx,
-        "API1: Broken Object level Authorization",
-        "Check if object is vulneable to broken level authorization"
-
+        "BROKEN OBJECT LEVEL AUTHORIZATION",
+        "Check if object is vulnerable to level authorization",
+        "API1: Broken Object level Authorization"
     ),
    
     (
-        CheckAuthenticationGET,
+        CheckAuthentications,
         check_authentication_for_get,
         is_2xx,
-        "API2: Broken Authentication",
-        "Check if the auth is correctly configured"
+        "AUTH BY PASS",
+        "Check if the auth is correctly configured",
+        "API2: Broken Authentication"
+
     ),
     (
         CheckBOLA,
         check_broken_object_level_authorization,
         is_2xx,
-        "API3: Broken Property Level Authorization",
-        "Check if object is vulnerable to level authorization"
+        "BROKEN OBJECT LEVEL AUTHORIZATION",
+        "Check if object is vulnerable to level authorization",
+        "API3: Broken Property Level Authorization"
+        
     ),
     (
         CheckMethodPermissionsActive,
         check_method_permissions_active,
         is_2xx,
-        "API5:Broken Function Level Authorization",
-        "Check if the endpoint is correctly configured"
+        "METHOD PERMISSION",
+        "Check if the endpoint is correctly configured",
+        "API5:Broken Function Level Authorization"
     ),
     (
         CheckSsrfPOST,
         check_ssrf_post,
         ssrf_and_2xx,
-        "API7: Server Side Request Forgery ",
-        "Check if the endpoint is vulnerable to SSRF"
+        "SSRF POST",
+        "Check if the endpoint is vulnerable to SSRF",
+        "API7: Server Side Request Forgery"
+
     ),
     (
         CheckSsrfGET,
         check_for_ssrf,
         ssrf_and_2xx,
-        "API7: Server Side Request Forgery",
-        "Check if the endpoint is vulnerable to SSRF"
+        "SSRF GET",
+        "Check if the endpoint is vulnerable to SSRF",
+        "API7: Server Side Request Forgery"
     )
-
     ];

@@ -9,7 +9,7 @@ use crate::scan::active::active_scanner;
 use crate::scan::active::http_client::auth::Authorization;
 use cherrybomb_oas::legacy::legacy_oas::*;
 use config::Config;
-use scan::checks::{ActiveChecks, PassiveChecks};
+use scan::checks::{ActiveChecks, PassiveChecks, OwaspChecks};
 use scan::passive::passive_scanner;
 use scan::*;
 use serde_json::{json, Value};
@@ -100,17 +100,18 @@ async  fn run_owasp(config: &mut Config , oas: &OAS3_1, oas_json: &Value) -> any
     active_scan
         .run(active_scanner::ActiveScanType::OWASP, &temp_auth)
         .await;
-    // let active_result: HashMap<&str, Vec<Alert>> = active_scan
-    //     .checks
+  
+    // let active_result: HashMap<String, Vec<Alert>> = active_scan
+    //     .owasp_checks
     //     .iter()
-    //     .map(|check| (check.name(), check.inner()))
+    //     .map(|check| format!("({},{})", check.name_owasp(),check.category()), check.inner()))
     //     .collect();
-    let active_result: HashMap<&str, Vec<Alert>> = active_scan
-        .checks
-        .iter()
-        .map(|check| (check.name(), check.inner()))
-        .collect();
-    let report = json!({ "active": active_result });
+    let active_result: HashMap<String, Vec<Alert>> = active_scan
+    .owasp_checks
+    .iter()
+    .map(|check| (format!("({},{})", check.name_owasp(), check.category()), check.inner()))
+    .collect();
+    let report = json!({ "owasp": active_result });
     Ok(report)
 }
 

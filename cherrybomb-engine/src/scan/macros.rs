@@ -1,7 +1,7 @@
 //const CHECKS: &'static [&'static str] = &["AUTH BY PASS", "API2"];
 #[macro_export]
 macro_rules! impl_owasp_checks {
-    ( $( ($check:ident, $check_func:ident, $response_func:ident, $name:literal, $desc:literal )),* ) => {
+    ( $( ($check:ident, $check_func:ident, $response_func:ident, $name:literal, $desc:literal, $category:literal)),* ) => {
         #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, EnumIter)]
         pub enum OwaspChecks {
             $(
@@ -11,7 +11,7 @@ macro_rules! impl_owasp_checks {
         impl OwaspChecks {
             // Same utility methods as ActiveChecks if needed.
             pub fn description(&self)->&'static str{
-                match &self{    
+                match &self{
                     $(
                         OwaspChecks::$check(_)=>$desc,
                     )*
@@ -39,16 +39,23 @@ macro_rules! impl_owasp_checks {
                     )*
                 }
             }
+            pub fn category(&self)->&'static str {
+                match &self{
+                    $(
+                        OwaspChecks::$check(_)=>$category,
+                    )*
+                }
+            }
         }
 
         impl <T: OAS + Serialize> ActiveScan<T> {
-            pub async fn run_owasp_check(&self, check: OwaspChecks, auth: &Authorization) -> ActiveChecks {
+            pub async fn run_owasp_check(&self, check: OwaspChecks, auth: &Authorization) -> OwaspChecks {
                 match check {
                     $(
                         OwaspChecks::$check(_) => {
                             let result = Self::$response_func(self.$check_func(auth).await);
                             // Do something with the result if needed.
-                            ActiveChecks::$check(result)
+                            OwaspChecks::$check(result)
                         }
                     )*
                 }

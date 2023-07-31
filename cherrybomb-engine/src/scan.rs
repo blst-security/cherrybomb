@@ -38,6 +38,7 @@ pub struct Alert {
     pub description: String,
     pub location: String,
     pub certainty: Certainty,
+    pub category: Option<String>
 }
 impl Alert {
     pub fn new(level: Level, description: &'static str, location: String) -> Alert {
@@ -46,19 +47,38 @@ impl Alert {
             description: description.to_string(),
             location,
             certainty: Certainty::Passive,
+            category: None,
+            
         }
     }
     pub fn with_certainty(
         level: Level,
         description: String,
         location: String,
-        certainty: Certainty,
+        certainty: Certainty
+        //category: Option<String>
     ) -> Alert {
         Alert {
             level,
             description,
             location,
             certainty,
+            category:None
         }
+    }
+    pub fn with_category (  level: Level,
+        description: String,
+        location: String,
+        certainty: Certainty,
+        category: Option<String>
+    ) -> Alert {
+        Alert{
+        level,
+        description,
+        location,
+        certainty,
+        category: category.map(|cat| cat.to_string()), // Convert the Option<&'static str> to Option<String>
+        }
+
     }
 }
