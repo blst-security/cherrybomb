@@ -66,19 +66,19 @@ impl Alert {
             category:None
         }
     }
-    pub fn with_category (  level: Level,
-        description: String,
-        location: String,
-        certainty: Certainty,
-        category: Option<String>
-    ) -> Alert {
-        Alert{
-        level,
-        description,
-        location,
-        certainty,
-        category: category.map(|cat| cat.to_string()), // Convert the Option<&'static str> to Option<String>
-        }
+    // pub fn with_category (  level: Level,
+    //     description: String,
+    //     location: String,
+    //     certainty: Certainty,
+    //     category: Option<String>
+    // ) -> Alert {
+    //     Alert{
+    //     level,
+    //     description,
+    //     location,
+    //     certainty,
+    //     category: category.map(|cat| cat.to_string()), // Convert the Option<&'static str> to Option<String>
+    //     }
 
-    }
+    // }
 }

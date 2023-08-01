@@ -32,7 +32,7 @@ macro_rules! impl_owasp_checks {
                     )*
                 }
             }
-            pub fn inner(&self)->Vec<Alert>{
+            pub fn inner(&self)-> Vec<Alert>{
                 match &self{
                     $(
                         OwaspChecks::$check(i)=>i.0.to_vec(),

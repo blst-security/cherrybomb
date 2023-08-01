@@ -10,8 +10,7 @@ use std::option;
 use std::process::ExitCode;
 use std::collections::HashMap;
 
-#[derive(Default, Debug, Clone )]
-struct MyT (String, String);
+
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -267,15 +266,11 @@ fn print_full_alert_table_owasp(
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec!["Check", "Category", "Severity", "Description", "Location"]);
     for (key, val) in json_struct {
-        //checks name and vec of alerts
-          //checks name and vec of alerts
-        //   let part: Vec<&str> = key.split(',').collect();
-        //   let tup = MyT (part[0].trim().to_string(), part[1].trim().to_string());
+    
         let clean_str = key.trim_start_matches('(').trim_end_matches(')');
         let parts: Vec<&str> = clean_str.split(',').map(|part| part.trim()).collect();
     
-        // Create a tuple from the parts
-        let my_tuple = (parts[0], parts[1]);
+       let my_tuple = (parts[0], parts[1]);
         let alerts: Vec<TableAlert> = serde_json::from_value(val.clone())?;
         if !alerts.is_empty() {
             return_status = CheckStatus::Fail;

@@ -12,7 +12,7 @@ use config::Config;
 use scan::checks::{ActiveChecks, PassiveChecks, OwaspChecks};
 use scan::passive::passive_scanner;
 use scan::*;
-use serde_json::{json, Value};
+use serde_json::{json, Value, Map};
 use std::collections::{HashMap, HashSet};
 use std::vec;
 use strum::IntoEnumIterator;
@@ -111,6 +111,9 @@ async  fn run_owasp(config: &mut Config , oas: &OAS3_1, oas_json: &Value) -> any
     .iter()
     .map(|check| (format!("({},{})", check.name_owasp(), check.category()), check.inner()))
     .collect();
+
+ //   .map(|check| (format!("({},{})", check.name_owasp(), check.category()), check.inner()))
+ //   .collect();
     let report = json!({ "owasp": active_result });
     Ok(report)
 }
