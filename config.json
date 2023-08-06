@@ -1,0 +1,6 @@
+{
+"verbosity" : "Debug", 
+"profile" : "Full",
+"security":[],
+"ignore_tls_errors" : true
+}
