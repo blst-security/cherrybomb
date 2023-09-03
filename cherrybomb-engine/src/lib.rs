@@ -115,7 +115,7 @@ async fn run_active_profile(
 
     // Running active scan
     verbose_print(config, None, "Running active scan...");
-    let temp_auth = Authorization::None;
+    let temp_auth = config.get_auth();
     active_scan
         .run(active_scanner::ActiveScanType::Full, &temp_auth)
         .await;

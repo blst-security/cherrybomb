@@ -1,5 +1,8 @@
 use clap::{Args, ValueEnum};
 use serde::Deserialize;
+use crate::Authorization;
+use crate::scan::active::http_client::auth::Custom;
+use crate::scan::active::http_client::QuePay;
 
 #[derive(Default, ValueEnum, Deserialize, Clone, Debug)]
 pub enum Profile {
@@ -27,6 +30,16 @@ pub struct Config {
     pub no_color: bool,
 }
 
+impl Config{
+    pub fn get_auth(&self) -> Authorization{
+        if !self.security.is_empty(){
+            self.security[0].to_auth_legacy()
+        } else {
+            Authorization::None
+        }
+    }
+}
+
 #[derive(ValueEnum, Deserialize, Clone, Debug, Default, PartialOrd, PartialEq)]
 pub enum Verbosity {
     Quiet,
@@ -34,6 +47,14 @@ pub enum Verbosity {
     Normal,
     Verbose,
     Debug,
+}
+
+#[derive(ValueEnum, Deserialize, Clone, Debug)]
+pub enum AuthType {
+    Basic,
+    Bearer,
+    Header,
+    Cookie,
 }
 
 #[derive(Args, Deserialize, Debug, Clone)]
@@ -49,11 +70,34 @@ pub struct Auth {
     #[arg(long = "scope")]
     auth_scope: Option<String>,
 }
-
-#[derive(ValueEnum, Deserialize, Clone, Debug)]
-pub enum AuthType {
-    Basic,
-    Bearer,
-    Header,
-    Cookie,
+impl Auth{
+    pub fn to_auth_legacy(&self) -> Authorization{
+        match self.auth_type{
+            AuthType::Basic => {
+                Authorization::Custom(Custom{
+                    dm:QuePay::Headers,
+                    name:String::from("Authorization"),
+                    value:format!("Basic {}",self.auth_value),
+                })
+            },
+            AuthType::Bearer =>{
+                Authorization::Custom(Custom{
+                    dm:QuePay::Headers,
+                    name:String::from("Authorization"),
+                    value:format!("Bearer {}",self.auth_value),
+                })
+            }
+            AuthType::Header | AuthType::Cookie=> {
+                let vv = self.auth_value.split(':').collect::<Vec<&str>>();
+                if vv.len()!=2{
+                    panic!("Auth is not configured properly:\n{}",self.auth_value);
+                }
+                Authorization::Custom(Custom{
+                    dm:QuePay::Headers,
+                    name:vv[0].to_owned(),
+                    value:vv[1].to_owned(),
+                })
+            }
+        }
+    }
 }
