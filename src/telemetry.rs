@@ -9,9 +9,10 @@ pub async fn send(profile: Profile, verbosity: Verbosity) -> anyhow::Result<()> 
     let profile = match profile {
         Profile::Info => "ep_table",
         Profile::Normal => "passive and active oas scan",
-        Profile::Intrusive => "passive and active oas scan",
+        Profile::Active => "active oas scan",
         Profile::Passive => "passive oas scan",
         Profile::Full => "passive and active oas scan",
+        Profile::OWASP => "active oas scan",
     };
     let token = match get_token(verbosity) {
         Ok(token) => token,

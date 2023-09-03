@@ -27,7 +27,10 @@ impl Reference {
             }
             serde_json::from_value(val.clone()).unwrap()
         } else {
-            todo!("external references are not supported yet: {:?}", self.param_ref)
+            todo!(
+                "external references are not supported yet: {:?}",
+                self.param_ref
+            )
         }
     }
 }

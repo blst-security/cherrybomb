@@ -9,12 +9,13 @@ pub enum Profile {
     Info,
     #[default]
     Normal,
-    Intrusive,
+    Active,
     Passive,
     Full,
+    OWASP,
 }
 
-#[derive(Deserialize, Debug, Default)]
+#[derive(Deserialize, Debug, Default, Clone)]
 #[serde(default)]
 pub struct Config {
     pub file: std::path::PathBuf,
@@ -28,6 +29,20 @@ pub struct Config {
     pub security: Vec<Auth>,
     pub ignore_tls_errors: bool,
     pub no_color: bool,
+    pub active_checks: Vec<String>,
+    pub passive_checks: Vec<String>,
+}
+impl Config {
+    pub fn update_checks_passive(&mut self, mut vec_checks: Vec<String>) {
+        //get a list of passive checks and remove exclude
+        vec_checks.retain(|check| !self.passive_exclude.contains(check));
+        self.passive_checks = vec_checks;
+    }
+    pub fn update_checks_active(&mut self, mut vec_checks: Vec<String>) {
+        //get a list of active checks and remove exclude
+        vec_checks.retain(|check| !self.active_exclude.contains(check));
+        self.active_checks = vec_checks;
+    }
 }
 
 impl Config{
