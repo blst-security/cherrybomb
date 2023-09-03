@@ -1,0 +1,41 @@
+CHECK: "SERVER URL"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "ADDITIONAL PROPERTIES"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "DEFAULT RESPONSE"	ALERTS:6	TOP SEVERITY:Low
+LEVEL:Low	LOCATION:"swagger path:/passwordless/verify operation:POST"	DESCRIPTION:"No default response defined"
+LEVEL:Low	LOCATION:"swagger path:/passwordless/verify operation:OPTIONS"	DESCRIPTION:"No default response defined"
+LEVEL:Low	LOCATION:"swagger path:/oauth/token operation:POST"	DESCRIPTION:"No default response defined"
+LEVEL:Low	LOCATION:"swagger path:/oauth/token operation:OPTIONS"	DESCRIPTION:"No default response defined"
+LEVEL:Low	LOCATION:"swagger path:/passwordless/start operation:POST"	DESCRIPTION:"No default response defined"
+LEVEL:Low	LOCATION:"swagger path:/passwordless/start operation:OPTIONS"	DESCRIPTION:"No default response defined"
+CHECK: "RESPONSE BODY SCHEMA"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "DEFAULT TYPE"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "ENUM TYPE"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "UNUSED SCHEMA"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "401"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "403"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "RESPONSE SUCCESSES (2xx)"	ALERTS:3	TOP SEVERITY:Low
+LEVEL:Low	LOCATION:"swagger path:/oauth/token operation:POST"	DESCRIPTION:"Responses have no success status(2XX)"
+LEVEL:Low	LOCATION:"swagger path:/passwordless/verify operation:POST"	DESCRIPTION:"Responses have no success status(2XX)"
+LEVEL:Low	LOCATION:"swagger path:/passwordless/start operation:POST"	DESCRIPTION:"Responses have no success status(2XX)"
+CHECK: "AUTH"	ALERTS:1	TOP SEVERITY:Medium
+LEVEL:Medium	LOCATION:"swagger root components"	DESCRIPTION:"The API doesn't have authentication defined"
+CHECK: "ENDPOINT AUTH"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "INTEGER ATTRIBUTES"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "STRING ATTRIBUTES"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "ARRAY ATTRIBUTES"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "OBJECT ATTRIBUTES"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "VALID RESPONSES"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "METHOD PERMISSIONS"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "CONTAINS OPERATION"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "VALID ENCODINGS"	ALERTS:0	TOP SEVERITY:Info
+CHECK: "DESCRIPTION"	ALERTS:6	TOP SEVERITY:Low
+LEVEL:Low	LOCATION:"swagger path:/passwordless/verify operation:POST"	DESCRIPTION:"Operation has no description"
+LEVEL:Low	LOCATION:"swagger path:/passwordless/verify operation:OPTIONS"	DESCRIPTION:"Operation has no description"
+LEVEL:Low	LOCATION:"swagger path:/oauth/token operation:POST"	DESCRIPTION:"Operation has no description"
+LEVEL:Low	LOCATION:"swagger path:/oauth/token operation:OPTIONS"	DESCRIPTION:"Operation has no description"
+LEVEL:Low	LOCATION:"swagger path:/passwordless/start operation:POST"	DESCRIPTION:"Operation has no description"
+LEVEL:Low	LOCATION:"swagger path:/passwordless/start operation:OPTIONS"	DESCRIPTION:"Operation has no description"
+CHECK: "CONTAINS RESPONSE"	ALERTS:3	TOP SEVERITY:Low
+LEVEL:Low	LOCATION:"swagger path:/passwordless/verify operation:POST"	DESCRIPTION:"Operation has no responses"
+LEVEL:Low	LOCATION:"swagger path:/oauth/token operation:POST"	DESCRIPTION:"Operation has no responses"
+LEVEL:Low	LOCATION:"swagger path:/passwordless/start operation:POST"	DESCRIPTION:"Operation has no responses"

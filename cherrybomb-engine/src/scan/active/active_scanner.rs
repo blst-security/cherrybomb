@@ -87,6 +87,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
         self.path_params = Self::create_hash(self, auth).await;
         match tp {
             ActiveScanType::Full => {
+                println!("{:?}",ActiveChecks::iter().collect::<Vec<ActiveChecks>>());
                 for check in ActiveChecks::iter() {
                     self.checks.push(self.run_check(check, auth).await);
                 }
@@ -108,7 +109,6 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
             }
         };
     }
-
 
     fn payloads_generator(oas: &T, oas_value: &Value) -> Vec<OASMap> {
         let mut payloads = vec![];

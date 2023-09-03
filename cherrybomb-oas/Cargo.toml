@@ -1,6 +1,6 @@
 [package]
 name = "cherrybomb-oas"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["BLST Security"]
 description = """
 Cherrybomb OpenAPI Specification (OAS) struct and functions

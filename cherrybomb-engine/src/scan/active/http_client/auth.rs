@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct Custom {
-    dm: QuePay,
-    name: String,
-    value: String,
+    pub dm: QuePay,
+    pub name: String,
+    pub value: String,
 }
 impl Custom {
     pub fn from_3_vals(vals: Vec<&str>) -> Self {
