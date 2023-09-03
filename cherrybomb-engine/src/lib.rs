@@ -16,6 +16,7 @@ use std::collections::{HashMap, HashSet};
 use std::vec;
 use strum::IntoEnumIterator;
 use serde_yaml;
+use anyhow::anyhow;
 
 fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
     let required = required.unwrap_or(Verbosity::Normal);
@@ -28,7 +29,7 @@ pub async fn run(config: &mut Config) -> anyhow::Result<Value> {
     verbose_print(config, None, "Starting Cherrybomb...");
     verbose_print(config, None, "Opening OAS file...");
 
-    if let Some(ext)= config.file.extension(){
+    let (oas,oas_json) = if let Some(ext)= config.file.extension(){
         verbose_print(config, None, "Reading OAS file...");
         let oas_file = match std::fs::read_to_string(&config.file) {
             Ok(file) => file,
@@ -55,17 +56,12 @@ pub async fn run(config: &mut Config) -> anyhow::Result<Value> {
             Ok(oas) => oas,
             Err(e) => return Err(anyhow::Error::msg(format!("Error creating OAS struct: {}", e))),
         };
-
-        match config.profile {
-            config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
-            config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json).await,
-            config::Profile::Intrusive => todo!("Not implemented!"),
-            config::Profile::Passive => run_passive_profile(&config, &oas, &oas_json),
-            config::Profile::Full => run_full_profile(config, &oas, &oas_json).await,
-        }
+        (oas,oas_json)
+    }else {
+        return Err(anyhow!("Misconfigured file extention"));
     };
     match config.profile {
-        config::Profile::Info => run_profile_info(config, &oas, &oas_json),
+        config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
         config::Profile::Normal => run_normal_profile(config, &oas, &oas_json).await,
         config::Profile::Active => {
             if !&config.passive_include.is_empty() {
@@ -89,7 +85,7 @@ pub async fn run(config: &mut Config) -> anyhow::Result<Value> {
     }
 }
 
-fn run_profile_info(config: &mut Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
+fn run_profile_info(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
     // Creating parameter list
     verbose_print(config, None, "Creating param list...");
     let param_scan = ParamTable::new::<OAS3_1>(oas_json);
