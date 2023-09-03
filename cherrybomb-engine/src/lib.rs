@@ -1,7 +1,6 @@
 pub mod config;
 mod info;
 mod scan;
-
 use crate::config::Verbosity;
 use crate::info::eps::EpTable;
 use crate::info::params::ParamTable;
@@ -16,6 +15,7 @@ use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 use std::vec;
 use strum::IntoEnumIterator;
+use serde_yaml;
 
 fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
     let required = required.unwrap_or(Verbosity::Normal);
@@ -26,31 +26,42 @@ fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
 
 pub async fn run(config: &mut Config) -> anyhow::Result<Value> {
     verbose_print(config, None, "Starting Cherrybomb...");
-
-    // Reading OAS file to string
     verbose_print(config, None, "Opening OAS file...");
-    let oas_file = match std::fs::read_to_string(&config.file) {
-        Ok(file) => file,
-        Err(e) => {
-            return Err(anyhow::anyhow!("Error reading OAS file: {}", e));
-        }
-    };
 
-    // Parsing OAS file to JSON
-    verbose_print(config, None, "Parsing OAS file...");
-    let oas_json: Value = match serde_json::from_str(&oas_file) {
-        Ok(json) => json,
-        Err(e) => {
-            return Err(anyhow::anyhow!("Error parsing OAS file: {}", e));
-        }
-    };
+    if let Some(ext)= config.file.extension(){
+        verbose_print(config, None, "Reading OAS file...");
+        let oas_file = match std::fs::read_to_string(&config.file) {
+            Ok(file) => file,
+            Err(e) => return Err(anyhow::Error::msg(format!("Error opening OAS file: {}", e))),
+        };
+        let oas_json: Value = match ext.to_str() {
+            Some("json") => {
+                verbose_print(config, None, "Parsing OAS file...");
+                match serde_json::from_str(&oas_file) {
+                    Ok(json) => json,
+                    Err(e) => return Err(anyhow::Error::msg(format!("Error parsing OAS file: {}", e))),
+                }
+            }
+            Some("yaml") | Some("yml") => {
+                verbose_print(config, None, "Parsing OAS file...");
+                match serde_yaml::from_str(&oas_file) {
+                    Ok(yaml) => yaml,
+                    Err(e) => return Err(anyhow::Error::msg(format!("Error parsing OAS file: {}", e))),
+                }
+            }
+            _ => return Err(anyhow::Error::msg("Unsupported config file extension")),
+        };
+        let oas: OAS3_1 = match serde_json::from_value(oas_json.clone().into()) {
+            Ok(oas) => oas,
+            Err(e) => return Err(anyhow::Error::msg(format!("Error creating OAS struct: {}", e))),
+        };
 
-    // Parsing JSON to OAS struct
-    verbose_print(config, Some(Verbosity::Debug), "Creating OAS struct...");
-    let oas: OAS3_1 = match serde_json::from_value(oas_json.clone()) {
-        Ok(oas) => oas,
-        Err(e) => {
-            return Err(anyhow::anyhow!("Error creating OAS struct: {}", e));
+        match config.profile {
+            config::Profile::Info => run_profile_info(&config, &oas, &oas_json),
+            config::Profile::Normal => run_normal_profile(&config, &oas, &oas_json).await,
+            config::Profile::Intrusive => todo!("Not implemented!"),
+            config::Profile::Passive => run_passive_profile(&config, &oas, &oas_json),
+            config::Profile::Full => run_full_profile(config, &oas, &oas_json).await,
         }
     };
     match config.profile {
@@ -126,7 +137,7 @@ async fn run_active_profile(
 
     // Running active scan
     verbose_print(config, None, "Running active scan...");
-    let temp_auth = Authorization::None;
+    let temp_auth = config.get_auth();
     let active_result: HashMap<&str, Vec<Alert>> = match config.active_checks.is_empty() {
         true => {
             // if empty, active profile and exclude_active checks is set
