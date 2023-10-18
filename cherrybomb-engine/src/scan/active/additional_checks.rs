@@ -4,6 +4,7 @@ use crate::active::utils::create_payload;
 use crate::scan::Level;
 use cherrybomb_oas::legacy::legacy_oas::OAS;
 use cherrybomb_oas::legacy::utils::Method;
+use cherrybomb_oas::legacy::schema::SchemaTypes;
 use serde::Serialize;
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
@@ -856,10 +857,11 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         {
                             let mut _value_to_send = "2".to_string();
                             let mut var_int: i32 = 2;
-                            if types == *"integer".to_string() {
+                            let type_str = "integer".to_string();
+                            if matches!(types, SchemaTypes::Str(type_str)) {
                                 if let Some(val) = i.inner(&self.oas_value).examples {
                                     if let Some((_ex, val)) = val.into_iter().next() {
-                                        _value_to_send = val.value.to_string();
+                                        _value_to_send = val.inner(&self.oas_value).value.to_string();
                                         var_int = _value_to_send.parse::<i32>().unwrap();
                                     }
                                 }

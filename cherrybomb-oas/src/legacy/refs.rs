@@ -197,3 +197,23 @@ impl CallbackRef {
         }
     }
 }
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(untagged)]
+pub enum ExampleRef {
+    Ref(Reference),
+    Example(Box<Example>),
+}
+impl Default for ExampleRef {
+    fn default() -> Self {
+        Self::Ref(Reference::default())
+    }
+}
+#[allow(unused)]
+impl ExampleRef {
+    pub fn inner(&self, swagger: &Value) -> Example {
+        match self {
+            Self::Example(p) => *p.clone(),
+            Self::Ref(r) => r.get::<Example>(swagger),
+        }
+    }
+}

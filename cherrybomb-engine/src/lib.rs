@@ -17,6 +17,7 @@ use std::vec;
 use strum::IntoEnumIterator;
 use serde_yaml;
 use anyhow::anyhow;
+use serde_path_to_error::deserialize;
 
 fn verbose_print(config: &Config, required: Option<Verbosity>, message: &str) {
     let required = required.unwrap_or(Verbosity::Normal);
@@ -51,6 +52,11 @@ pub async fn run(config: &mut Config) -> anyhow::Result<Value> {
                 }
             }
             _ => return Err(anyhow::Error::msg("Unsupported config file extension")),
+        };
+        let r :Result<OAS3_1,_> = deserialize(&oas_json);
+        let oas = match r {
+            Ok(oas) => oas,
+            Err(e) => return Err(anyhow::Error::msg(format!("Error creating OAS struct: {}", e))),
         };
         let oas: OAS3_1 = match serde_json::from_value(oas_json.clone().into()) {
             Ok(oas) => oas,

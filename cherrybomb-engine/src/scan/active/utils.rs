@@ -146,14 +146,14 @@ pub fn create_payload_for_get(
                     if let Some(value) = parameter.examples {
                         // if there is an example
                         if let Some((_ex, val)) = value.into_iter().next() {
-                            option_example_value = Some(val.value.to_string());
+                            option_example_value = Some(val.inner(swagger).value.to_string());
                         }
                     }
                     if let Some(schema_ref) = parameter.schema {
                         // dbg!(&schema_ref);
                         if let Some(schema_type) = schema_ref.inner(swagger).schema_type {
                             // let val_to_path:String;
-                            match schema_type.as_str() {
+                            match schema_type.as_str().as_str() {
                                 "string" => {
                                     let mut example_value = "randomString".to_string();
                                     if let Some(val) = option_example_value {
@@ -224,11 +224,11 @@ pub fn create_payload_for_get(
                             if let Some(values) = parameter.examples {
                                 if let Some((_ex, val)) = values.into_iter().next() {
                                     //take example as value
-                                    final_value = val.value.to_string();
+                                    final_value = val.inner(swagger).value.to_string();
                                     params_vec.push(RequestParameter {
                                         name: param_name,
                                         dm: QuePay::Query,
-                                        value: val.value.to_string(),
+                                        value:final_value.clone(),
                                     });
                                 } else {
                                     //if no examples insert randonstring

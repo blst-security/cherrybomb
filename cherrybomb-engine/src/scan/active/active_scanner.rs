@@ -212,7 +212,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
 
     pub fn gen_default_value(schema: Box<Schema>) -> Value {
         let ret: Value = if let Some(data_type) = schema.schema_type {
-            match data_type.as_str() {
+            match data_type.as_str().as_str() {
                 "string" => {
                     if let Some(num) = schema.min_length {
                         json!(iter::repeat(['B', 'L', 'S', 'T'])
