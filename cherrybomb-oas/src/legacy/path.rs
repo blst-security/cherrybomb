@@ -67,7 +67,7 @@ impl Operation {
                         vec![]
                     };
                     let p_type = if let Some(t) = inner.schema_type.clone() {
-                        t
+                        t.as_str().to_lowercase()
                     } else {
                         String::new()
                     };

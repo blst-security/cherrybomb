@@ -48,7 +48,7 @@ pub struct Server {
 pub type Security = HashMap<String, Vec<String>>;
 pub type Callback = HashMap<String, HashMap<String, PathItem>>;
 pub type Content = HashMap<String, MediaType>;
-pub type Examples = HashMap<String, Example>;
+pub type Examples = HashMap<String, ExampleRef>;
 pub type EncodingMap = HashMap<String, Encoding>;
 //Practicaly Any
 //type Schema = Value;

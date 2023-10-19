@@ -230,9 +230,9 @@ pub fn param_enum_rec(param: &Param, loc: String) -> Vec<Alert> {
 }
 pub fn additional_properties_test(schema: &Schema, location: String) -> Vec<Alert> {
     let tp = if let Some(t) = &schema.schema_type {
-        t
+        t.as_str()
     } else {
-        ""
+        String::new()
     };
     let mut alerts = vec![];
     match tp.to_lowercase().as_str() {
@@ -343,9 +343,9 @@ pub fn get_all_params_by_type(
 ) -> Vec<(Schema, String)> {
     let mut schemas = vec![];
     let s_tp = if let Some(t) = &schema.schema_type {
-        t
+        t.as_str()
     } else {
-        ""
+        String::new()
     };
     if s_tp == tp {
         schemas.push((schema.clone(), location.clone()));

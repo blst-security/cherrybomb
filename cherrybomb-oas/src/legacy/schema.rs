@@ -2,13 +2,15 @@ use super::refs::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
+use std::fmt;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum SchemaStrInt {
     Int(i64),
     Str(String),
     Bool(bool),
+    Float(f64),
 }
 impl Default for SchemaStrInt {
     fn default() -> Self {
@@ -26,6 +28,27 @@ impl Default for AddProps {
         Self::Bool(true)
     }
 }
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum SchemaTypes {
+    Str(String),
+    Arr(Vec<String>),
+    Obj(HashMap<String,String>),
+}
+impl SchemaTypes{
+    pub fn as_str(&self)->String{
+        match self{
+            Self::Str(s) => s.to_string(),
+            Self::Arr(v) => v[0].to_string(),
+            Self::Obj(h) => h.get("type").unwrap().to_string(),
+        }
+    }
+}
+impl fmt::Display for SchemaTypes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct Schema {
     pub title: Option<String>,
@@ -41,9 +64,9 @@ pub struct Schema {
     pub min_length: Option<i64>,
     //String - STAY AWAY!(regex)
     pub pattern: Option<String>,
-    #[serde(rename = "maxItem")]
+    #[serde(rename = "maxItems")]
     pub max_items: Option<i64>,
-    #[serde(rename = "minItem")]
+    #[serde(rename = "minItems")]
     pub min_items: Option<i64>,
     #[serde(rename = "uniqueItem")]
     pub unique_items: Option<String>,
@@ -57,7 +80,7 @@ pub struct Schema {
     #[serde(rename = "enum")]
     pub schema_enum: Option<Vec<Option<SchemaStrInt>>>,
     #[serde(rename = "type")]
-    pub schema_type: Option<String>,
+    pub schema_type: Option<SchemaTypes>,
     #[serde(rename = "allOf")]
     pub all_of: Option<Vec<SchemaRef>>,
     #[serde(rename = "oneOf")]

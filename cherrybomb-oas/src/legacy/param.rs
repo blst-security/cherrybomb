@@ -95,7 +95,7 @@ impl ParamInt {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ParamString {
     min_length: i64,
     max_length: i64,
@@ -137,7 +137,7 @@ impl Default for ParamValue {
 impl ParamValue {
     pub fn from(schema: &Schema) -> Self {
         let v = if let Some(t) = schema.schema_type.clone() {
-            t
+            t.as_str().to_lowercase()
         } else {
             String::new()
         };
@@ -327,7 +327,7 @@ impl Param {
     }
     pub fn schema_rec(swagger: &Value, schema: Schema, required: bool) -> Self {
         let p_type = if let Some(t) = schema.schema_type.clone() {
-            t
+            t.as_str().to_lowercase()
         } else {
             String::new()
         };
@@ -382,7 +382,7 @@ impl Param {
         }
         for schema in schemas {
             let p_type = if let Some(t) = schema.schema_type.clone() {
-                t
+                t.as_str().to_lowercase()
             } else {
                 String::new()
             };
