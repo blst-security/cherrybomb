@@ -145,7 +145,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cherrybomb"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "anyhow",
  "cherrybomb-engine",
@@ -165,7 +165,7 @@ dependencies = [
 
 [[package]]
 name = "cherrybomb-engine"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "base64 0.13.1",
@@ -183,9 +183,7 @@ dependencies = [
 
 [[package]]
 name = "cherrybomb-oas"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69dec5274a0a239037855a6e6753a093e9690522c6883f2a8bc9288a70b86a68"
+version = "0.1.2"
 dependencies = [
  "colored",
  "serde",

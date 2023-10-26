@@ -1,6 +1,6 @@
 [package]
 name = "cherrybomb"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["BLST Security"]
 description = """
 Cherrybomb is a CLI tool that helps you avoid undefined user behavior by validating your API specifications.
@@ -24,8 +24,7 @@ clap = { version = "4.0.29", features = ["derive"] }
 const_format = "0.2.30"
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "^1.0"
-#cherrybomb-engine = "^0.1"
-cherrybomb-engine = {path = "./cherrybomb-engine"}
+cherrybomb-engine = { version = "^0.1", path = "./cherrybomb-engine"}
 serde_yaml = "^0.9.0"
 uuid = {version = "1.2.2", features = ["v4"] }
 dirs = "4.0.0"
