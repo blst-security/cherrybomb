@@ -31,7 +31,7 @@ pub struct Operation {
     pub summary: Option<String>,
     pub description: Option<String>,
     #[serde(rename = "externalDocs")]
-    pub external_docs: Option<ExternalDocs>,
+    pub external_docs: Option<crate::new_oas::external_docs::ExternalDocs>,
     #[serde(rename = "operationId")]
     pub operation_id: Option<String>,
     pub parameters: Option<Vec<RelRef>>,
@@ -40,14 +40,8 @@ pub struct Operation {
     pub responses: Option<Responses>,
     pub callbacks: Option<HashMap<String, RelRef>>,
     pub deprecated: Option<bool>,
-    pub security: Option<Vec<Security>>,
+    pub security: Option<Vec<crate::new_oas::security::Security>>,
     pub servers: Option<Vec<crate::new_oas::server::Server>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
-pub struct ExternalDocs {
-    pub description: Option<String>,
-    pub url: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
@@ -84,4 +78,18 @@ pub struct Response {
     pub headers: Option<HashMap<String, RelRef>>,
     pub content: Option<HashMap<String, MediaType>>,
     pub links: Option<HashMap<String, RelRef>>,
+    pub extensions: Option<HashMap<String, Value>>,
 }
+
+
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+pub struct MediaType {
+pub schema: Option<Schema>,
+    pub example: Option<Value>,
+    pub examples: Option<HashMap<String, RelRef>>,
+    pub encoding: Option<HashMap<String, Encoding>>,
+}
+
+
+
