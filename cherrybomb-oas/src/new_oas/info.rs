@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+// https://spec.openapis.org/oas/v3.1.0#info-object
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct Info {
     pub title: String,
@@ -9,6 +10,7 @@ pub struct Info {
     pub contact: Option<Contact>,
     pub license: Option<License>,
     pub version: String,
+    pub extensions: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]

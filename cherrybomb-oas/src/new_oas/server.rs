@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+// https://spec.openapis.org/oas/v3.1.0#server-object
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct Server {
     #[serde(rename(deserialize = "url"))]
