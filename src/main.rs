@@ -72,7 +72,7 @@ async fn main() -> anyhow::Result<ExitCode> {
     };
     merge_options(&mut config, &opt);
     if !opt.no_telemetry {
-        telemetry::send(config.profile.clone(), config.verbosity.clone()).await?;
+        telemetry::send(config.profile.clone(), config.verbosity.clone()).await.unwrap_or_default();
     }
     let json_val = cherrybomb_engine::run(&mut config).await?;
     match print_tables(json_val, &opt) {
