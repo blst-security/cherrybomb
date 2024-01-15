@@ -50,7 +50,7 @@ pub type Callback = HashMap<String, HashMap<String, PathItem>>;
 pub type Content = HashMap<String, MediaType>;
 pub type Examples = HashMap<String, Example>;
 pub type EncodingMap = HashMap<String, Encoding>;
-//Practicaly Any
+//Practically Any
 //type Schema = Value;
 pub type HeaderMap = HashMap<String, HeaderRef>;
 pub type Responses = HashMap<String, ResponseRef>;

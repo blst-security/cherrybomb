@@ -37,7 +37,7 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
     }
 
     pub fn check_int_type(&self) -> Vec<Alert> {
-        // this function check  the get paramter schema all component and response and request body that does not use component
+        // this function check  the get parameter schema all component and response and request body that does not use component
         // The purpose of the check is to ensure that the type number correspond to integer format and type number has a float format
         let mut hashset_compo_name: HashSet<String> = HashSet::new();
 
@@ -52,9 +52,9 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
             //dive into schema
             let _name = format!("#/components/schemas/{key}"); // building the whole components value
             hashset_compo_name.insert(key.to_string()); // insert the key of the schema into hashset
-            if let Some(propert) = value.inner(&self.swagger_value).properties {
+            if let Some(property) = value.inner(&self.swagger_value).properties {
                 //if there is properties
-                for (key, schemaref) in propert {
+                for (key, schemaref) in property {
                     if let Some(format_value) = schemaref.inner(&self.swagger_value).format {
                         if format_value.eq("int32") || format_value.eq("int64") {
                             // check if the format is int32 or int64
@@ -120,10 +120,10 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                                     SchemaRef::Ref(_) => (),
 
                                     SchemaRef::Schema(_) => {
-                                        if let Some(propertie) =
+                                        if let Some(properties) =
                                             schema.inner(&self.swagger_value).properties
                                         {
-                                            for (_key, schema_ref) in propertie {
+                                            for (_key, schema_ref) in properties {
                                                 self.check_schema(
                                                     schema_ref,
                                                     &mut alerts,
@@ -145,10 +145,10 @@ impl<T: OAS + Serialize> PassiveSwaggerScan<T> {
                             match &schema {
                                 SchemaRef::Ref(_) => (),
                                 SchemaRef::Schema(_) => {
-                                    if let Some(propertie) =
+                                    if let Some(properties) =
                                         schema.inner(&self.swagger_value).properties
                                     {
-                                        for (_key, schema_ref) in propertie {
+                                        for (_key, schema_ref) in properties {
                                             self.check_schema(
                                                 schema_ref,
                                                 &mut alerts,
