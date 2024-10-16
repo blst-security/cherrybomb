@@ -50,7 +50,7 @@ pub struct OASMap {
 pub struct ResponseData {
     pub(crate) location: String,
     pub(crate) alert_text: String,
-    pub(crate) serverity: Level,
+    pub(crate) severity: Level,
 }
 
 #[derive(Debug, Clone, Serialize, Default, PartialEq)]

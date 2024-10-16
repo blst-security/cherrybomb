@@ -58,7 +58,7 @@ pub async fn run(config: &mut Config) -> anyhow::Result<Value> {
         };
         (oas,oas_json)
     }else {
-        return Err(anyhow!("Misconfigured file extention"));
+        return Err(anyhow!("Misconfigured file extension"));
     };
     match config.profile {
         config::Profile::Info => run_profile_info(&config, &oas, &oas_json),

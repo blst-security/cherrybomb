@@ -66,7 +66,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                             "The  parameter {} seems to be vulenrable to sqli on the endpoint {:?}",
                                             i.inner(&self.oas_value).name, path
                                         ),
-                                        serverity: Level::High,
+                                        severity: Level::High,
                                     },
                                     response,
                                 ));
@@ -134,10 +134,10 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     );
                                 }
                                 if !vec_param.is_empty() {
-                                    //chek if there is a  relevent parameter
+                                    //check if there is a  relevant parameter
                                     for param in &vec_param {
-                                        ///TODO check how it is possible to insert the different params
-                                        // if ther is more than one vuln parameter
+                                        // TODO check how it is possible to insert the different params
+                                        // if there is more than one vuln parameter
                                         for payload in &vec_payload {
                                             //check all the SQLI  payload
                                             let req = AttackRequest::builder()
@@ -172,7 +172,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                         "The endpoint {} seems to be vulnerable to SQLI with paramteter {:?}",
                                       &oas_map.path.path.clone(),payload
                                     ),
-                                    serverity: Level::Medium,
+                                    severity: Level::Medium,
                                 },
                                 response,
                             ));
@@ -232,7 +232,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         ResponseData {
                             location: path.to_string(),
                             alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {method} ", &path ),
-                            serverity: Level::High,
+                            severity: Level::High,
                         },
                         response,
                     ));
@@ -305,7 +305,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                             oas_map.path.path.clone(),
                                             i
                                         ),
-                                        serverity: Level::Low,
+                                        severity: Level::Low,
                                     },
                                     response,
                                 ));
@@ -370,7 +370,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                         alert_text: format!(
                                             "The endpoint {path} seems to be vulnerable to SSRF"
                                         ),
-                                        serverity: Level::Medium,
+                                        severity: Level::Medium,
                                     },
                                     response,
                                 ));
@@ -445,7 +445,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                             "The endpoint {} seems to be vulnerable to SSRF",
                                             &oas_map.path.path.clone()
                                         ),
-                                        serverity: Level::Medium,
+                                        severity: Level::Medium,
                                     },
                                     response,
                                 ));
@@ -499,7 +499,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                                 "The endpoint {} seems to be vulnerable to SSRF",
                                                 &oas_map.path.path.clone()
                                             ),
-                                            serverity: Level::Medium,
+                                            severity: Level::Medium,
                                         },
                                         response,
                                     ));
@@ -562,7 +562,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     alert_text: format!(
                                         "The {} parameter in the {} endpoint seems to be vulnerable to parameter pollution"
                                         , vec_param.last().unwrap().name, path),
-                                    serverity: Level::Medium,
+                                    severity: Level::Medium,
                                 },
                                 response,
                             ));
@@ -611,7 +611,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     location: path.clone(),
                                     alert_text: format!(
                                         "The parameter {param_to_redirect} seems to be vulnerable to open-redirect, location: {path}" ),
-                                    serverity: Level::Medium,
+                                    severity: Level::Medium,
                                 },
                                 response,
                             ));
@@ -683,7 +683,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                     alert_text: format!(
                                         "The {max_len} length limit for {json_path:?} is not enforced by the server"
                                     ),
-                                    serverity: Level::Low,
+                                    severity: Level::Low,
                                 },
                                 response,
                             ));
@@ -744,7 +744,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                         "The {} for {json_path:?} is not enforced by the server",
                                         val.0,
                                     ),
-                                    serverity: Level::Low,
+                                    severity: Level::Low,
                                 },
                                 response,
                             ));
@@ -815,7 +815,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 ResponseData{
                                     location: path.clone(),
                                     alert_text: format!("The parameter {:?} seems to be vulnerable to BOLA, location: {path}.", i.inner(&self.oas_value).name),
-                                    serverity: Level::High,
+                                    severity: Level::High,
                                 },
                                 res.clone(),
                             ));
@@ -888,7 +888,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                                 alert_text: format!(
                                                     "The endpoint {path} seems to broken in context of authorization with parameter {var_int:?}."
                                                 ),
-                                                serverity: Level::Medium,
+                                                severity: Level::Medium,
                                             },
                                             res.clone(),
                                         ));
@@ -925,7 +925,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                         "The server does not seem to be using SSL, status code: {}",
                         response.status
                     ),
-                    serverity: Level::Medium,
+                    severity: Level::Medium,
                 },
                 response.clone(),
             ));
@@ -968,7 +968,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                                 ResponseData {
                                     location: oas_map.path.path.to_string(),
                                     alert_text: format!("The endpoint seems to be not secure {:?}, with the method : {m} ", &oas_map.path.path),
-                                    serverity: Level::High,
+                                    severity: Level::High,
                                 },
                                 response,
                             ));
@@ -1010,7 +1010,7 @@ impl<T: OAS + Serialize> ActiveScan<T> {
                             ResponseData{
                                 location: path.to_string(),
                                 alert_text: format!("The endpoint seems to be not secure {path:?}, with the method : {m}"),
-                                serverity: Level::High,
+                                severity: Level::High,
                             },
                             response,
                         ));

@@ -10,14 +10,14 @@ pub trait PassiveGeneralScan {
     fn check_successes(&self) -> Vec<Alert>;
     fn check_default_response(&self) -> Vec<Alert>;
     fn check_response_body_schema(&self) -> Vec<Alert>;
-    fn example_inconsistant_schema(&self) -> Vec<Alert>;
+    fn example_inconsistent_schema(&self) -> Vec<Alert>;
     fn check_default_type(&self) -> Vec<Alert>;
     fn check_enum_type(&self) -> Vec<Alert>;
     fn check_required_undefined(&self) -> Vec<Alert>;
     fn check_unused_schema(&self) -> Vec<Alert>;
 }
 
-///Rule fucntions implementation
+///Rule functions implementation
 impl<T: OAS + Serialize> PassiveGeneralScan for PassiveSwaggerScan<T> {
     ///Can raise no https alert and invalid url in server alert
     fn check_server_url(&self) -> Vec<Alert> {
@@ -114,7 +114,7 @@ impl<T: OAS + Serialize> PassiveGeneralScan for PassiveSwaggerScan<T> {
         }
         alerts
     }
-    fn example_inconsistant_schema(&self) -> Vec<Alert> {
+    fn example_inconsistent_schema(&self) -> Vec<Alert> {
         vec![]
     }
     fn check_default_type(&self) -> Vec<Alert> {
