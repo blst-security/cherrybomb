@@ -28,7 +28,7 @@ cherrybomb-engine = { version = "^0.1", path = "./cherrybomb-engine"}
 serde_yaml = "^0.9.0"
 uuid = {version = "1.2.2", features = ["v4"] }
 dirs = "4.0.0"
-reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls"] }
+reqwest = { version = "^0.12", default-features = false, features = ["json","rustls-tls"] }
 comfy-table = "6.1.4"
 serde_derive = "1.0.152"
   
