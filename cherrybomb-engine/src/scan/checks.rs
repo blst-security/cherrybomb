@@ -18,6 +18,7 @@ impl Default for PassiveChecks {
         Self::CheckServerUrl(vec![])
     }
 }
+#[expect(dead_code)]
 pub trait Check {
     // fn alerts_text(&self) -> Cell;
     fn top_severity(&self) -> Level;

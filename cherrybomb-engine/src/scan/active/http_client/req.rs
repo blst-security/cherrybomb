@@ -20,6 +20,7 @@ pub struct AttackRequestBuilder {
 }
 
 impl AttackRequestBuilder {
+    #[expect(dead_code)]
     pub fn uri2(&mut self, server: Server, path: &str, secure: bool) -> &mut Self {
         self.path = server.base_url + path;
         if let Some(vars) = server.variables {
@@ -64,6 +65,7 @@ impl AttackRequestBuilder {
         self
     }
 
+    #[expect(dead_code)]
     pub fn uri_http(&mut self, server: &Server) -> &mut Self {
         //build base url with http protocol
         let mut new_url = server.base_url.to_string();

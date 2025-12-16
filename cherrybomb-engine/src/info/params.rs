@@ -146,6 +146,7 @@ pub struct ParamTable {
     eps: Vec<String>,
 }
 impl ParamTable {
+    #[expect(dead_code)]
     pub fn named_param(&self, param: &str) -> Self {
         let params = self
             .params

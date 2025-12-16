@@ -12,7 +12,7 @@ use crate::options::Options;
 use crate::table::print_tables;
 
 fn open_config_file(config_location: &std::path::PathBuf) -> anyhow::Result<Config> {
-    return match config_location.extension() {
+    match config_location.extension() {
         Some(ext) => {
             let file = match File::open(config_location) {
                 Ok(file) => file,
@@ -37,7 +37,7 @@ fn open_config_file(config_location: &std::path::PathBuf) -> anyhow::Result<Conf
             }
         }
         _ => Err(anyhow::anyhow!("Unsupported config file extension")),
-    };
+    }
 }
 
 fn merge_options(conf: &mut Config, opt: &Options) {
