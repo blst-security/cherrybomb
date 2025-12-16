@@ -16,6 +16,7 @@ macro_rules! impl_passive_checks{
                     _=>None,
                 }
             }
+            #[expect(dead_code)]
             pub fn description(&self)->&'static str{
                 match &self{
                     $(
@@ -67,6 +68,7 @@ macro_rules! impl_active_checks{
             )*
         }
         impl ActiveChecks{
+            #[expect(dead_code)]
             pub fn description(&self)->&'static str{
                 match &self{
                     $(
@@ -74,6 +76,7 @@ macro_rules! impl_active_checks{
                     )*
                 }
             }
+            #[expect(unreachable_patterns)]
             pub fn from_string(str1:&str)->Option<Self>{
                 match str1{
                     $(

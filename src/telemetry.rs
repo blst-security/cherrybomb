@@ -46,7 +46,7 @@ fn get_token(verbosity: Verbosity) -> anyhow::Result<Uuid> {
     let mut token_path = dirs::home_dir().ok_or(anyhow::anyhow!("Cant locate home directory"))?;
     token_path.push(".cherrybomb");
     token_path.push("token");
-    return if token_path.exists() {
+    if token_path.exists() {
         let mut token_file = std::fs::File::open(token_path)?;
         let mut token = String::new();
         token_file.read_to_string(&mut token)?;
@@ -61,5 +61,5 @@ fn get_token(verbosity: Verbosity) -> anyhow::Result<Uuid> {
         let mut token_file = std::fs::File::create(token_path)?;
         token_file.write_all(token.to_string().as_bytes())?;
         Ok(token)
-    };
+    }
 }

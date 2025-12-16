@@ -12,6 +12,7 @@ use scan::checks::{ActiveChecks, PassiveChecks};
 use scan::passive::passive_scanner;
 use scan::*;
 use serde_json::{json, Value};
+#[expect(unused_imports)]
 use std::collections::{HashMap, HashSet};
 use std::vec;
 use strum::IntoEnumIterator;
@@ -85,7 +86,7 @@ pub async fn run(config: &mut Config) -> anyhow::Result<Value> {
     }
 }
 
-fn run_profile_info(config: &Config, oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
+fn run_profile_info(config: &Config, _oas: &OAS3_1, oas_json: &Value) -> anyhow::Result<Value> {
     // Creating parameter list
     verbose_print(config, None, "Creating param list...");
     let param_scan = ParamTable::new::<OAS3_1>(oas_json);

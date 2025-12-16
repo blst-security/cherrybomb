@@ -10,9 +10,11 @@ pub trait PassiveGeneralScan {
     fn check_successes(&self) -> Vec<Alert>;
     fn check_default_response(&self) -> Vec<Alert>;
     fn check_response_body_schema(&self) -> Vec<Alert>;
+    #[expect(dead_code)]
     fn example_inconsistent_schema(&self) -> Vec<Alert>;
     fn check_default_type(&self) -> Vec<Alert>;
     fn check_enum_type(&self) -> Vec<Alert>;
+    #[expect(dead_code)]
     fn check_required_undefined(&self) -> Vec<Alert>;
     fn check_unused_schema(&self) -> Vec<Alert>;
 }

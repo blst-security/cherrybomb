@@ -304,6 +304,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> ActiveScan<T> {
 }
 
 impl ActiveChecks {
+    #[expect(dead_code)]
     pub fn parse_check_list(list: Vec<String>, exclude: bool) -> Vec<ActiveChecks> {
         let mut checks = Vec::new();
         for check in list.iter() {

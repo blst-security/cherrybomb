@@ -27,6 +27,7 @@ where
     pub passive_checks: Vec<PassiveChecks>,
 }
 impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
+    #[expect(dead_code)]
     pub fn new(swagger_value: Value) -> Result<Self, &'static str> {
         match serde_json::from_value::<T>(swagger_value.clone()) {
             Ok(swagger) => Ok(PassiveSwaggerScan {
@@ -59,6 +60,7 @@ impl<T: OAS + Serialize + for<'de> Deserialize<'de>> PassiveSwaggerScan<T> {
 }
 
 impl PassiveChecks {
+    #[expect(dead_code)]
     pub fn parse_check_list(list: Vec<String>, exclude: bool) -> Vec<PassiveChecks> {
         let mut checks = Vec::new();
         for check in list.iter() {
