@@ -24,4 +24,4 @@ strum = "0.23" # legacy
 strum_macros = "0.23" # legacy
 url="^2" #legacy
 base64 = "0.13" #legacy
-reqwest = { version = "^0.11",default_features = false, features = ["json","rustls-tls"] } #legacy
+reqwest = { version = "^0.12", default-features = false, features = ["json","rustls-tls"] } #legacy
